@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.Core\ThreeL.Infra.Core.csproj" />
+    <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.SuperSocket\ThreeL.Infra.SuperSocket.csproj" />
+  </ItemGroup>
+
+</Project>
