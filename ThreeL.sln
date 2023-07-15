@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{74E4EF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Shared.SuperSocket", "Shared\ThreeL.Shared.SuperSocket\ThreeL.Shared.SuperSocket.csproj", "{17CDB149-459F-4053-B06E-6B50A72E2E1F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.ContextAPI", "ThreeL.ContextAPI\ThreeL.ContextAPI.csproj", "{859DDEC0-4B5A-47F4-A383-9DC7D4241DE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{17CDB149-459F-4053-B06E-6B50A72E2E1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17CDB149-459F-4053-B06E-6B50A72E2E1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17CDB149-459F-4053-B06E-6B50A72E2E1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{859DDEC0-4B5A-47F4-A383-9DC7D4241DE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{859DDEC0-4B5A-47F4-A383-9DC7D4241DE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{859DDEC0-4B5A-47F4-A383-9DC7D4241DE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{859DDEC0-4B5A-47F4-A383-9DC7D4241DE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

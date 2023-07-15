@@ -3,6 +3,7 @@ using SuperSocket;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Filters;
 using ThreeL.Shared.SuperSocket.Handlers;
+using ThreeL.SocketServer.SuperSocketHandlers;
 
 namespace ThreeL.SocketServer.BackgroundService
 {
@@ -25,7 +26,7 @@ namespace ThreeL.SocketServer.BackgroundService
                 .Create<IPacket, PackageFilter>().UsePackageHandler(async (session, package) =>
                 {
                     await _handlerDispatcher.DispatcherMessageHandlerAsync(session, package);
-                }).Build();
+                }).UseSession<ChatSession>().Build();
 
             await _tcpServerHost!.RunAsync(cancellationToken);
         }

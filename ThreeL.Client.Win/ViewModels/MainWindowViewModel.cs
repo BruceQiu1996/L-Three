@@ -47,7 +47,7 @@ namespace ThreeL.Client.Win.ViewModels
 
         private async Task SendTextAsync()
         {
-            await _udpSuperSocket.SendBytes(new IPEndPoint(IPAddress.Parse("127.0.0.1"),11887),new Packet<TextMessage>()
+            await _tcpSuperSocket.SendBytes(new Packet<TextMessage>()
             {
                 Checkbit = 570,
                 Sequence = 250,

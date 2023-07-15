@@ -8,9 +8,8 @@ namespace ThreeL.SocketServer.BackgroundService
 {
     public class GlobalTcpManageService : SuperSocketService<IPacket>
     {
-        public GlobalTcpManageService(IServiceProvider serviceProvider, IOptions<ServerOptions> serverOptions) : base(serviceProvider, serverOptions)
+        public GlobalTcpManageService(IOptions<ServerOptions> serverOptions) : base(Program.ServiceProvider, serverOptions)
         {
-
         }
 
         protected override async ValueTask OnSessionConnectedAsync(IAppSession session)

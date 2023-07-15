@@ -10,6 +10,7 @@ namespace ThreeL.SocketServer
 {
     internal class Program
     {
+        internal static IServiceProvider ServiceProvider { get; private set; }
         async static Task Main(string[] args)
         {
 
@@ -17,16 +18,14 @@ namespace ThreeL.SocketServer
             builder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
             builder.ConfigureServices((context, service) =>
             {
-                service.AddSuperSocket(new List<IMessageHandler>() 
-                {
-                    new TextMessageHandler()
-                });
-
+                service.AddSingleton<IMessageHandler, TextMessageHandler>();
+                service.AddSingleton<IMessageHandler, LoginCommandHandler>();
+                service.AddSuperSocket();
+                service.AddSingleton<ServerAppSessionManager<ChatSession>>();
                 service.AddHostedService<TcpServerRunningService>();
-                service.AddHostedService<GlobalTcpManageService>();
             });
             var host = builder.Build();
-
+            ServiceProvider = host.Services;
             await host.RunAsync();
         }
     }

@@ -11,6 +11,6 @@ namespace ThreeL.Shared.SuperSocket.Dto
         [ProtoMember(2)]
         public DateTime SendTime { get; set; }
         [ProtoMember(3)]
-        public DateTime ReceiveTime { get; set; }
+        public DateTime? ReceiveTime { get; set; }
     }
 }
