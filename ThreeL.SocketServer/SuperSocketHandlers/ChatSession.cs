@@ -12,7 +12,7 @@ public class ChatSession : AppSession
 
     protected override ValueTask OnSessionClosedAsync(CloseEventArgs e)
     {
-        _sessionManager.TryRemoveBySessionId(this.SessionID);
+        _sessionManager.TryRemoveBySessionId(UserId,SessionID);
         return base.OnSessionClosedAsync(e);
     }
 }

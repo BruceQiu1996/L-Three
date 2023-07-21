@@ -8,12 +8,12 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
     /// <summary>
     /// 存储的Session
     /// </summary>
-    public ConcurrentDictionary<string, TSession> Sessions { get; private set; } = new();
+    public ConcurrentDictionary<string, List<TSession>> Sessions { get; private set; } = new();
 
     /// <summary>
     /// Session的数量
     /// </summary>
-    public int Count => Sessions.Count;
+    public int Count => Sessions.SelectMany(x => x.Value).Count();
 
     /// <summary>
     /// </summary>
@@ -22,17 +22,12 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
 
     }
 
-    public ConcurrentDictionary<string, TSession> GetAllSessions()
-    {
-        return Sessions;
-    }
-
     /// <summary>
-    /// 获取一个Session
+    /// 获取某人的连接
     /// </summary>
     /// <param name="key"> </param>
     /// <returns> </returns>
-    public TSession? TryGet(string key)
+    public IEnumerable<TSession?> TryGet(string key)
     {
         Sessions.TryGetValue(key, out var session);
 
@@ -41,24 +36,13 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
 
     public bool TryAddOrUpdate(string key, TSession session)
     {
-        if (Sessions.TryGetValue(key, out var oldSession))
+        Sessions.AddOrUpdate(key, new List<TSession> { session }, (k, v) =>
         {
-            return Sessions.TryUpdate(key, session, oldSession);
-        }
-        else
-        {
-            return Sessions.TryAdd(key, session);
-        }
-    }
+            v.Add(session);
+            return v;
+        });
 
-    /// <summary>
-    /// 移除一个Session
-    /// </summary>
-    /// <param name="key"> </param>
-    /// <returns> </returns>
-    public bool TryRemove(string key)
-    {
-        return Sessions.TryRemove(key, out var session);
+        return true;
     }
 
     /// <summary>
@@ -66,16 +50,16 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
     /// </summary>
     /// <param name="sessionId"> </param>
     /// <returns> </returns>
-    public void TryRemoveBySessionId(string sessionId)
+    public void TryRemoveBySessionId(string userId, string sessionId)
     {
-        foreach (var session in Sessions)
-        {
-            if (session.Value.SessionID == sessionId)
-            {
-                Sessions.TryRemove(session);
-                return;
-            }
-        }
+        if (string.IsNullOrEmpty(userId))
+            return;
+
+        if (!Sessions.ContainsKey(userId))
+            return;
+
+        var sessions = Sessions[userId];
+        sessions.RemoveAll(x => x.SessionID == sessionId);
     }
 
     /// <summary>
@@ -100,9 +84,12 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
 
     public async void Dispose()
     {
-        foreach (var session in Sessions)
+        foreach (var item in Sessions)
         {
-            await session.Value!.CloseAsync(CloseReason.RemoteClosing);
+            foreach (var session in item.Value)
+            {
+                await session.CloseAsync(CloseReason.ServerShutdown);
+            }
         }
     }
 }

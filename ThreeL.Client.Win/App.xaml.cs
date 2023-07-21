@@ -3,13 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.ViewModels;
 using ThreeL.Shared.SuperSocket.Extensions;
-using ThreeL.Shared.SuperSocket.Handlers;
 
 namespace ThreeL.Client.Win
 {
@@ -30,10 +28,7 @@ namespace ThreeL.Client.Win
             {
                 service.AddSingleton<MainWindow>();
                 service.AddSingleton<MainWindowViewModel>();
-                service.AddSuperSocket(new List<IMessageHandler>()
-                {
-                
-                },true);
+                service.AddSuperSocket(true);
                 service.AddHostedService<UdpServerRunningService>();
 
             }).ConfigureLogging((hostCtx, loggingBuilder) =>
