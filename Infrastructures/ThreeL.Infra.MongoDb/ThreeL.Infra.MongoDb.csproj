@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" Version="2.20.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ThreeL.Infra.Core\ThreeL.Infra.Core.csproj" />
+    <ProjectReference Include="..\ThreeL.Infra.Repository\ThreeL.Infra.Repository.csproj" />
+  </ItemGroup>
+
 </Project>

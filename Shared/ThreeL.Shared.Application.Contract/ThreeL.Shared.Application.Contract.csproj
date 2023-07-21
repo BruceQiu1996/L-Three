@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.Cache.Redis\ThreeL.Infra.Cache.Redis.csproj" />
     <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.Dapper\ThreeL.Infra.Dapper.csproj" />
+    <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.MongoDb\ThreeL.Infra.MongoDb.csproj" />
   </ItemGroup>
 
 </Project>

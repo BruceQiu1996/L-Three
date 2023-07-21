@@ -5,6 +5,9 @@ using System.Reflection;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.Infra.Dapper;
 using ThreeL.Infra.Dapper.Extensions;
+using ThreeL.Infra.MongoDb;
+using ThreeL.Infra.MongoDb.Configuration;
+using ThreeL.Infra.MongoDb.Extensions;
 
 namespace ThreeL.Shared.Application.Contract.Extensions
 {
@@ -13,6 +16,15 @@ namespace ThreeL.Shared.Application.Contract.Extensions
         public static void AddApplicationService(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddInfraDapper();
+            var config = configuration.GetSection("MongoOptions").Get<MongoOptions>();
+            if (config != null)
+            {
+                services.AddInfraMongo<MongoContext>(options =>
+                {
+                    options.ConnectionString = config.ConnectionString;
+                    options.PluralizeCollectionNames = config.PluralizeCollectionNames;
+                });
+            }
         }
 
         public static void AddApplicationContainer(this ContainerBuilder container, Assembly implAssembly)
