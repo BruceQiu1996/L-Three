@@ -1,11 +1,11 @@
 ﻿namespace ThreeL.Infra.Repository.Entities
 {
-    internal interface IBasicAuditInfo
+    public interface IBasicAuditInfo<TKey>
     {
         /// <summary>
         /// 创建人
         /// </summary>
-        public long CreateBy { get; set; }
+        public TKey CreateBy { get; set; }
 
         /// <summary>
         /// 创建时间/注册时间

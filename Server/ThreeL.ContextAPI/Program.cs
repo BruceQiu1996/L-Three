@@ -1,8 +1,11 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
+using ThreeL.ContextAPI.Application.Contract.Extensions;
 
 namespace ThreeL.ContextAPI;
 
@@ -13,11 +16,12 @@ internal class Program
        var builder = WebApplication.CreateBuilder(args);
         builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory()).ConfigureContainer<ContainerBuilder>((hcontext, builder) =>
         {
-
+            builder.AddContextAPIApplicationContainer(Assembly.Load("ThreeL.ContextAPI.Application.Impl"));
         });
 
         builder.Host.ConfigureServices((hostContext, services) =>
         {
+            services.AddContextAPIApplicationService(hostContext.Configuration);
             services.AddMemoryCache();
             services.AddControllers();
             services.AddEndpointsApiExplorer();
@@ -31,6 +35,8 @@ internal class Program
                 });
             });
         });
+
+        builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
         //middleware
         var host = builder.Build();

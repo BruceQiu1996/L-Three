@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using ThreeL.Infra.Dapper.Repositories;
 using ThreeL.Infra.Repository.IRepositories;
 
@@ -9,8 +8,9 @@ namespace ThreeL.Infra.Dapper.Extensions
     {
         public static IServiceCollection AddInfraDapper(this IServiceCollection services)
         {
-            services.TryAddScoped<IAdoExecuterRepository, DapperRepository<DbContext>>();
-            services.TryAddScoped<IAdoQuerierRepository, DapperRepository<DbContext>>();
+            services.AddScoped(typeof(IAdoQuerierRepository<>), typeof(DapperRepository<>));
+            services.AddScoped(typeof(IAdoExecuterRepository<>), typeof(DapperRepository<>));
+            services.AddSingleton<DbConnectionFactory>();
 
             return services;
         }

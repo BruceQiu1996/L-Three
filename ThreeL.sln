@@ -3,21 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.SocketServer", "ThreeL.SocketServer\ThreeL.SocketServer.csproj", "{025232C1-A694-4E0E-BB25-864D4965A35C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructures", "Infrastructures", "{B54F62DA-AA33-49EA-986D-61768B692481}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Infra.Core", "Infrastructures\ThreeL.Infra.Core\ThreeL.Infra.Core.csproj", "{98BFF09C-5B75-43B1-A7D6-7233CCC3CE78}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Infra.SuperSocket", "Infrastructures\ThreeL.Infra.SuperSocket\ThreeL.Infra.SuperSocket.csproj", "{B7ADC328-6944-4D1E-B172-A280E5DF9880}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Client.Win", "ThreeL.Client.Win\ThreeL.Client.Win.csproj", "{B94EF2CD-4BF5-410B-8891-D190B2846F3B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{74E4EFD7-95B3-4169-895A-44136AE24CC4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Shared.SuperSocket", "Shared\ThreeL.Shared.SuperSocket\ThreeL.Shared.SuperSocket.csproj", "{17CDB149-459F-4053-B06E-6B50A72E2E1F}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.ContextAPI", "ThreeL.ContextAPI\ThreeL.ContextAPI.csproj", "{859DDEC0-4B5A-47F4-A383-9DC7D4241DE4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Infra.MongoDb", "Infrastructures\ThreeL.Infra.MongoDb\ThreeL.Infra.MongoDb.csproj", "{EFE66B83-F2D1-4A34-B29C-BD936888AB27}"
 EndProject
@@ -39,16 +33,24 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.ContextAPI.Domain", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Shared.Domain", "Shared\ThreeL.Shared.Domain\ThreeL.Shared.Domain.csproj", "{EDD60F4B-5291-4EC2-BA50-480ACABFBCA4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Clients", "Clients", "{E4DB58FF-FB74-482C-A214-6F68EFFD8EB8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{428EAEA1-738B-4B6D-8673-94C037DB6943}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.ContextAPI", "Server\ThreeL.ContextAPI\ThreeL.ContextAPI.csproj", "{0B3A0D4E-D216-4278-A644-234D1D8897FF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.SocketServer", "Server\ThreeL.SocketServer\ThreeL.SocketServer.csproj", "{E3A02204-B555-4CAD-B66F-F108F3F5DA93}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Client.Win", "Clients\ThreeL.Client.Win\ThreeL.Client.Win.csproj", "{2AE36922-F2F9-4051-BA99-54373557288D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Shared.Application.Contract", "Shared\ThreeL.Shared.Application.Contract\ThreeL.Shared.Application.Contract.csproj", "{295DB962-0E16-458F-AD7D-EB348C99C647}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{025232C1-A694-4E0E-BB25-864D4965A35C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{025232C1-A694-4E0E-BB25-864D4965A35C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{025232C1-A694-4E0E-BB25-864D4965A35C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{025232C1-A694-4E0E-BB25-864D4965A35C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{98BFF09C-5B75-43B1-A7D6-7233CCC3CE78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{98BFF09C-5B75-43B1-A7D6-7233CCC3CE78}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{98BFF09C-5B75-43B1-A7D6-7233CCC3CE78}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -57,18 +59,10 @@ Global
 		{B7ADC328-6944-4D1E-B172-A280E5DF9880}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7ADC328-6944-4D1E-B172-A280E5DF9880}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B7ADC328-6944-4D1E-B172-A280E5DF9880}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B94EF2CD-4BF5-410B-8891-D190B2846F3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B94EF2CD-4BF5-410B-8891-D190B2846F3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B94EF2CD-4BF5-410B-8891-D190B2846F3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B94EF2CD-4BF5-410B-8891-D190B2846F3B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{17CDB149-459F-4053-B06E-6B50A72E2E1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{17CDB149-459F-4053-B06E-6B50A72E2E1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{17CDB149-459F-4053-B06E-6B50A72E2E1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{17CDB149-459F-4053-B06E-6B50A72E2E1F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{859DDEC0-4B5A-47F4-A383-9DC7D4241DE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{859DDEC0-4B5A-47F4-A383-9DC7D4241DE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{859DDEC0-4B5A-47F4-A383-9DC7D4241DE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{859DDEC0-4B5A-47F4-A383-9DC7D4241DE4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EFE66B83-F2D1-4A34-B29C-BD936888AB27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EFE66B83-F2D1-4A34-B29C-BD936888AB27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFE66B83-F2D1-4A34-B29C-BD936888AB27}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -101,6 +95,22 @@ Global
 		{EDD60F4B-5291-4EC2-BA50-480ACABFBCA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDD60F4B-5291-4EC2-BA50-480ACABFBCA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDD60F4B-5291-4EC2-BA50-480ACABFBCA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B3A0D4E-D216-4278-A644-234D1D8897FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B3A0D4E-D216-4278-A644-234D1D8897FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B3A0D4E-D216-4278-A644-234D1D8897FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B3A0D4E-D216-4278-A644-234D1D8897FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3A02204-B555-4CAD-B66F-F108F3F5DA93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3A02204-B555-4CAD-B66F-F108F3F5DA93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3A02204-B555-4CAD-B66F-F108F3F5DA93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3A02204-B555-4CAD-B66F-F108F3F5DA93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AE36922-F2F9-4051-BA99-54373557288D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AE36922-F2F9-4051-BA99-54373557288D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AE36922-F2F9-4051-BA99-54373557288D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AE36922-F2F9-4051-BA99-54373557288D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{295DB962-0E16-458F-AD7D-EB348C99C647}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{295DB962-0E16-458F-AD7D-EB348C99C647}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{295DB962-0E16-458F-AD7D-EB348C99C647}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{295DB962-0E16-458F-AD7D-EB348C99C647}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -118,6 +128,10 @@ Global
 		{97C2513E-B29A-4515-91D0-2FA6FF3E338B} = {B499CE42-75DC-4265-AEDF-DD2AF67F50B4}
 		{E73C1D83-3833-4028-9805-2EAD5F8B247E} = {B499CE42-75DC-4265-AEDF-DD2AF67F50B4}
 		{EDD60F4B-5291-4EC2-BA50-480ACABFBCA4} = {74E4EFD7-95B3-4169-895A-44136AE24CC4}
+		{0B3A0D4E-D216-4278-A644-234D1D8897FF} = {428EAEA1-738B-4B6D-8673-94C037DB6943}
+		{E3A02204-B555-4CAD-B66F-F108F3F5DA93} = {428EAEA1-738B-4B6D-8673-94C037DB6943}
+		{2AE36922-F2F9-4051-BA99-54373557288D} = {E4DB58FF-FB74-482C-A214-6F68EFFD8EB8}
+		{295DB962-0E16-458F-AD7D-EB348C99C647} = {74E4EFD7-95B3-4169-895A-44136AE24CC4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1E61994D-66D6-42B4-8899-929E1BE73FBE}

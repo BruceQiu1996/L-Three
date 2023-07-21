@@ -2,7 +2,7 @@
 
 namespace ThreeL.Infra.Repository.IRepositories
 {
-    public interface IAdoExecuterRepository : IAdoRepository
+    public interface IAdoExecuterRepository<out TDbContext> : IAdoRepository
     {
         Task<IDataReader> ExecuteReaderAsync(string sql, object? param = null, IDbTransaction? transaction = null, int? commandTimeout = null, CommandType? commandType = null);
         Task<object> ExecuteScalarAsync(string sql, object? param = null, IDbTransaction? transaction = null, int? commandTimeout = null, CommandType? commandType = null);

@@ -2,7 +2,7 @@
 
 namespace ThreeL.Infra.Repository.IRepositories
 {
-    public interface IAdoQuerierRepository : IAdoRepository
+    public interface IAdoQuerierRepository<out TDbContext> : IAdoRepository
     {
         Task<IEnumerable<dynamic>?> QueryAsync(string sql, object? param = null, IDbTransaction? transaction = null, int? commandTimeout = null, CommandType? commandType = null);
         Task<IEnumerable<T>?> QueryAsync<T>(string sql, object? param = null, IDbTransaction? transaction = null, int? commandTimeout = null, CommandType? commandType = null);

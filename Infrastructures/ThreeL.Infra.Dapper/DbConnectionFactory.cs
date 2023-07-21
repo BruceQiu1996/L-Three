@@ -12,7 +12,7 @@ namespace ThreeL.Infra.Dapper
         /// 获取数据库连接
         /// </summary>
         /// <returns></returns>
-        public static IDbConnection CreateConnection(DbConnectionOptions options)
+        public IDbConnection CreateConnection(DbConnectionOptions options)
         {
             IDbConnection connection = null;
             connection = options.DatabaseType switch

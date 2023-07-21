@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ThreeL.ContextAPI.Application.Contract\ThreeL.ContextAPI.Application.Contract.csproj" />
+    <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.Cache.Redis\ThreeL.Infra.Cache.Redis.csproj" />
+    <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.Dapper\ThreeL.Infra.Dapper.csproj" />
   </ItemGroup>
 
 </Project>
