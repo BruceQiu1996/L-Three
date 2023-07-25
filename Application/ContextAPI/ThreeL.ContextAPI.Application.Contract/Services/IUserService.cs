@@ -1,9 +1,10 @@
-﻿using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
+﻿using ThreeL.ContextAPI.Application.Contract.Dtos.User;
 
 namespace ThreeL.ContextAPI.Application.Contract.Services
 {
     public interface IUserService
     {
-        Task<User> SearchAllUsersAsync();
+        Task CreateUserAsync(UserCreationDto creationDto, long creator);
+        Task<UserLoginResponseDto> LoginAsync(UserLoginDto userLoginDto);
     }
 }

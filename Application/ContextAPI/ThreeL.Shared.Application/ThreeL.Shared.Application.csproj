@@ -7,10 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Metadata\" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\ThreeL.Shared.Application.Contract\ThreeL.Shared.Application.Contract.csproj" />
     <ProjectReference Include="..\..\..\Shared\ThreeL.Shared.Domain\ThreeL.Shared.Domain.csproj" />
   </ItemGroup>
 

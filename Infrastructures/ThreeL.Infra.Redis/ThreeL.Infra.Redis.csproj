@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Metadata\" />
+    <PackageReference Include="StackExchange.Redis" Version="2.6.122" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Shared\ThreeL.Shared.Domain\ThreeL.Shared.Domain.csproj" />
+    <ProjectReference Include="..\ThreeL.Infra.Core\ThreeL.Infra.Core.csproj" />
   </ItemGroup>
 
 </Project>

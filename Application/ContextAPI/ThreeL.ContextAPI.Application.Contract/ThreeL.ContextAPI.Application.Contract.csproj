@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Shared\ThreeL.Shared.Application.Contract\ThreeL.Shared.Application.Contract.csproj" />
     <ProjectReference Include="..\ThreeL.ContextAPI.Domain\ThreeL.ContextAPI.Domain.csproj" />
   </ItemGroup>

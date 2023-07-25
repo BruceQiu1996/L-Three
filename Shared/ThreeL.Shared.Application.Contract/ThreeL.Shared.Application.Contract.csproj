@@ -7,9 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.6.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.Cache.Redis\ThreeL.Infra.Cache.Redis.csproj" />
     <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.Dapper\ThreeL.Infra.Dapper.csproj" />
     <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.MongoDb\ThreeL.Infra.MongoDb.csproj" />
+    <ProjectReference Include="..\..\Infrastructures\ThreeL.Infra.Redis\ThreeL.Infra.Redis.csproj" />
   </ItemGroup>
 
 </Project>

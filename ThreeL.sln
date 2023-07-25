@@ -13,13 +13,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{74E4EF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Shared.SuperSocket", "Shared\ThreeL.Shared.SuperSocket\ThreeL.Shared.SuperSocket.csproj", "{17CDB149-459F-4053-B06E-6B50A72E2E1F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Infra.MongoDb", "Infrastructures\ThreeL.Infra.MongoDb\ThreeL.Infra.MongoDb.csproj", "{EFE66B83-F2D1-4A34-B29C-BD936888AB27}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Infra.MongoDb", "Infrastructures\ThreeL.Infra.MongoDb\ThreeL.Infra.MongoDb.csproj", "{EFE66B83-F2D1-4A34-B29C-BD936888AB27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Infra.Dapper", "Infrastructures\ThreeL.Infra.Dapper\ThreeL.Infra.Dapper.csproj", "{5F4BE06D-325E-4104-A6F1-42B4C3011472}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Infra.Dapper", "Infrastructures\ThreeL.Infra.Dapper\ThreeL.Infra.Dapper.csproj", "{5F4BE06D-325E-4104-A6F1-42B4C3011472}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Application", "Application", "{8DEA1304-5CC1-449A-8A4D-811A9486ACED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Infra.Cache.Redis", "Infrastructures\ThreeL.Infra.Cache.Redis\ThreeL.Infra.Cache.Redis.csproj", "{9B80C907-EE13-4044-897F-BA4BFD3968AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Infra.Cache.Redis", "Infrastructures\ThreeL.Infra.Cache.Redis\ThreeL.Infra.Cache.Redis.csproj", "{9B80C907-EE13-4044-897F-BA4BFD3968AD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Infra.Repository", "Infrastructures\ThreeL.Infra.Repository\ThreeL.Infra.Repository.csproj", "{76F3CFD9-D4FA-4799-AD07-B9E41C3704D0}"
 EndProject
@@ -29,9 +29,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.ContextAPI.Applicati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.ContextAPI.Application.Impl", "Application\ContextAPI\ThreeL.ContextAPI.Application.Impl\ThreeL.ContextAPI.Application.Impl.csproj", "{97C2513E-B29A-4515-91D0-2FA6FF3E338B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.ContextAPI.Domain", "Application\ContextAPI\ThreeL.ContextAPI.Domain\ThreeL.ContextAPI.Domain.csproj", "{E73C1D83-3833-4028-9805-2EAD5F8B247E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.ContextAPI.Domain", "Application\ContextAPI\ThreeL.ContextAPI.Domain\ThreeL.ContextAPI.Domain.csproj", "{E73C1D83-3833-4028-9805-2EAD5F8B247E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Shared.Domain", "Shared\ThreeL.Shared.Domain\ThreeL.Shared.Domain.csproj", "{EDD60F4B-5291-4EC2-BA50-480ACABFBCA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Shared.Domain", "Shared\ThreeL.Shared.Domain\ThreeL.Shared.Domain.csproj", "{EDD60F4B-5291-4EC2-BA50-480ACABFBCA4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Clients", "Clients", "{E4DB58FF-FB74-482C-A214-6F68EFFD8EB8}"
 EndProject
@@ -43,7 +43,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.SocketServer", "Serv
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Client.Win", "Clients\ThreeL.Client.Win\ThreeL.Client.Win.csproj", "{2AE36922-F2F9-4051-BA99-54373557288D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Shared.Application.Contract", "Shared\ThreeL.Shared.Application.Contract\ThreeL.Shared.Application.Contract.csproj", "{295DB962-0E16-458F-AD7D-EB348C99C647}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Shared.Application.Contract", "Shared\ThreeL.Shared.Application.Contract\ThreeL.Shared.Application.Contract.csproj", "{295DB962-0E16-458F-AD7D-EB348C99C647}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Shared.Application", "Application\ContextAPI\ThreeL.Shared.Application\ThreeL.Shared.Application.csproj", "{5E34C46D-FF31-4C9D-81CA-BC8A459E6B57}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Infra.Redis", "Infrastructures\ThreeL.Infra.Redis\ThreeL.Infra.Redis.csproj", "{05D65436-6E6F-4F9D-ABF2-B5E88B5ABCB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +115,14 @@ Global
 		{295DB962-0E16-458F-AD7D-EB348C99C647}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{295DB962-0E16-458F-AD7D-EB348C99C647}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{295DB962-0E16-458F-AD7D-EB348C99C647}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E34C46D-FF31-4C9D-81CA-BC8A459E6B57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E34C46D-FF31-4C9D-81CA-BC8A459E6B57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E34C46D-FF31-4C9D-81CA-BC8A459E6B57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E34C46D-FF31-4C9D-81CA-BC8A459E6B57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05D65436-6E6F-4F9D-ABF2-B5E88B5ABCB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05D65436-6E6F-4F9D-ABF2-B5E88B5ABCB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05D65436-6E6F-4F9D-ABF2-B5E88B5ABCB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05D65436-6E6F-4F9D-ABF2-B5E88B5ABCB4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -132,6 +144,8 @@ Global
 		{E3A02204-B555-4CAD-B66F-F108F3F5DA93} = {428EAEA1-738B-4B6D-8673-94C037DB6943}
 		{2AE36922-F2F9-4051-BA99-54373557288D} = {E4DB58FF-FB74-482C-A214-6F68EFFD8EB8}
 		{295DB962-0E16-458F-AD7D-EB348C99C647} = {74E4EFD7-95B3-4169-895A-44136AE24CC4}
+		{5E34C46D-FF31-4C9D-81CA-BC8A459E6B57} = {74E4EFD7-95B3-4169-895A-44136AE24CC4}
+		{05D65436-6E6F-4F9D-ABF2-B5E88B5ABCB4} = {B54F62DA-AA33-49EA-986D-61768B692481}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1E61994D-66D6-42B4-8899-929E1BE73FBE}

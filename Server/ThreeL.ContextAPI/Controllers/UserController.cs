@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ThreeL.ContextAPI.Application.Contract.Dtos.User;
 using ThreeL.ContextAPI.Application.Contract.Services;
+using ThreeL.Shared.Domain.Metadata;
 
 namespace ThreeL.ContextAPI.Controllers
 {
@@ -14,10 +17,23 @@ namespace ThreeL.ContextAPI.Controllers
             _userService = userService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult> Get()
+        [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        [HttpPost]
+        public async Task<ActionResult> Create(UserCreationDto creationDto)
         {
-            return Ok(await _userService.SearchAllUsersAsync());
+            await _userService.CreateUserAsync(creationDto, 0);
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public async Task<ActionResult> Login(UserLoginDto creationDto)
+        {
+            var resp = await _userService.LoginAsync(creationDto);
+            if (resp == null)
+                return NotFound();
+
+            return Ok(resp);
         }
     }
 }

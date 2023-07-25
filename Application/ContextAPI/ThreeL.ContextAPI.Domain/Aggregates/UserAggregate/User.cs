@@ -1,5 +1,6 @@
 ﻿using ThreeL.Infra.Repository.Entities;
 using ThreeL.Shared.Domain.Entities;
+using ThreeL.Shared.Domain.Metadata;
 
 namespace ThreeL.ContextAPI.Domain.Aggregates.UserAggregate
 {
@@ -9,6 +10,7 @@ namespace ThreeL.ContextAPI.Domain.Aggregates.UserAggregate
         public string Password { get; set; }
         public string Avatar { get; set; }
         public string Sign { get; set; }
+        public Role Role { get; set; }
         public bool IsDeleted { get; set; }
         public long CreateBy { get; set; }
         public DateTime CreateTime { get; set; }

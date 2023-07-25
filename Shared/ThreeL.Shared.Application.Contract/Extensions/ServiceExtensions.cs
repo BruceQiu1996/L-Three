@@ -1,4 +1,7 @@
 ﻿using Autofac;
+using AutoMapper;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -8,12 +11,15 @@ using ThreeL.Infra.Dapper.Extensions;
 using ThreeL.Infra.MongoDb;
 using ThreeL.Infra.MongoDb.Configuration;
 using ThreeL.Infra.MongoDb.Extensions;
+using ThreeL.Infra.Redis.Extensions;
+using ThreeL.Shared.Application.Contract.Configurations;
+using ThreeL.Shared.Application.Contract.Helpers;
 
 namespace ThreeL.Shared.Application.Contract.Extensions
 {
     public static class ServiceExtensions
     {
-        public static void AddApplicationService(this IServiceCollection services, IConfiguration configuration)
+        public static void AddApplicationService(this IServiceCollection services, IConfiguration configuration, Assembly contractAssembly)
         {
             services.AddInfraDapper();
             var config = configuration.GetSection("MongoOptions").Get<MongoOptions>();
@@ -25,6 +31,12 @@ namespace ThreeL.Shared.Application.Contract.Extensions
                     options.PluralizeCollectionNames = config.PluralizeCollectionNames;
                 });
             }
+            services.AddInfraRedis(configuration);
+            services.Configure<SystemOptions>(configuration.GetSection("System"));
+            services.AddAutoMapper(contractAssembly.DefinedTypes.Where(t => typeof(Profile).GetTypeInfo().IsAssignableFrom(t.AsType())).Select(t => t.AsType()).ToArray());
+            services.AddFluentValidationAutoValidation();
+            services.AddValidatorsFromAssembly(contractAssembly);
+            services.AddSingleton<PasswordHelper>();
         }
 
         public static void AddApplicationContainer(this ContainerBuilder container, Assembly implAssembly)

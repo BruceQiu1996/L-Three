@@ -16,13 +16,16 @@ LOG ON
     filegrowth=0 --启动自动增长
 )
 GO
-CREATE TABLE dbo.USER(
-    id bigint PRIMARY key,
-    `userName` varchar(16) not null,
-    `password` varchar(50) not null,
+USE ThreeL_ContextAPI
+GO
+CREATE TABLE [USER](
+    id bigint PRIMARY key identity,
+    userName varchar(16) not null,
+    password varchar(50) not null,
     avatar varchar(500),
     sign varchar(20),
-    isDeleted bit,
+    isDeleted bit NOT NULL,
+    role int NOT NULL,
     createBy bigint,
     createTime datetime not null
 );
