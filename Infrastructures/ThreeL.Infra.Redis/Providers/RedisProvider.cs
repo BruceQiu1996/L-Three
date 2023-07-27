@@ -21,9 +21,16 @@ namespace ThreeL.Infra.Redis.Providers
             return await _redisDb.HashExistsAsync(cacheKey, field);
         }
 
-        public async Task<bool> HSetAsync(string cacheKey, string field, string cacheValue, When when = When.Always)
+        public async Task<bool> HSetAsync<T>(string cacheKey, string cacheValue, T value, TimeSpan? expiration = null, When when = When.Always)
         {
-            return await _redisDb.HashSetAsync(cacheKey, field, cacheValue);
+            var data = JsonSerializer.Serialize(value, _jsonOptions);
+            await _redisDb.HashSetAsync(cacheKey, cacheValue, data);
+            if (expiration != null)
+            {
+                await _redisDb.KeyExpireAsync(cacheKey, expiration);
+            }
+
+            return true;
         }
 
         public async Task<T> HGetAsync<T>(string cacheKey, string field)
@@ -37,6 +44,11 @@ namespace ThreeL.Infra.Redis.Providers
             {
                 return default;
             }
+        }
+
+        public async Task<bool> KeyDelAsync(string key)
+        {
+            return await _redisDb.KeyDeleteAsync(key);
         }
 
         public async Task<bool> KeyExistsAsync(string cacheKey)
@@ -54,6 +66,20 @@ namespace ThreeL.Infra.Redis.Providers
         {
             bool flag = await _redisDb.StringSetAsync(cacheKey, cacheValue, expiration, when);
             return flag;
+        }
+
+        public async Task<Dictionary<string, T>> HGetAllAsync<T>(string cacheKey)
+        {
+            var dict = new Dictionary<string, T>();
+            var vals = await _redisDb.HashGetAllAsync(cacheKey);
+
+            foreach (var item in vals)
+            {
+                if (!dict.ContainsKey(item.Name))
+                    dict.Add(item.Name, JsonSerializer.Deserialize<T>(item.Value, _jsonOptions));
+            }
+
+            return dict;
         }
     }
 }

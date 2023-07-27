@@ -18,7 +18,7 @@ internal class Program
     async static Task Main(string[] args)
     {
         WebApplication host = null;
-       var builder = WebApplication.CreateBuilder(args);
+        var builder = WebApplication.CreateBuilder(args);
         builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory()).ConfigureContainer<ContainerBuilder>((hcontext, builder) =>
         {
             builder.AddContextAPIApplicationContainer(Assembly.Load("ThreeL.ContextAPI.Application.Impl"));
@@ -74,10 +74,7 @@ internal class Program
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.FromSeconds(int.Parse(hostContext.Configuration["Jwt:ClockSkew"]!)), //过期时间容错值，解决服务器端时间不同步问题（秒）
                     RequireExpirationTime = true,
-                    //IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
-                    //{
-                    //    //查找秘钥
-                    //}
+                    IssuerSigningKeyResolver = host!.Services.GetRequiredService<IJwtService>().ValidateIssuerSigningKey
                 };
             });
         });

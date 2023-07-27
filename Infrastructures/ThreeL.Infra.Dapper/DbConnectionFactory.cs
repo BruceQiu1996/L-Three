@@ -1,4 +1,4 @@
-﻿using System.Data;
+﻿using System.Data.Common;
 using System.Data.SqlClient;
 using System.Data.SQLite;
 using ThreeL.Infra.Dapper.Configuration;
@@ -12,9 +12,9 @@ namespace ThreeL.Infra.Dapper
         /// 获取数据库连接
         /// </summary>
         /// <returns></returns>
-        public IDbConnection CreateConnection(DbConnectionOptions options)
+        public DbConnection CreateConnection(DbConnectionOptions options)
         {
-            IDbConnection connection = null;
+            DbConnection connection = null;
             connection = options.DatabaseType switch
             {
                 DbTypes.MSSQL => new SqlConnection(options.ConnectionString),

@@ -1,14 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using MongoDB.Driver;
 using StackExchange.Redis;
 using System.Text;
-using System.Text.Json;
 using ThreeL.ContextAPI.Application.Contract.Configurations;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Domain.Entities;
-using ThreeL.Infra.Core.Serializer;
 using ThreeL.Infra.Redis;
 using ThreeL.Infra.Repository.IRepositories;
 using ThreeL.Shared.Application.Contract.Configurations;
@@ -23,7 +20,6 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
         private readonly IMongoRepository<JwtSetting> _mongoRepository;
         private readonly IRedisProvider _redisProvider;
         private readonly IMapper _mapper;
-        private readonly JsonSerializerOptions _jsonSerializerOptions = SystemTextJson.GetAdncDefaultOptions();
 
         public JwtService(IOptions<JwtOptions> jwtOptions,
                           IMapper mapper,
@@ -43,22 +39,20 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var jwtSetting = _mapper.Map<JwtSetting>(_jwtOptions.Value);
             jwtSetting.Section = _systemOptions.Value.Name;
             jwtSetting.SecretKey = Guid.NewGuid().ToString();
-            await _mongoRepository.DeleteManyAsync(Builders<JwtSetting>.Filter.Eq(x => x.Section, jwtSetting.Section));
+            jwtSetting.TokenExpireSeconds = _jwtOptions.Value.TokenExpireSeconds;
+            jwtSetting.SecretExpireAt = DateTime.Now.AddSeconds(_jwtOptions.Value.SecretExpireSeconds);
             await _mongoRepository.AddAsync(jwtSetting);
-            var jwtSettingJson = JsonSerializer.Serialize(jwtSetting, _jsonSerializerOptions);
-            await _redisProvider.HSetAsync(Const.REDIS_JWT_SECRET_KEY, _systemOptions.Value.Name, jwtSettingJson, When.Always);
+            //默认设置jwt key每三天过期
+            await _redisProvider.HSetAsync(Const.REDIS_JWT_SECRET_KEY, $"{_systemOptions.Value.Name}-{DateTime.Now}", jwtSetting, TimeSpan.FromDays(3), When.Always);
         }
 
-        public bool ValidateIssuerSigningKey(SecurityKey securityKey, SecurityToken securityToken, TokenValidationParameters validationParameters)
+        public IEnumerable<SecurityKey> ValidateIssuerSigningKey(string token, SecurityToken securityToken, string kid, TokenValidationParameters validationParameters)
         {
-            var jwtSetting = _mongoRepository.GetAllAsync(Builders<JwtSetting>.Filter.Eq(x => x.Issuer, _jwtOptions.Value.Issuer)).Result;
-            foreach (var item in jwtSetting)
+            var settings = _redisProvider.HGetAllAsync<JwtSetting>(Const.REDIS_JWT_SECRET_KEY).Result;
+            foreach (var item in settings.Where(x => x.Value.Issuer == securityToken.Issuer))
             {
-                if (securityKey.Equals(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(item.SecretKey))))
-                    return true;
+                yield return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(item.Value.SecretKey));
             }
-
-            return false;
         }
     }
 }

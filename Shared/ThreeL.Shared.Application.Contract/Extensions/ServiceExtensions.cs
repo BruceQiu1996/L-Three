@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Autofac.Extras.DynamicProxy;
 using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -14,6 +15,7 @@ using ThreeL.Infra.MongoDb.Extensions;
 using ThreeL.Infra.Redis.Extensions;
 using ThreeL.Shared.Application.Contract.Configurations;
 using ThreeL.Shared.Application.Contract.Helpers;
+using ThreeL.Shared.Application.Contract.Interceptors;
 
 namespace ThreeL.Shared.Application.Contract.Extensions
 {
@@ -41,8 +43,9 @@ namespace ThreeL.Shared.Application.Contract.Extensions
 
         public static void AddApplicationContainer(this ContainerBuilder container, Assembly implAssembly)
         {
-            container.RegisterAssemblyTypes(implAssembly).Where(t => typeof(IAppService).IsAssignableFrom(t)).SingleInstance().AsImplementedInterfaces();
-            container.RegisterAssemblyTypes(implAssembly).Where(t => typeof(DbContext).IsAssignableFrom(t)).SingleInstance().AsSelf();
+            container.RegisterAssemblyTypes(implAssembly).Where(t => typeof(IAppService).IsAssignableFrom(t)).SingleInstance().AsImplementedInterfaces()
+                .EnableInterfaceInterceptors().InterceptedBy(typeof(AsyncInterceptorAdaper<DapperUowAsyncInterceptor>)); ;
+            container.RegisterAssemblyTypes(implAssembly).Where(t => typeof(DbContext).IsAssignableFrom(t)).SingleInstance().AsSelf().As<DbContext>();
         }
     }
 }

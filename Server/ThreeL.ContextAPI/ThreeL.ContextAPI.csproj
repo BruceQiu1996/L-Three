@@ -5,6 +5,7 @@
 		<TargetFramework>net7.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<PublishAot>true</PublishAot>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,6 +26,9 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Application\ContextAPI\ThreeL.ContextAPI.Application.Impl\ThreeL.ContextAPI.Application.Impl.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Properties\" />
 	</ItemGroup>
 
 </Project>

@@ -35,5 +35,16 @@ namespace ThreeL.ContextAPI.Controllers
 
             return Ok(resp);
         }
+
+        [AllowAnonymous]
+        [HttpPost("refresh/token")]
+        public async Task<ActionResult> RefreshToken(UserRefreshTokenDto tokenDto)
+        {
+            var resp = await _userService.RefreshAuthTokenAsync(tokenDto);
+            if (resp == null)
+                return BadRequest();
+
+            return Ok(resp);
+        }
     }
 }

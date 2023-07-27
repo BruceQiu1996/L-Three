@@ -13,6 +13,8 @@ namespace ThreeL.ContextAPI.Domain.Aggregates.UserAggregate
         public Role Role { get; set; }
         public bool IsDeleted { get; set; }
         public long CreateBy { get; set; }
+        public string AccessToken { get; set; }
+        public string RefreshToken { get; set; }
         public DateTime CreateTime { get; set; }
     }
 }
