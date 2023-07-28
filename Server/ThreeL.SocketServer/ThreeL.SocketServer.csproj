@@ -21,6 +21,7 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0" />
 	</ItemGroup>
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Application\SocketServer\ThreeL.SocketServer.Application.Impl\ThreeL.SocketServer.Application.Impl.csproj" />
 	  <ProjectReference Include="..\..\Shared\ThreeL.Shared.SuperSocket\ThreeL.Shared.SuperSocket.csproj" />
 	</ItemGroup>
 </Project>

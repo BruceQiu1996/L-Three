@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option csharp_namespace = "ThreeL.SocketServer.Application.Contract";
+
+message SocketServerUserLoginRequest{
+	int64 id = 1;
+	string accessToken = 2;
+}
+
+message SocketServerUserLoginResponse{
+	bool result = 1;
+}
+
+service SocketServerService{
+	rpc SocketServerUserLogin(SocketServerUserLoginRequest) returns (SocketServerUserLoginResponse);
+}

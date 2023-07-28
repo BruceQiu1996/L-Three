@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Dapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -12,7 +11,6 @@ using ThreeL.ContextAPI.Application.Contract.Dtos.User;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
 using ThreeL.ContextAPI.Domain.Entities;
-using ThreeL.Infra.Dapper;
 using ThreeL.Infra.Redis;
 using ThreeL.Infra.Repository.IRepositories;
 using ThreeL.Shared.Application.Contract.Configurations;
@@ -25,7 +23,6 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
         private const string RefreshTokenIdClaimType = "refresh_token_id";
         private readonly IAdoQuerierRepository<ContextAPIDbContext> _adoQuerierRepository;
         private readonly IAdoExecuterRepository<ContextAPIDbContext> _adoExecuterRepository;
-        private readonly DbContext _contextAPIDbContext;
         private readonly IRedisProvider _redisProvider;
         private readonly PasswordHelper _passwordHelper;
         private readonly JwtOptions _jwtOptions;
@@ -39,7 +36,6 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                            IRedisProvider redisProvider,
                            IOptions<JwtOptions> jwtOptions,
                            IOptionsSnapshot<JwtBearerOptions> jwtBearerOptions,
-                           DbContext contextAPIDbContext,
                            IOptions<SystemOptions> systemOptions,
                            IMapper mapper)
         {
@@ -51,7 +47,6 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             _jwtBearerOptions = jwtBearerOptions.Get(JwtBearerDefaults.AuthenticationScheme);
             _adoQuerierRepository = adoQuerierRepository;
             _adoExecuterRepository = adoExecuterRepository;
-            _contextAPIDbContext = contextAPIDbContext;
         }
 
         public async Task CreateUserAsync(UserCreationDto creationDto, long creator)
@@ -157,17 +152,6 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 RefreshToken = result.refreshToken,
                 AccessToken = result.accessToken
             };
-        }
-
-        public async Task TestAsync()
-        {
-            _contextAPIDbContext.DbConnection.Execute
-                       ("INSERT INTO [User] (userName,password,isDeleted,createBy,createTime,role) VALUES (@UserName, @Password, 0, @CreateBy, @CreateTime, @Role)",
-                       new { UserName = "test10", Password = "666666", Role = 1, CreateBy = 1, CreateTime = DateTime.Now });
-            throw new Exception();
-            _contextAPIDbContext.DbConnection.Execute
-               ("INSERT INTO [User] (userName,password,isDeleted,createBy,createTime,role) VALUES (@UserName, @Password, 0, @CreateBy, @CreateTime, @Role)",
-               new { UserName = "test11", Password = "666666", Role = 1, CreateBy = 1, CreateTime = DateTime.Now });
         }
     }
 }

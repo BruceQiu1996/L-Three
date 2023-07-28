@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ThreeL.ContextAPI.Application.Contract\ThreeL.ContextAPI.Application.Contract.csproj" />
+    <ProjectReference Include="..\ThreeL.Shared.Application\ThreeL.Shared.Application.csproj" />
   </ItemGroup>
 
 </Project>

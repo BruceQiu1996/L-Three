@@ -6,9 +6,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Reflection;
 using ThreeL.ContextAPI.Application.Contract.Extensions;
 using ThreeL.ContextAPI.Application.Contract.Services;
+using ThreeL.ContextAPI.Application.Impl;
+using ThreeL.ContextAPI.Application.Impl.Services.Grpc;
 using ThreeL.Shared.Application.Contract.Extensions;
 
 namespace ThreeL.ContextAPI;
@@ -18,15 +19,16 @@ internal class Program
     async static Task Main(string[] args)
     {
         WebApplication host = null;
+        AppAssemblyInfo appAssemblyInfo = new AppAssemblyInfo();
         var builder = WebApplication.CreateBuilder(args);
         builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory()).ConfigureContainer<ContainerBuilder>((hcontext, builder) =>
         {
-            builder.AddContextAPIApplicationContainer(Assembly.Load("ThreeL.ContextAPI.Application.Impl"));
+            builder.AddContextAPIApplicationContainer(appAssemblyInfo.ImplementAssembly);
         });
 
         builder.Host.ConfigureServices((hostContext, services) =>
         {
-            services.AddContextAPIApplicationService(hostContext.Configuration, Assembly.Load("ThreeL.ContextAPI.Application.Contract"));
+            services.AddContextAPIApplicationService(hostContext.Configuration, appAssemblyInfo.ContractAssembly);
             services.AddMemoryCache();
             services.AddControllers();
             services.AddEndpointsApiExplorer();
@@ -93,7 +95,7 @@ internal class Program
             option.SwaggerEndpoint($"/swagger/v1/swagger.json", "v1");
         });
         host.MapControllers();
-
+        host.MapGrpcService<MySocketServerService>();
         await host.RunAsync();
     }
 }

@@ -32,7 +32,7 @@ namespace ThreeL.Client.Win.BackgroundService
                                 new ListenOptions
                                 {
                                     Ip = "Any",
-                                    Port = 11887
+                                    Port = 0
                                 }
                             };
                 }).Build();
