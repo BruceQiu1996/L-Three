@@ -1,4 +1,4 @@
-﻿namespace ThreeL.ContextAPI.Application.Contract.Dtos.User
+﻿namespace ThreeL.Client.Shared.Dtos.ContextAPI
 {
     public class UserLoginResponseDto
     {

@@ -6,17 +6,13 @@
         xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:hc="https://handyorg.github.io/handycontrol"
         mc:Ignorable="d"
-        Title="Login" Height="400" Width="750"
-        WindowStyle="None" ResizeMode="CanResize" ShowInTaskbar="False" 
-        WindowStartupLocation="CenterScreen" Background="Transparent">
+        ResizeMode="CanResize"
+        Background="Transparent"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        Title="Login" Height="380" Width="740">
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="60"
-                      GlassFrameThickness="1"
-                      UseAeroCaptionButtons="False"
-                      NonClientFrameEdges="None"
-                      CornerRadius="0"
-                      ResizeBorderThickness="0">
-        </WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="3"/>
     </WindowChrome.WindowChrome>
     <Grid>
         <Border Margin="5" Background="#2d2a2e" CornerRadius="5" BorderThickness="0">
@@ -25,7 +21,6 @@
                                   Opacity="0.25" Color="#FF5B5B5B"></DropShadowEffect>
             </Border.Effect>
         </Border>
-
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="45"></RowDefinition>
@@ -37,7 +32,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid MouseMove="Border_MouseMove" Grid.ColumnSpan="2" Background="Transparent">
-                <TextBlock Text="Socks5ServerManager" 
+                <TextBlock Text="ThreeL" 
                            Foreground="Salmon"
                            Grid.Column="0"
                            Margin="12 10 0 0" 
@@ -89,7 +84,7 @@
                             FontSize="15"
                             BorderThickness="0"
                             Text="{Binding UserName,UpdateSourceTrigger=PropertyChanged}"
-                            Margin="20 60 20 20" hc:InfoElement.Placeholder="用户名"/>
+                            Margin="20 30 20 20" hc:InfoElement.Placeholder="用户名"/>
                 <hc:PasswordBox Margin="20 10" 
                                 Height="40"
                                 Name="pwd"
@@ -105,11 +100,11 @@
                         Command="{Binding LoginCommandAsync}"
                         CommandParameter="{Binding ElementName=pwd}"
                         FontSize="15" Height="35"
-                        Style="{StaticResource ButtonDashedPrimary}" Width="350" Margin="20 20 20 0"></Button>
+                        Style="{StaticResource ButtonDashedPrimary}" Width="320" Margin="20 40 20 0"></Button>
             </StackPanel>
 
             <Grid Grid.Row="2" Grid.ColumnSpan="2">
-                <TextBlock Foreground="Gray" VerticalAlignment="Center" HorizontalAlignment="Center" Text="版本v1.0.0.0"/>
+                <TextBlock Foreground="Gray" VerticalAlignment="Center" HorizontalAlignment="Center" Text="version : 1.0.0.0"/>
             </Grid>
         </Grid>
     </Grid>

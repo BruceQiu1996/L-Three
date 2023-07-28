@@ -28,6 +28,7 @@ internal class Program
 
         builder.Host.ConfigureServices((hostContext, services) =>
         {
+            services.AddGrpc();
             services.AddContextAPIApplicationService(hostContext.Configuration, appAssemblyInfo.ContractAssembly);
             services.AddMemoryCache();
             services.AddControllers();

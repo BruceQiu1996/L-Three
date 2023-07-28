@@ -13,8 +13,8 @@ namespace ThreeL.Shared.SuperSocket.Extensions
             service.AddSingleton<MessageHandlerDispatcher>();
             if (isClient)
             {
-                service.AddTransient<TcpSuperSocketClient>();
-                service.AddTransient<UdpSuperSocketClient>();
+                service.AddSingleton<TcpSuperSocketClient>();
+                service.AddSingleton<UdpSuperSocketClient>();
             }
         }
     }

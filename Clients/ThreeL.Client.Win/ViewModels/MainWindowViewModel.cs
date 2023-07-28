@@ -1,18 +1,22 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using System;
 using System.Threading.Tasks;
+using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
 using ThreeL.Shared.SuperSocket.Client;
+using ThreeL.Shared.SuperSocket.Dto;
+using ThreeL.Shared.SuperSocket.Dto.Commands;
+using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.ViewModels
 {
     public class MainWindowViewModel : ObservableObject
     {
-        public AsyncRelayCommand LoginCommandAsync { get; set; }
-        public AsyncRelayCommand SendTextCommandAsync { get; set; }
+        public AsyncRelayCommand LoadCommandAsync { get; set; }
 
-        private readonly IConfiguration _configuration;
+        private readonly SocketServerOptions _socketServerOptions;
         private readonly ClientSqliteContext _clientSqliteContext;
         private readonly TcpSuperSocketClient _tcpSuperSocket; //通讯服务器socket
         private readonly UdpSuperSocketClient _udpSuperSocket; //本地udp通讯socket
@@ -20,33 +24,46 @@ namespace ThreeL.Client.Win.ViewModels
         public MainWindowViewModel(TcpSuperSocketClient tcpSuperSocket,
                                    UdpSuperSocketClient udpSuperSocket,
                                    ClientSqliteContext clientSqliteContext,
-                                   IConfiguration configuration)
+                                   IOptions<SocketServerOptions> socketServerOptions)
         {
-            LoginCommandAsync = new AsyncRelayCommand(LoginAsync);
-            SendTextCommandAsync = new AsyncRelayCommand(SendTextAsync);
+            LoadCommandAsync = new AsyncRelayCommand(LoadAsync);
             _clientSqliteContext = clientSqliteContext;
-            _configuration = configuration;
+            _socketServerOptions = socketServerOptions.Value;
             _tcpSuperSocket = tcpSuperSocket;
             _udpSuperSocket = udpSuperSocket;
         }
 
-        private async Task LoginAsync()
+        private async Task LoadAsync() 
         {
-            //var result = await _tcpSuperSocket.ConnectAsync(_configuration, RemotePort);
+            try
+            {
+                var result = await ConnectServerAsync();
+                if(!result)
+                    throw new Exception("连接服务器失败");
+
+                _tcpSuperSocket.mClient.StartReceive();
+                await _tcpSuperSocket.SendBytes(new Packet<LoginCommand>()
+                {
+                    Checkbit = 570,
+                    Sequence = 250,
+                    MessageType = MessageType.Login,
+                    Body = new LoginCommand
+                    {
+                        UserId = App.UserProfile.Id,
+                        AccessToken = App.UserProfile.AccessToken
+                    }
+                }.Serialize());
+                
+            }
+            catch (Exception ex) 
+            {
+                
+            }
         }
 
-        private async Task SendTextAsync()
+        private async Task<bool> ConnectServerAsync()
         {
-            //await _tcpSuperSocket.SendBytes(new Packet<TextMessage>()
-            //{
-            //    Checkbit = 570,
-            //    Sequence = 250,
-            //    MessageType = Shared.SuperSocket.Metadata.MessageType.Text,
-            //    Body = new TextMessage
-            //    {
-            //        Text = "小刘下午好",
-            //    }
-            //}.Serialize());
+            return await _tcpSuperSocket.ConnectAsync(_socketServerOptions.Host,_socketServerOptions.Port);
         }
     }
 }

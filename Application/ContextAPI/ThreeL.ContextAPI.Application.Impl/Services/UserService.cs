@@ -74,12 +74,25 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             }
             else
             {
-                var token = await CreateTokenAsync(user);
-                return new UserLoginResponseDto() { AccessToken = token.accessToken, RefreshToken = token.refreshToken };
+                await _adoExecuterRepository.ExecuteAsync($"update [user] set lastLoginTime = @Time where id=@Id",
+                    new
+                    {
+                        Time = DateTime.Now,
+                        user.Id
+                    });
+                var token = await CreateTokenAsync(user, userLoginDto.Origin);
+                return new UserLoginResponseDto()
+                {
+                    UserId = user.Id,
+                    UserName = user.UserName,
+                    Role = user.Role.ToString(),
+                    AccessToken = token.accessToken,
+                    RefreshToken = token.refreshToken
+                };
             }
         }
 
-        private async Task<(string accessToken, string refreshToken)> CreateTokenAsync(User user)
+        private async Task<(string accessToken, string refreshToken)> CreateTokenAsync(User user, string origin)
         {
             var settings = await _redisProvider.HGetAllAsync<JwtSetting>(Const.REDIS_JWT_SECRET_KEY);
             var setting = settings
@@ -99,7 +112,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var signingCredentials = new SigningCredentials(secretKey, algorithm);
             var jwtSecurityToken = new JwtSecurityToken(
                 _jwtOptions.Issuer,             //Issuer
-                "win",          //Audience TODO 客户端携带客户端类型头
+                origin,          //Audience TODO 客户端携带客户端类型头
                 claims,                          //Claims,
                 DateTime.Now,                    //notBefore
                 DateTime.Now.AddSeconds(_jwtOptions.TokenExpireSeconds),    //expires
@@ -145,7 +158,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 return null;
             }
 
-            var result = await CreateTokenAsync(user);
+            var result = await CreateTokenAsync(user, token.Origin);
 
             return new UserRefreshTokenDto()
             {

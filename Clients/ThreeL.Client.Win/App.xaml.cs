@@ -6,6 +6,8 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Windows;
+using ThreeL.Client.Shared;
+using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.ViewModels;
 using ThreeL.Shared.SuperSocket.Extensions;
@@ -18,6 +20,7 @@ namespace ThreeL.Client.Win
     public partial class App : Application
     {
         internal static IServiceProvider? ServiceProvider;
+        internal static UserProfile UserProfile;
 
         protected async override void OnStartup(StartupEventArgs e)
         {
@@ -27,9 +30,11 @@ namespace ThreeL.Client.Win
             builder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
             builder.ConfigureServices((context, service) =>
             {
+                service.AddClientShared(context.Configuration);
                 service.AddSingleton<MainWindow>();
                 service.AddSingleton<MainWindowViewModel>();
                 service.AddSingleton<Login>();
+                service.AddSingleton<LoginWindowViewModel>();
                 service.AddSuperSocket(true);
                 service.AddHostedService<UdpServerRunningService>();
 

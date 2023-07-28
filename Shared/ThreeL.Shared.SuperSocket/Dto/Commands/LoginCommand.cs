@@ -1,8 +1,10 @@
-﻿namespace ThreeL.Shared.SuperSocket.Dto.Commands;
+﻿using ProtoBuf;
+
+namespace ThreeL.Shared.SuperSocket.Dto.Commands;
 public class LoginCommand : AbstractMessage
 {
-    public string UserId { get; set; }
-    public string UserName { get; set; }
-    public string Token { get; set; }
-    public string Source { get; set; }
+    [ProtoMember(4)]
+    public long UserId { get; set; }
+    [ProtoMember(5)]
+    public string AccessToken { get; set; }
 }

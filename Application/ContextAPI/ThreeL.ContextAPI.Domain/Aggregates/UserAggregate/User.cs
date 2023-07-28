@@ -16,5 +16,6 @@ namespace ThreeL.ContextAPI.Domain.Aggregates.UserAggregate
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
         public DateTime CreateTime { get; set; }
+        public DateTime? LastLoginTime { get; set; }
     }
 }
