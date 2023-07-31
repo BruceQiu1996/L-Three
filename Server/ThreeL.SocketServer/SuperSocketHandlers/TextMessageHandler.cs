@@ -8,7 +8,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 {
     public class TextMessageHandler : AbstractMessageHandler
     {
-        public TextMessageHandler() : base(nameof(MessageType.Text))
+        public TextMessageHandler() : base(MessageType.Text)
         {
 
         }

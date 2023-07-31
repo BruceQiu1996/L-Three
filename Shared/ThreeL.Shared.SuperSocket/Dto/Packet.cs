@@ -28,16 +28,15 @@ namespace ThreeL.Shared.SuperSocket.Dto
 
         public byte[] Serialize()
         {
-            Checkbit = 0x1F;
             Length = IPacket.HeaderSize;
             var bodyArray = ProtoBufSerializer.Serialize(Body);
             Length += bodyArray.Length;
             byte[] result = new byte[Length];
-            result.AddInt32(0,Checkbit);
+            result.AddInt32(0, Checkbit);
             result.AddInt64(4, Sequence);
             result.AddInt32(12, Length);
             result.AddInt8(16, (byte)MessageType);
-            Buffer.BlockCopy(bodyArray, 0, result,17, bodyArray.Length);
+            Buffer.BlockCopy(bodyArray, 0, result, 17, bodyArray.Length);
 
             return result;
         }

@@ -37,9 +37,14 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             return Task.CompletedTask;
         }
 
-        public async Task SocketServerUserLoginAsync(SocketServerUserLoginRequest request)
+        public async Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request)
         {
-            var resp = await _serverServiceClient.SocketServerUserLoginAsync(request);
+            var headers = new Metadata
+            {
+                { "Authorization", $"Bearer {request.AccessToken}" }
+            };
+
+            return await _serverServiceClient.SocketServerUserLoginAsync(request, headers);
         }
     }
 }

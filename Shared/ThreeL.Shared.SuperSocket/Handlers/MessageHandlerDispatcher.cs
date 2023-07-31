@@ -17,7 +17,7 @@ namespace ThreeL.Shared.SuperSocket.Handlers
 
         public async virtual Task DispatcherMessageHandlerAsync(IAppSession appSession, IPacket message)
         {
-            var handler = _messageHandlers.FirstOrDefault(x => x.Name == message.MessageType.ToString());
+            var handler = _messageHandlers.FirstOrDefault(x => x.MessageType == message.MessageType);
             if (handler == null)
             {
                 _logger.LogError($"can't find {nameof(message.MessageType)} dispatcher.");

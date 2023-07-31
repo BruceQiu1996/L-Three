@@ -9,8 +9,10 @@ using System.Windows;
 using ThreeL.Client.Shared;
 using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Win.BackgroundService;
+using ThreeL.Client.Win.Handlers;
 using ThreeL.Client.Win.ViewModels;
 using ThreeL.Shared.SuperSocket.Extensions;
+using ThreeL.Shared.SuperSocket.Handlers;
 
 namespace ThreeL.Client.Win
 {
@@ -36,7 +38,10 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<Login>();
                 service.AddSingleton<LoginWindowViewModel>();
                 service.AddSuperSocket(true);
+                service.AddHostedService<TcpServerReceiveService>();
                 service.AddHostedService<UdpServerRunningService>();
+                //message handlers
+                service.AddSingleton<IMessageHandler, LoginCommandResponseHandler>();
 
             }).ConfigureLogging((hostCtx, loggingBuilder) =>
             {

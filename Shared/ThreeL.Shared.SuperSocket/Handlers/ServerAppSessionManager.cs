@@ -8,7 +8,7 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
     /// <summary>
     /// 存储的Session
     /// </summary>
-    public ConcurrentDictionary<string, List<TSession>> Sessions { get; private set; } = new();
+    public ConcurrentDictionary<long, List<TSession>> Sessions { get; private set; } = new();
 
     /// <summary>
     /// Session的数量
@@ -27,16 +27,16 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
     /// </summary>
     /// <param name="key"> </param>
     /// <returns> </returns>
-    public IEnumerable<TSession?> TryGet(string key)
+    public IEnumerable<TSession?> TryGet(long userId)
     {
-        Sessions.TryGetValue(key, out var session);
+        Sessions.TryGetValue(userId, out var session);
 
         return session;
     }
 
-    public bool TryAddOrUpdate(string key, TSession session)
+    public bool TryAddOrUpdate(long userId, TSession session)
     {
-        Sessions.AddOrUpdate(key, new List<TSession> { session }, (k, v) =>
+        Sessions.AddOrUpdate(userId, new List<TSession> { session }, (k, v) =>
         {
             v.Add(session);
             return v;
@@ -50,11 +50,8 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
     /// </summary>
     /// <param name="sessionId"> </param>
     /// <returns> </returns>
-    public void TryRemoveBySessionId(string userId, string sessionId)
+    public void TryRemoveBySessionId(long userId, string sessionId)
     {
-        if (string.IsNullOrEmpty(userId))
-            return;
-
         if (!Sessions.ContainsKey(userId))
             return;
 

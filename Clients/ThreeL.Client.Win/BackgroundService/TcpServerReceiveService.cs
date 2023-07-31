@@ -1,15 +1,22 @@
 ﻿using Microsoft.Extensions.Hosting;
+using SuperSocket.Client;
 using System.Threading;
 using System.Threading.Tasks;
 using ThreeL.Shared.SuperSocket.Client;
+using ThreeL.Shared.SuperSocket.Dto;
+using ThreeL.Shared.SuperSocket.Handlers;
 
 namespace ThreeL.Client.Win.BackgroundService
 {
     public class TcpServerReceiveService : IHostedService
     {
         private readonly TcpSuperSocketClient _tcpSuperSocket; //通讯服务器socket
-        public TcpServerReceiveService(TcpSuperSocketClient tcpSuperSocket)
+        private readonly MessageHandlerDispatcher _handlerDispatcher;
+        private bool _isStartedReceive = false;
+        public TcpServerReceiveService(TcpSuperSocketClient tcpSuperSocket,
+                                       MessageHandlerDispatcher handlerDispatcher)
         {
+            _handlerDispatcher = handlerDispatcher;
             _tcpSuperSocket = tcpSuperSocket;
         }
 
@@ -17,8 +24,7 @@ namespace ThreeL.Client.Win.BackgroundService
         {
             while (true)
             {
-                var packet = await _tcpSuperSocket.mClient.ReceiveAsync();
-                //TODO:处理接收到的数据 将收发放到packet外层处理
+                await Task.Delay(1000);
             }
         }
 

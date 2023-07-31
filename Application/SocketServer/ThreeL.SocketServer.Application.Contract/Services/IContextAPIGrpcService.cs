@@ -2,6 +2,6 @@
 {
     public interface IContextAPIGrpcService
     {
-        Task SocketServerUserLoginAsync(SocketServerUserLoginRequest request);
+        Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request);
     }
 }

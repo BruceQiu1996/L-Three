@@ -1,5 +1,6 @@
 ﻿using SuperSocket;
 using ThreeL.Shared.SuperSocket.Dto;
+using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Shared.SuperSocket.Handlers
 {
@@ -7,11 +8,11 @@ namespace ThreeL.Shared.SuperSocket.Handlers
     {
         public bool Enable => true;
 
-        public string Name { get; private set; }
+        public MessageType MessageType { get; private set; }
 
-        public AbstractMessageHandler(string name)
+        public AbstractMessageHandler(MessageType messageType)
         {
-            Name = name;
+            MessageType = messageType;
         }
 
         public abstract Task ExcuteAsync(IAppSession appSession, IPacket message);

@@ -2,10 +2,13 @@
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Net;
 using ThreeL.ContextAPI.Application.Contract.Extensions;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Application.Impl;
@@ -54,9 +57,9 @@ internal class Program
 
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                        {
-                            new OpenApiSecurityScheme{Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme,Id = "Bearer"}},new string[] { }
-                        }
+                    {
+                        new OpenApiSecurityScheme{Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme,Id = "Bearer"}},new string[] { }
+                    }
                 });
             });
 
@@ -79,6 +82,14 @@ internal class Program
                     RequireExpirationTime = true,
                     IssuerSigningKeyResolver = host!.Services.GetRequiredService<IJwtService>().ValidateIssuerSigningKey
                 };
+            });
+        });
+
+        builder.WebHost.ConfigureKestrel((context,options) =>
+        {
+            options.Listen(IPAddress.Any, 5824, listenOptions =>
+            {
+                listenOptions.Protocols = HttpProtocols.Http2;
             });
         });
 

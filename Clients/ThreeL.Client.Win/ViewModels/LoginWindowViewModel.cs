@@ -20,6 +20,7 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly ClientSqliteContext _clientSqliteContext;
         public LoginWindowViewModel(ContextAPIService contextAPIService, ClientSqliteContext clientSqliteContext)
         {
+            UserName = "Bruce";
             _contextAPIService = contextAPIService;
             _clientSqliteContext = clientSqliteContext;
             LoginCommandAsync = new AsyncRelayCommand<PasswordBox>(LoginAsync);
@@ -36,6 +37,7 @@ namespace ThreeL.Client.Win.ViewModels
 
         private async Task LoginAsync(PasswordBox password)
         {
+            password.Password = "123456";
             var result = await _contextAPIService.PostAsync("user/login", new UserLoginDto
             {
                 UserName = UserName,

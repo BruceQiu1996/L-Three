@@ -1,6 +1,8 @@
 ﻿using ProtoBuf;
 
 namespace ThreeL.Shared.SuperSocket.Dto.Commands;
+
+[ProtoContract]
 public class LoginCommand : AbstractMessage
 {
     [ProtoMember(4)]

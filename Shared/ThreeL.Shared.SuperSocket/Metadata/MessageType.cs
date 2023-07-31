@@ -12,6 +12,7 @@
         Recall = 8,
 
         //command
-        Login
+        Login,
+        LoginResponse,
     }
 }

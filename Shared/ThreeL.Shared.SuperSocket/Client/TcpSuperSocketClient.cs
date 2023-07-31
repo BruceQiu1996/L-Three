@@ -2,6 +2,7 @@
 using System.Net;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Filters;
+using ThreeL.Shared.SuperSocket.Handlers;
 
 namespace ThreeL.Shared.SuperSocket.Client
 {
@@ -9,10 +10,22 @@ namespace ThreeL.Shared.SuperSocket.Client
     {
         public bool Connected { get; private set; } = false;
         public IEasyClient<IPacket> mClient;
+        private readonly MessageHandlerDispatcher _messageHandlerDispatcher;
 
-        public TcpSuperSocketClient(PackageFilter packageFilter)
+        public TcpSuperSocketClient(PackageFilter packageFilter,
+                                    MessageHandlerDispatcher messageHandlerDispatcher)
         {
+            _messageHandlerDispatcher = messageHandlerDispatcher;
             mClient = new EasyClient<IPacket>(packageFilter).AsClient();
+            mClient.Closed += (s, e) =>
+            {
+
+            };
+
+            mClient.PackageHandler += async (sender, package) =>
+            {
+                await _messageHandlerDispatcher.DispatcherMessageHandlerAsync(null, package);
+            };
         }
 
         public async Task<bool> ConnectAsync(string remoteIP, int remotePort, int retryTimes = 3)
@@ -24,10 +37,9 @@ namespace ThreeL.Shared.SuperSocket.Client
                 isConnect = false;
                 i++;
                 await Task.Delay(1000);
-            };
+            }
 
             Connected = isConnect;
-
             return isConnect;
         }
 

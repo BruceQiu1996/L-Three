@@ -2,6 +2,7 @@
 using System.Buffers;
 using ThreeL.Infra.SuperSocket.Filters;
 using ThreeL.Shared.SuperSocket.Dto;
+using ThreeL.Shared.SuperSocket.Dto.Commands;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Metadata;
 
@@ -28,12 +29,15 @@ namespace ThreeL.Shared.SuperSocket.Filters
                 IPacket packet = (MessageType)msgType switch
                 {
                     MessageType.Text => new Packet<TextMessage>(),
+                    MessageType.Login => new Packet<LoginCommand>(),
+                    MessageType.LoginResponse => new Packet<LoginCommandResponse>(),
                     _ => new Packet<TextMessage>()
                 } ;
 
                 packet.Checkbit = checkbit;
                 packet.Sequence = sequence;
                 packet.Length = length;
+                packet.MessageType = (MessageType)msgType;
                 packet.Deserialize(seq.ToArray());
 
                 return packet;
