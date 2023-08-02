@@ -6,26 +6,101 @@
         xmlns:local="clr-namespace:ThreeL.Client.Win"
         xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        ResizeMode="CanResize"
+        Background="Transparent"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        BorderThickness="0"
+        Title="主界面" Height="550" Width="850">
     <behaviors:Interaction.Triggers>
         <behaviors:EventTrigger EventName="Loaded">
             <behaviors:InvokeCommandAction Command="{Binding LoadCommandAsync}"></behaviors:InvokeCommandAction>
         </behaviors:EventTrigger>
     </behaviors:Interaction.Triggers>
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="3"/>
+    </WindowChrome.WindowChrome>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-            <ColumnDefinition Width="*"></ColumnDefinition>
-        </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0">
-            <TextBox Text="{Binding RemoteAddress}"></TextBox>
-            <TextBox Text="{Binding RemotePort}"></TextBox>
-            <Button Content="连接" Command="{Binding ConnectCommandAsync}"></Button>
-        </StackPanel>
-
-        <StackPanel Grid.Column="1">
-            <TextBox AcceptsReturn="True" Height="50" Text="{Binding Message}"/>
-            <Button Content="发送" Command="{Binding SendTextCommandAsync}"></Button>
-        </StackPanel>
+        <Border Margin="3" Background="#eee" CornerRadius="3" BorderThickness="0">
+            <Border.Effect>
+                <DropShadowEffect Direction="0" ShadowDepth="0" BlurRadius="10" 
+                                  Opacity="0.25" Color="#FF5B5B5B"></DropShadowEffect>
+            </Border.Effect>
+        </Border>
+        <Grid Margin="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="45"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="50"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid MouseMove="Border_MouseMove" Grid.Column="1" Background="Transparent">
+                <Label BorderThickness="0"
+                       Cursor="Hand"
+                       ToolTip="最小化"
+                       Margin="0 7 45 0"
+                       Background="Transparent"
+                       HorizontalAlignment="Right" 
+                       MouseLeftButtonDown="Label_MouseLeftButtonDown">
+                    <Path Data="{StaticResource WindowMinGeometry}" 
+                          SnapsToDevicePixels="True"
+                          Height="15"
+                          Width="15"
+                          Stroke="{StaticResource PrimaryBrush}" Stretch="Uniform" 
+                          Fill="{StaticResource PrimaryBrush}"/>
+                </Label>
+                <Label BorderThickness="0"
+                       Cursor="Hand"
+                       ToolTip="关闭到托盘"
+                       Margin="0 7 5 0"
+                       Background="Transparent"
+                       HorizontalAlignment="Right" MouseLeftButtonDown="Label_MouseLeftButtonDown_1">
+                    <Path Data="{StaticResource CloseGeometry}" 
+                          SnapsToDevicePixels="True"
+                          Height="15"
+                          Stroke="{StaticResource PrimaryBrush}" Stretch="Uniform" 
+                          Fill="{StaticResource PrimaryBrush}"/>
+                </Label>
+            </Grid>
+            <Border Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Background="#222" CornerRadius="3 0 0 3">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="ThreeL" 
+                           Foreground="Salmon"
+                           Grid.Column="0"
+                           Margin="28 10"
+                           Cursor="Hand"
+                           Width="280"
+                           FontWeight="Bold"
+                           FontSize="18">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                <behaviors:InvokeCommandAction Command="{Binding ShiftMainPageCommand}"></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
+                    </TextBlock>
+                    <ListBox BorderThickness="0" Background="Transparent">
+                        <ListBoxItem Margin="15 0" HorizontalContentAlignment="Center" IsSelected="True">
+                            <Path Data="{StaticResource friend}" Stretch="Uniform" Fill="Gray" Width="30" Height="30"></Path>
+                            <ListBoxItem.Style>
+                                <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListBoxItemBaseStyle}">
+                                    <Setter Property="Height" Value="50"></Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="False">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBoxItem.Style>
+                        </ListBoxItem>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>

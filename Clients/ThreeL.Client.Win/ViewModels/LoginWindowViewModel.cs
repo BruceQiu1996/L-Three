@@ -5,12 +5,13 @@ using HandyControl.Controls;
 using HandyControl.Data;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Text.Json;
+
 using System.Threading.Tasks;
 using ThreeL.Client.Shared.Database;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Shared.Services;
+using ThreeL.Client.Win.Helpers;
 
 namespace ThreeL.Client.Win.ViewModels
 {
@@ -18,11 +19,18 @@ namespace ThreeL.Client.Win.ViewModels
     {
         private readonly ContextAPIService _contextAPIService;
         private readonly ClientSqliteContext _clientSqliteContext;
-        public LoginWindowViewModel(ContextAPIService contextAPIService, ClientSqliteContext clientSqliteContext)
+        private readonly GrowlHelper _growlHelper;
+        public LoginWindowViewModel(ContextAPIService contextAPIService,
+                                    GrowlHelper growlHelper,
+                                    ClientSqliteContext clientSqliteContext)
         {
             UserName = "Bruce";
+            _growlHelper = growlHelper;
             _contextAPIService = contextAPIService;
             _clientSqliteContext = clientSqliteContext;
+            _contextAPIService.TryRefreshTokenAsync = RefreshTokenAsync;
+            _contextAPIService.ExcuteWhileUnauthorizedAsync = ExcuteWhileUnauthorizedAsync;
+            _contextAPIService.ExcuteWhileBadRequestAsync = ExcuteWhileBadRequestAsync;
             LoginCommandAsync = new AsyncRelayCommand<PasswordBox>(LoginAsync);
         }
 
@@ -38,16 +46,15 @@ namespace ThreeL.Client.Win.ViewModels
         private async Task LoginAsync(PasswordBox password)
         {
             password.Password = "123456";
-            var result = await _contextAPIService.PostAsync("user/login", new UserLoginDto
+            var data = await _contextAPIService.PostAsync<UserLoginResponseDto>("user/login", new UserLoginDto
             {
                 UserName = UserName,
                 Password = password.Password,
                 Origin = "win"
             });
 
-            if (result.IsSuccessStatusCode)
+            if (data != null)
             {
-                var data = JsonSerializer.Deserialize<UserLoginResponseDto>(await result.Content.ReadAsStringAsync(), new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
                 _contextAPIService.SetToken($"{data.AccessToken}");
                 var user = await SqlMapper.QueryFirstOrDefaultAsync<UserProfile>(_clientSqliteContext.dbConnection, $"select * from userprofile where userId = {data.UserId}");
                 if (user == null)
@@ -59,7 +66,7 @@ namespace ThreeL.Client.Win.ViewModels
                     await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, $"update userprofile set UserName = @UserName,Role =@Role,AccessToken = @AccessToken, RefreshToken = @RefreshToken where UserId = @UserId", data);
                 }
 
-                await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, $"update userprofile set LastLoginTime = @LastLoginTime where UserId = @UserId", new 
+                await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, $"update userprofile set LastLoginTime = @LastLoginTime where UserId = @UserId", new
                 {
                     LastLoginTime = DateTime.Now,
                     data.UserId
@@ -75,25 +82,43 @@ namespace ThreeL.Client.Win.ViewModels
                 App.ServiceProvider.GetRequiredService<MainWindow>().Show();
                 App.ServiceProvider.GetRequiredService<Login>().Close();
             }
-            else if (result.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        }
+
+        private async Task<bool> RefreshTokenAsync()
+        {
+            if (string.IsNullOrEmpty(App.UserProfile?.RefreshToken) || string.IsNullOrEmpty(App.UserProfile?.AccessToken)) 
             {
-                var tips = await result.Content.ReadAsStringAsync();
-                Growl.WarningGlobal(new GrowlInfo()
-                {
-                    WaitTime = 3,
-                    Message = tips,
-                    ShowDateTime = false
-                });
+                return false;
             }
-            else
+
+            var token = await _contextAPIService.RefreshTokenAsync<UserRefreshTokenDto>(new UserRefreshTokenDto
             {
-                Growl.WarningGlobal(new GrowlInfo()
-                {
-                    WaitTime = 3,
-                    Message = "登录失败",
-                    ShowDateTime = false
-                });
+                Origin = "win",
+                AccessToken = App.UserProfile.AccessToken,
+                RefreshToken =App.UserProfile.RefreshToken 
+            });
+
+            if (token == null) 
+            {
+                return false;
             }
+
+            App.UserProfile.RefreshToken = token.RefreshToken;
+            App.UserProfile.AccessToken = token.AccessToken;
+
+            return true;
+        }
+
+        private async Task ExcuteWhileUnauthorizedAsync()
+        {
+            //退出到登陆界面，并且断开所有socket连接
+        }
+
+        private Task ExcuteWhileBadRequestAsync(string message)
+        {
+            _growlHelper.Warning(message);
+
+            return Task.CompletedTask;
         }
     }
 }

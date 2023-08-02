@@ -8,8 +8,10 @@ using System.IO;
 using System.Windows;
 using ThreeL.Client.Shared;
 using ThreeL.Client.Shared.Entities;
+using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Handlers;
+using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.ViewModels;
 using ThreeL.Shared.SuperSocket.Extensions;
 using ThreeL.Shared.SuperSocket.Handlers;
@@ -37,6 +39,7 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<MainWindowViewModel>();
                 service.AddSingleton<Login>();
                 service.AddSingleton<LoginWindowViewModel>();
+                service.AddSingleton<GrowlHelper>();
                 service.AddSuperSocket(true);
                 service.AddHostedService<TcpServerReceiveService>();
                 service.AddHostedService<UdpServerRunningService>();
@@ -55,8 +58,7 @@ namespace ThreeL.Client.Win
 
             var host = builder.Build();
             ServiceProvider = host.Services;
-            host.Services.GetRequiredService<Login>().Show();
-
+            host.Services.GetRequiredService<MainWindow>().Show();
             await host.RunAsync();
         }
     }

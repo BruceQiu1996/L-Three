@@ -102,7 +102,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var refreshToken = await CreateRefreshTokenAsync(user.UserName);
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Name, user.Id.ToString()),
                 new Claim(ClaimTypes.Role, user.Role.ToString()),
                 new Claim(RefreshTokenIdClaimType,refreshToken.refreshTokenId)
             };

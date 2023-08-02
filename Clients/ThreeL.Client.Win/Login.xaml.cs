@@ -28,7 +28,7 @@ namespace ThreeL.Client.Win
 
         private void Label_MouseLeftButtonDown_1(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            Environment.Exit(0);
+            Application.Current.Shutdown();
         }
     }
 }

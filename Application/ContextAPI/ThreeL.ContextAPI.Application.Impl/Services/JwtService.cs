@@ -13,6 +13,9 @@ using ThreeL.Shared.Application.Contract.Services;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services
 {
+    /// <summary>
+    /// 管理jwt secret key
+    /// </summary>
     public class JwtService : IJwtService, IAppService, IPreheatService
     {
         private readonly IOptions<JwtOptions> _jwtOptions;
@@ -42,7 +45,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             jwtSetting.TokenExpireSeconds = _jwtOptions.Value.TokenExpireSeconds;
             jwtSetting.SecretExpireAt = DateTime.Now.AddSeconds(_jwtOptions.Value.SecretExpireSeconds);
             await _mongoRepository.AddAsync(jwtSetting);
-            //默认设置jwt key每三天过期
+            //默认设置jwt secret key每三天过期
             await _redisProvider.HSetAsync(Const.REDIS_JWT_SECRET_KEY, $"{_systemOptions.Value.Name}-{DateTime.Now}", jwtSetting, TimeSpan.FromDays(3), When.Always);
         }
 
