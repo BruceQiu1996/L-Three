@@ -23,58 +23,60 @@
     <Grid>
         <Border Margin="3" Background="#eee" CornerRadius="3" BorderThickness="0">
             <Border.Effect>
-                <DropShadowEffect Direction="0" ShadowDepth="0" BlurRadius="10" 
+                <DropShadowEffect Direction="0" ShadowDepth="0" BlurRadius="10"
                                   Opacity="0.25" Color="#FF5B5B5B"></DropShadowEffect>
             </Border.Effect>
         </Border>
         <Grid Margin="3">
             <Grid.RowDefinitions>
-                <RowDefinition Height="45"></RowDefinition>
+                <RowDefinition Height="35"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
                 <RowDefinition Height="50"></RowDefinition>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="85"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Grid MouseMove="Border_MouseMove" Grid.Column="1" Background="Transparent">
-                <Label BorderThickness="0"
+            <Border MouseMove="Border_MouseMove" Background="Transparent" Grid.Column="1" BorderBrush="#dddddd" BorderThickness="0 0 0 0">
+                <Grid>
+                    <Label BorderThickness="0"
                        Cursor="Hand"
                        ToolTip="最小化"
-                       Margin="0 7 45 0"
+                       Margin="0 0 45 0"
                        Background="Transparent"
                        HorizontalAlignment="Right" 
                        MouseLeftButtonDown="Label_MouseLeftButtonDown">
-                    <Path Data="{StaticResource WindowMinGeometry}" 
+                        <Path Data="{StaticResource WindowMinGeometry}" 
                           SnapsToDevicePixels="True"
                           Height="15"
                           Width="15"
                           Stroke="{StaticResource PrimaryBrush}" Stretch="Uniform" 
                           Fill="{StaticResource PrimaryBrush}"/>
-                </Label>
-                <Label BorderThickness="0"
+                    </Label>
+                    <Label BorderThickness="0"
                        Cursor="Hand"
                        ToolTip="关闭到托盘"
-                       Margin="0 7 5 0"
+                       Margin="0 0 5 0"
                        Background="Transparent"
                        HorizontalAlignment="Right" MouseLeftButtonDown="Label_MouseLeftButtonDown_1">
-                    <Path Data="{StaticResource CloseGeometry}" 
+                        <Path Data="{StaticResource CloseGeometry}" 
                           SnapsToDevicePixels="True"
                           Height="15"
                           Stroke="{StaticResource PrimaryBrush}" Stretch="Uniform" 
                           Fill="{StaticResource PrimaryBrush}"/>
-                </Label>
-            </Grid>
+                    </Label>
+                </Grid>
+            </Border>
             <Border Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Background="#222" CornerRadius="3 0 0 3">
                 <StackPanel Orientation="Vertical">
                     <TextBlock Text="ThreeL" 
-                           Foreground="Salmon"
-                           Grid.Column="0"
-                           Margin="28 10"
-                           Cursor="Hand"
-                           Width="280"
-                           FontWeight="Bold"
-                           FontSize="18">
+                               Foreground="{DynamicResource PrimaryBrush}"
+                               Grid.Column="0"
+                               Margin="10 10"
+                               Cursor="Hand"
+                               Width="280"
+                               FontWeight="Bold"
+                               FontSize="18">
                         <behaviors:Interaction.Triggers>
                             <behaviors:EventTrigger EventName="MouseLeftButtonDown">
                                 <behaviors:InvokeCommandAction Command="{Binding ShiftMainPageCommand}"></behaviors:InvokeCommandAction>
@@ -82,17 +84,44 @@
                         </behaviors:Interaction.Triggers>
                     </TextBlock>
                     <ListBox BorderThickness="0" Background="Transparent">
-                        <ListBoxItem Margin="15 0" HorizontalContentAlignment="Center" IsSelected="True">
-                            <Path Data="{StaticResource friend}" Stretch="Uniform" Fill="Gray" Width="30" Height="30"></Path>
+                        <ListBoxItem HorizontalContentAlignment="Center" IsSelected="True" ToolTip="好友">
+                            <Path Data="{StaticResource friend}" Stretch="Uniform" Width="30" Height="30"
+                                   Fill="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem,Mode=FindAncestor},Path=Foreground}"></Path>
+
                             <ListBoxItem.Style>
                                 <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListBoxItemBaseStyle}">
                                     <Setter Property="Height" Value="50"></Setter>
+                                    <Setter Property="Cursor" Value="Hand"></Setter>
+                                    <Setter Property="Margin" Value="10 10 10 0"></Setter>
                                     <Style.Triggers>
                                         <Trigger Property="IsSelected" Value="True">
                                             <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+                                            <Setter Property="Foreground" Value="White"/>
                                         </Trigger>
                                         <Trigger Property="IsSelected" Value="False">
                                             <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBoxItem.Style>
+                        </ListBoxItem>
+                        <ListBoxItem HorizontalContentAlignment="Center" ToolTip="设置">
+                            <Path Data="{StaticResource setting}" Stretch="Uniform"
+                                  Fill="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem,Mode=FindAncestor},Path=Foreground}" Width="30" Height="30"></Path>
+                            <ListBoxItem.Style>
+                                <Style TargetType="ListBoxItem" BasedOn="{StaticResource ListBoxItemBaseStyle}">
+                                    <Setter Property="Height" Value="50"></Setter>
+                                    <Setter Property="Cursor" Value="Hand"></Setter>
+                                    <Setter Property="Margin" Value="10 20"></Setter>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="False">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -101,6 +130,8 @@
                     </ListBox>
                 </StackPanel>
             </Border>
+            <Frame Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" BorderThickness="0"
+                   Content="{Binding CurrentPage,UpdateSourceTrigger=PropertyChanged}"></Frame>
         </Grid>
     </Grid>
 </Window>

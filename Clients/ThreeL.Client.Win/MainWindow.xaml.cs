@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 using ThreeL.Client.Win.ViewModels;
 
 namespace ThreeL.Client.Win
@@ -9,10 +8,10 @@ namespace ThreeL.Client.Win
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(MainWindowViewModel viewModel)
         {
             InitializeComponent();
-            //DataContext = viewModel;
+            DataContext = viewModel;
         }
 
         private void Border_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
