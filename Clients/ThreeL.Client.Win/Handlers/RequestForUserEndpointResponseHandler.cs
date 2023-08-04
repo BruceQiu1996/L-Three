@@ -8,18 +8,18 @@ using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.Handlers
 {
-    public class LoginCommandResponseHandler : AbstractMessageHandler
+    public class RequestForUserEndpointResponseHandler : AbstractMessageHandler
     {
         private readonly PacketWaiter _packetWaiter;
 
-        public LoginCommandResponseHandler(PacketWaiter packetWaiter) : base(MessageType.LoginResponse)
+        public RequestForUserEndpointResponseHandler(PacketWaiter packetWaiter) : base(MessageType.RequestForUserEndpointResponse)
         {
             _packetWaiter = packetWaiter;
         }
 
         public override Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
-            var packet = message as Packet<LoginCommandResponse>;
+            var packet = message as Packet<RequestForUserEndpointCommandResponse>;
             _packetWaiter.AddWaitPacket($"answer:{packet.Sequence}", packet, true);
 
             return Task.CompletedTask;

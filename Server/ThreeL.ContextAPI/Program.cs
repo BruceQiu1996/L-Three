@@ -90,7 +90,6 @@ internal class Program
             options.Listen(IPAddress.Any, 5824, listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http2;
-                listenOptions.Protocols = HttpProtocols.Http1;
             });
         });
 

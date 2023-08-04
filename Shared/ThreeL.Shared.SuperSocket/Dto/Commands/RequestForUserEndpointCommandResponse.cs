@@ -3,9 +3,9 @@
 namespace ThreeL.Shared.SuperSocket.Dto.Commands
 {
     [ProtoContract]
-    public class LoginCommandResponse : CommandResponse
+    public class RequestForUserEndpointCommandResponse : CommandResponse
     {
         [ProtoMember(6)]
-        public string SsToken { get; set; }
+        public string Addresses { get; set; } 
     }
 }

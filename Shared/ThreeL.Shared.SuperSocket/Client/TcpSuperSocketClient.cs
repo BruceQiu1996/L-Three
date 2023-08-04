@@ -13,13 +13,15 @@ namespace ThreeL.Shared.SuperSocket.Client
         private readonly MessageHandlerDispatcher _messageHandlerDispatcher;
 
         public TcpSuperSocketClient(PackageFilter packageFilter,
+                                    IPEndPoint ipEndPoint,
                                     MessageHandlerDispatcher messageHandlerDispatcher)
         {
             _messageHandlerDispatcher = messageHandlerDispatcher;
             mClient = new EasyClient<IPacket>(packageFilter).AsClient();
+            mClient.LocalEndPoint = ipEndPoint;
             mClient.Closed += (s, e) =>
             {
-
+                throw new Exception("SuperSocket连接断开"); //TODO: 重连,显示断开连接
             };
 
             mClient.PackageHandler += async (sender, package) =>
@@ -42,7 +44,6 @@ namespace ThreeL.Shared.SuperSocket.Client
             Connected = isConnect;
             return isConnect;
         }
-
 
         public async Task<bool> CloseConnect()
         {

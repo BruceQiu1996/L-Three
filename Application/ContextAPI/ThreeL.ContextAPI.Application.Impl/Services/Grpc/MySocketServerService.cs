@@ -22,9 +22,9 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             var userName = context.GetHttpContext().User.Identity?.Name;
             if (string.IsNullOrEmpty(userName))
                 return new SocketServerUserLoginResponse() { Result = false };
-
-            var user = await _adoQuerierRepository.QueryFirstOrDefaultAsync<User>("SELECT * FROM [User] WHERE userName = @UserName AND isDeleted = 0",
-                               new { UserName = userName });
+            var userid = long.Parse(userName);
+            var user = await _adoQuerierRepository
+                .QueryFirstOrDefaultAsync<User>("SELECT * FROM [User] WHERE id= @UserId AND isDeleted = 0", new { UserId = userid });
 
             return new SocketServerUserLoginResponse() { Result = (user != null) };
         }

@@ -13,8 +13,7 @@ public class LoginCommandHandler : AbstractMessageHandler
     private readonly IContextAPIGrpcService _contextAPIGrpc;
 
     public LoginCommandHandler(ServerAppSessionManager<ChatSession> sessionManager,
-                               IContextAPIGrpcService contextAPIGrpc) 
-        : base(MessageType.Login)
+                               IContextAPIGrpcService contextAPIGrpc) : base(MessageType.Login)
     {
         _sessionManager = sessionManager;
         _contextAPIGrpc = contextAPIGrpc;

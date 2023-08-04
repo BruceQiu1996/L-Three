@@ -31,8 +31,10 @@ namespace ThreeL.Shared.SuperSocket.Filters
                     MessageType.Text => new Packet<TextMessage>(),
                     MessageType.Login => new Packet<LoginCommand>(),
                     MessageType.LoginResponse => new Packet<LoginCommandResponse>(),
+                    MessageType.RequestForUserEndpoint => new Packet<RequestForUserEndpointCommand>(),
+                    MessageType.RequestForUserEndpointResponse => new Packet<RequestForUserEndpointCommandResponse>(),
                     _ => new Packet<TextMessage>()
-                } ;
+                };
 
                 packet.Checkbit = checkbit;
                 packet.Sequence = sequence;
@@ -42,7 +44,7 @@ namespace ThreeL.Shared.SuperSocket.Filters
 
                 return packet;
             }
-            else 
+            else
             {
                 return null;
             }

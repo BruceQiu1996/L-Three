@@ -44,10 +44,11 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<GrowlHelper>();
                 service.AddSingleton<DateTimeHelper>();
                 service.AddSuperSocket(true);
-                service.AddHostedService<TcpServerReceiveService>();
                 service.AddHostedService<UdpServerRunningService>();
                 //message handlers
+                service.AddSingleton<IMessageHandler, TextMessageHandler>();
                 service.AddSingleton<IMessageHandler, LoginCommandResponseHandler>();
+                service.AddSingleton<IMessageHandler, RequestForUserEndpointResponseHandler>();
 
             }).ConfigureLogging((hostCtx, loggingBuilder) =>
             {
@@ -61,7 +62,7 @@ namespace ThreeL.Client.Win
 
             var host = builder.Build();
             ServiceProvider = host.Services;
-            host.Services.GetRequiredService<MainWindow>().Show();
+            host.Services.GetRequiredService<Login>().Show();
             await host.RunAsync();
         }
     }

@@ -14,5 +14,7 @@
         //command
         Login,
         LoginResponse,
+        RequestForUserEndpoint,
+        RequestForUserEndpointResponse,
     }
 }

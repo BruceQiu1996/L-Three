@@ -20,7 +20,7 @@ namespace ThreeL.Shared.SuperSocket.Cache
             _waitContainer.Add(key, packet, needExist);
         }
 
-        public async Task<T> GetAnswerPacketAsync<T>(string key, int timeOut = 5) where T : class, IPacket
+        public async Task<T> GetAnswerPacketAsync<T>(string key, int timeOut = 60) where T : class, IPacket //TODO test 60s
         {
             try
             {

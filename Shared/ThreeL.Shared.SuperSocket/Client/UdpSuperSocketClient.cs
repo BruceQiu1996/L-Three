@@ -12,9 +12,10 @@ namespace ThreeL.Shared.SuperSocket.Client
         public UdpSuperSocketClient(PackageFilter packageFilter)
         {
             mClient = new EasyClient<IPacket>(packageFilter);
+            mClient.LocalEndPoint = new IPEndPoint(IPAddress.Any, 0);
         }
 
-        public async Task SendBytes(IPEndPoint remote,byte[] data)
+        public async Task SendBytes(IPEndPoint remote, byte[] data)
         {
             try
             {

@@ -30,6 +30,7 @@ namespace ThreeL.SocketServer
 
                 service.AddSingleton<IMessageHandler, TextMessageHandler>();
                 service.AddSingleton<IMessageHandler, LoginCommandHandler>();
+                service.AddSingleton<IMessageHandler, RequestForUserEndpointHandler>();
                 service.AddSuperSocket();
                 service.AddSingleton<ServerAppSessionManager<ChatSession>>();
                 service.AddHostedService<TcpServerRunningService>();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Hosting;
 using SuperSocket;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using ThreeL.Shared.SuperSocket.Dto;
@@ -12,10 +13,12 @@ namespace ThreeL.Client.Win.BackgroundService
     public class UdpServerRunningService : IHostedService
     {
         private readonly MessageHandlerDispatcher _handlerDispatcher;
+        private readonly IPEndPoint _iPEndPoint;
         private IHost? _udpServerHost;
 
-        public UdpServerRunningService(MessageHandlerDispatcher handlerDispatcher)
+        public UdpServerRunningService(MessageHandlerDispatcher handlerDispatcher, IPEndPoint iPEndPoint)
         {
+            _iPEndPoint = iPEndPoint;
             _handlerDispatcher = handlerDispatcher;
         }
 
@@ -25,17 +28,17 @@ namespace ThreeL.Client.Win.BackgroundService
                 .Create<IPacket, PackageFilter>().UsePackageHandler(async (session, package) =>
                 {
                     await _handlerDispatcher.DispatcherMessageHandlerAsync(session, package);
-                }).UseUdp().ConfigureSuperSocket(options =>
+                }).ConfigureSuperSocket(options =>
                 {
                     options.Name = "window udp server";
                     options.Listeners = new List<ListenOptions> {
                                 new ListenOptions
                                 {
-                                    Ip = "Any",
-                                    Port = 0
+                                    Ip = _iPEndPoint.Address.ToString(),
+                                    Port = _iPEndPoint.Port
                                 }
                             };
-                }).Build();
+                }).UseUdp().Build();
 
             await _udpServerHost!.RunAsync(cancellationToken);
         }

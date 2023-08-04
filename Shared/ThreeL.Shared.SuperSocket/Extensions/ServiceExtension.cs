@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 using ThreeL.Shared.SuperSocket.Cache;
 using ThreeL.Shared.SuperSocket.Client;
 using ThreeL.Shared.SuperSocket.Filters;
@@ -9,8 +9,10 @@ namespace ThreeL.Shared.SuperSocket.Extensions
 {
     public static class ServiceExtension
     {
-        public static void AddSuperSocket(this IServiceCollection service,bool isClient = false) 
+        public static void AddSuperSocket(this IServiceCollection service, bool isClient = false)
         {
+            var port = PortFilter.GetFirstAvailablePort();
+            service.AddSingleton(new IPEndPoint(IPAddress.Parse("127.0.0.1"), port));
             service.AddSingleton<PacketWaitContainer>();
             service.AddSingleton<PacketWaiter>();
             service.AddSingleton(new PackageFilter());

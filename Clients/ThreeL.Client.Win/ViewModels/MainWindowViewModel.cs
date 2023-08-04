@@ -2,12 +2,10 @@
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
-using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Shared.Utils;
 using ThreeL.Client.Win.Helpers;
@@ -67,33 +65,33 @@ namespace ThreeL.Client.Win.ViewModels
         {
             try
             {
-                //var result = await ConnectServerAsync();
-                //if(!result)
-                //    throw new Exception("连接服务器失败");
+                var result = await ConnectServerAsync();
+                if (!result)
+                    throw new Exception("连接服务器失败");
 
-                //_tcpSuperSocket.mClient.StartReceive();
-                //var packet = new Packet<LoginCommand>()
-                //{
-                //    Checkbit = 8240,
-                //    Sequence = _sequenceIncrementer.GetNextSequence(),
-                //    MessageType = MessageType.Login,
-                //    Body = new LoginCommand
-                //    {
-                //        UserId = App.UserProfile.Id,
-                //        AccessToken = App.UserProfile.AccessToken
-                //    }
-                //};
+                _tcpSuperSocket.mClient.StartReceive();
+                var packet = new Packet<LoginCommand>()
+                {
+                    Checkbit = 8240,
+                    Sequence = _sequenceIncrementer.GetNextSequence(),
+                    MessageType = MessageType.Login,
+                    Body = new LoginCommand
+                    {
+                        UserId = App.UserProfile.Id,
+                        AccessToken = App.UserProfile.AccessToken
+                    }
+                };
 
-                ////need answer
-                //_packetWaiter.AddWaitPacket($"answer:{packet.Sequence}",null,false);
-                //await _tcpSuperSocket.SendBytes(packet.Serialize());
-                //var answer = 
-                //    await _packetWaiter.GetAnswerPacketAsync<Packet<LoginCommandResponse>>($"answer:{packet.Sequence}");
-                //if (answer == null && !answer.Body.Result)
-                //{
-                //    throw new Exception("登录聊天服务器超时");
-                //}
-                //App.UserProfile.SocketAccessToken = answer.Body.SsToken;
+                //need answer
+                _packetWaiter.AddWaitPacket($"answer:{packet.Sequence}", null, false);
+                await _tcpSuperSocket.SendBytes(packet.Serialize());
+                var answer =
+                    await _packetWaiter.GetAnswerPacketAsync<Packet<LoginCommandResponse>>($"answer:{packet.Sequence}");
+                if (answer == null || !answer.Body.Result)
+                {
+                    throw new Exception("登录聊天服务器超时");
+                }
+                App.UserProfile.SocketAccessToken = answer.Body.SsToken;
                 CurrentPage = _chatPage;
             }
             catch (Exception ex) 
