@@ -86,7 +86,7 @@ namespace ThreeL.Client.Win.ViewModels
                     //处理得到好友列表
                     foreach (var dto in resp)
                     {
-                        if (dto.ActiverId == App.UserProfile.Id)
+                        if (dto.ActiverId == App.UserProfile.UserId)
                         {
                             friends.Add(new FriendViewModel
                             {
@@ -95,7 +95,7 @@ namespace ThreeL.Client.Win.ViewModels
                                 Remark = dto.PassiverRemark
                             });
                         }
-                        else if (dto.PassiverId == App.UserProfile.Id)
+                        else if (dto.PassiverId == App.UserProfile.UserId)
                         {
                             friends.Add(new FriendViewModel
                             {
@@ -108,7 +108,7 @@ namespace ThreeL.Client.Win.ViewModels
                     //加载好友列表
                     FriendViewModels = new ObservableCollection<FriendViewModel>(friends); FriendViewModels.Insert(0, new FriendViewModel()
                     {
-                        Id = App.UserProfile.Id,
+                        Id = App.UserProfile.UserId,
                         Remark ="我"
                     });
                 }
@@ -164,7 +164,7 @@ namespace ThreeL.Client.Win.ViewModels
                 Body = new TextMessage
                 {
                     SendTime = DateTime.Now,
-                    From = App.UserProfile.Id,
+                    From = App.UserProfile.UserId,
                     To = FriendViewModel.Id,
                     Text = TextMessage
                 }

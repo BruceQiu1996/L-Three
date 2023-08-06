@@ -77,7 +77,7 @@ namespace ThreeL.Client.Win.ViewModels
                     MessageType = MessageType.Login,
                     Body = new LoginCommand
                     {
-                        UserId = App.UserProfile.Id,
+                        UserId = App.UserProfile.UserId,
                         AccessToken = App.UserProfile.AccessToken
                     }
                 };

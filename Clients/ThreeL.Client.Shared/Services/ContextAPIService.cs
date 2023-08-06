@@ -19,8 +19,7 @@ namespace ThreeL.Client.Shared.Services
             _httpClient = new HttpClient();
             _httpClient.BaseAddress = new Uri($"http://{_contextAPIOptions.Host}:{_contextAPIOptions.Port}/api/");
             _httpClient.Timeout = TimeSpan.FromSeconds(600); //Test
-            _httpClient.DefaultRequestVersion = HttpVersion.Version20;
-            _httpClient.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher;
+            _httpClient.DefaultRequestVersion = HttpVersion.Version10;
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 

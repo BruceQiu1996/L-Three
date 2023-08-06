@@ -85,9 +85,14 @@ internal class Program
             });
         });
 
-        builder.WebHost.ConfigureKestrel((context,options) =>
+        builder.WebHost.UseKestrel((context,options) =>
         {
             options.Listen(IPAddress.Any, 5824, listenOptions =>
+            {
+                listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+            });
+
+            options.Listen(IPAddress.Any, 5825, listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http2;
             });

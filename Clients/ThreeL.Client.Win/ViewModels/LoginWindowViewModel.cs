@@ -74,8 +74,8 @@ namespace ThreeL.Client.Win.ViewModels
 
                 App.UserProfile = new UserProfile()
                 {
-                    Id = data.UserId,
-                    Name = data.UserName,
+                    UserId = data.UserId,
+                    UserName = data.UserName,
                     RefreshToken = data.RefreshToken,
                     AccessToken = data.AccessToken
                 };
