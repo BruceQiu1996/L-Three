@@ -15,15 +15,15 @@ namespace ThreeL.ContextAPI.Controllers
             _friendService = friendService;
         }
 
-        //[Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         [HttpGet("friends")]
         public async Task<ActionResult> GetFriends()
         {
-           //var result = long.TryParse(HttpContext.User.Identity?.Name,out var userId);
-           // if (!result)
-           //     return Unauthorized();
+            var result = long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+            if (!result)
+                return Unauthorized();
 
-            var friends = await _friendService.GetFriendsAsync(2);
+            var friends = await _friendService.GetFriendsAsync(userId);
             return Ok(friends);
         }
     }

@@ -7,6 +7,7 @@
       xmlns:hc="https://handyorg.github.io/handycontrol"
       xmlns:converts="clr-namespace:ThreeL.Client.Win.Converters"
       xmlns:helpers="clr-namespace:ThreeL.Client.Win.Helpers"
+      xmlns:myControls ="clr-namespace:ThreeL.Client.Win.MyControls"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="Friend">
@@ -31,14 +32,15 @@
             <Grid Name="ctx">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
-                             Background="{DynamicResource DefaultHoverColor}"
+                             Background="#555"
                              TextWrapping="Wrap"
                              AcceptsReturn="True"
                              VerticalAlignment="Top"
+                             IsReadOnly="True"
                              VerticalContentAlignment="Top"
                              MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter},UpdateSourceTrigger=PropertyChanged}"
                              BorderThickness="0"
-                             Foreground="{DynamicResource DefaultFontColor}"
+                             Foreground="White"
                              HorizontalAlignment="Right"
                              FontSize="15">
                     </TextBox>
@@ -53,24 +55,24 @@
                 </Image>
             </Grid>
         </DataTemplate>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <DataTemplate x:Key="txtReceiver">
             <Grid Name="ctx1">
                 <StackPanel Orientation="Horizontal">
                     <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
-                             Background="{DynamicResource DefaultHoverColor}"
+                             Background="#555"
                              TextWrapping="Wrap"
                              AcceptsReturn="True"
                              VerticalAlignment="Top"
                              VerticalContentAlignment="Top"
                              MaxWidth="{Binding ElementName=ctx1,Path=ActualWidth,Converter={StaticResource ValueHalfConverter},UpdateSourceTrigger=PropertyChanged}"
                              BorderThickness="0"
-                             Foreground="{DynamicResource DefaultFontColor}"
+                             Foreground="White"
                              HorizontalAlignment="Left"
                              FontSize="15">
                     </TextBox>
@@ -97,13 +99,14 @@
         </DataTemplate>
         <DataTemplate x:Key="time">
             <TextBox Text="{Binding DateTime}"
+                     IsReadOnly="True"
                      TextWrapping="Wrap"
                      AcceptsReturn="True"
                      VerticalAlignment="Top"
                      VerticalContentAlignment="Top"
                      BorderThickness="0"
                      Foreground="White"
-                     Background="#ccc"
+                     Background="#555"
                      HorizontalAlignment="Center"
                      FontSize="14">
             </TextBox>
@@ -122,21 +125,15 @@
 
         <Grid Grid.Column="0" Margin="0 0 0 0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="35"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="45"></RowDefinition>
             </Grid.RowDefinitions>
-            <StackPanel Orientation="Horizontal" Grid.Row="0">
-                <TextBox hc:InfoElement.Placeholder="搜索好友" Height="25" Style="{StaticResource TextBoxExtend}"
-                     BorderBrush="#ddd"
-                     Margin="1 0 4 0" Width="141"/>
-                <Button FontWeight="Bold" Foreground="#aaaaaa" Cursor="Hand" FontSize="14">+</Button>
-            </StackPanel>
-            <ScrollViewer Margin="1 2 0 0" Grid.Row="1">
+            <ScrollViewer Margin="0" Grid.Row="0">
                 <ListBox ScrollViewer.CanContentScroll="False"
                          Padding="0"
                          ScrollViewer.IsDeferredScrollingEnabled="True"
                          ScrollViewer.VerticalScrollBarVisibility="Visible"
-                         Background="#ddd"
+                         Background="#222"
                          ItemsSource="{Binding FriendViewModels,UpdateSourceTrigger=PropertyChanged}"
                          SelectedItem="{Binding FriendViewModel,UpdateSourceTrigger=PropertyChanged}"
                          BorderThickness="0" BorderBrush="Transparent">
@@ -161,7 +158,9 @@
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                                        <Border Margin="0" Background="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem,Mode=FindAncestor},Path=Background}">
+                                        <Border Margin="0 0 4 1" 
+                                                CornerRadius="0 2 2 0"
+                                                Background="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem,Mode=FindAncestor},Path=Background}">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="60"></ColumnDefinition>
@@ -172,17 +171,18 @@
                                                     <RowDefinition Height="*"></RowDefinition>
                                                 </Grid.RowDefinitions>
 
-                                                <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" 
+                                                <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
                                                         Width="50" Height="50" HorizontalAlignment="Left" Margin="5 0 0 0"
                                                         Background="{DynamicResource PrimaryBrush}">
                                                     <TextBlock Text="J" FontSize="28" HorizontalAlignment="Center" 
                                                                Foreground="White"
                                                                VerticalAlignment="Center"></TextBlock>
                                                 </Border>
-                                                <TextBlock Grid.Column="1" Margin="2 8 0 0" 
+                                                <TextBlock Grid.Column="1" Margin="2 5 0 0" 
                                                            HorizontalAlignment="Left"
-                                                           Text="{Binding DisplayName,UpdateSourceTrigger=PropertyChanged}" FontSize="16"
-                                                           FontWeight="Bold"/>
+                                                           Foreground="White"
+                                                           Text="{Binding DisplayName,UpdateSourceTrigger=PropertyChanged}"
+                                                           FontSize="16"/>
                                             </Grid>
                                         </Border>
                                     </ControlTemplate>
@@ -190,30 +190,47 @@
                             </Setter>
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#ccc"></Setter>
+                                    <Setter Property="Background" Value="#444"></Setter>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="False">
-                                    <Setter Property="Background" Value="#ddd"></Setter>
+                                    <Setter Property="Background" Value="#111"></Setter>
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Background" Value="#ccc"></Setter>
+                                    <Setter Property="Background" Value="#444"></Setter>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
                     </ListBox.ItemContainerStyle>
                 </ListBox>
             </ScrollViewer>
+            <Grid Grid.Row="1" Background="#111">
+            </Grid>
         </Grid>
 
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="38.5"></RowDefinition>
+                <RowDefinition Height="36"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
                 <RowDefinition Height="50"></RowDefinition>
             </Grid.RowDefinitions>
-            <Border Grid.Row="0" BorderBrush="#ddd" BorderThickness="0 0 0 1">
-                <TextBlock Text="{Binding FriendViewModel.DisplayName}" FontSize="22"
-                           HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20 0 0 5"></TextBlock>
+            <Border Grid.Row="0" BorderBrush="#111" Margin="0 2 0 0" 
+                    CornerRadius="0 0 0 0"
+                    BorderThickness="0 0 0 2">
+                <Grid>
+                    <TextBlock Text="{Binding FriendViewModel.DisplayName}" FontSize="20"
+                           Foreground="White"
+                           HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10 0 0 5"></TextBlock>
+
+                    <Label Height="30" Background="Transparent" BorderThickness="0" Margin="0 0 0 0"
+                           HorizontalAlignment="Right">
+                        <Path Data="{StaticResource vedio}" Stretch="Uniform" Fill="#aaa"></Path>
+                    </Label>
+
+                    <Label Height="32" Background="Transparent" BorderThickness="0" Margin="0 0 40 0"
+                           HorizontalAlignment="Right">
+                        <Path Data="{StaticResource audio}" Stretch="Uniform" Fill="#aaa"></Path>
+                    </Label>
+                </Grid>
             </Border>
             <ScrollViewer helpers:ScrollViewerHelper.AlwaysScrollToEnd="True" 
                           Name="chatScrollViewer"
@@ -236,7 +253,7 @@
 
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem" BasedOn="{StaticResource ClockListBoxItemStyle}">
-                            <Setter Property="Margin" Value="0 5"></Setter>
+                            <Setter Property="Margin" Value="0 4"></Setter>
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -251,23 +268,40 @@
                 </ListBox>
             </ScrollViewer>
 
-            <Border Grid.Row="2" Margin="0 2 0 0" BorderThickness="0 1 0 0" BorderBrush="#ddd">
+            <Border Grid.Row="2" Margin="0 2 0 0">
                 <StackPanel Orientation="Horizontal">
-                    <TextBox Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch"
-                             Width="500"
-                             Text="{Binding TextMessage,UpdateSourceTrigger=PropertyChanged}"
-                             hc:InfoElement.Placeholder="输入发送的消息"
-                             Style="{StaticResource TextBoxExtend}"
-                             Height="35" Margin="2 0 0 0"></TextBox>
-
-                    <Label Height="35" Background="Transparent" BorderThickness="0" Margin="10 0 0 0">
-                        <behaviors:Interaction.Triggers>
-                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
-                                <behaviors:InvokeCommandAction Command="{Binding SendMessageCommandAsync}"></behaviors:InvokeCommandAction>
-                            </behaviors:EventTrigger>
-                        </behaviors:Interaction.Triggers>
-                        <Path Data="{StaticResource send}" Stretch="Uniform" Fill="{DynamicResource PrimaryBrush}"></Path>
-                    </Label>
+                    <RichTextBox  Grid.Column="0" 
+                                  x:Name="rtb"
+                                  Background="#444"
+                                  Style="{StaticResource RichTextBoxBaseStyle}"
+                                  BorderThickness="0"
+                                  VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                                  Width="460"
+                                  Foreground="#ddd"
+                                  VerticalContentAlignment="Top"
+                                  Height="45" Margin="5 0 0 5"></RichTextBox>
+                    <Button Height="30" Cursor="Hand"
+                            Background="Transparent" Command="{Binding SendMessageCommandAsync}" BorderThickness="0" Margin="10 0 0 0"
+                            IsDefault="True">
+                        <Path Data="{StaticResource send}" 
+                              Stretch="Uniform" Fill="{DynamicResource PrimaryBrush}"></Path>
+                    </Button>
+                    <Button Height="30" Cursor="Hand" Name="RB_Emoji" Click="RB_Emoji_Click"
+                            Background="Transparent" BorderThickness="0" Margin="10 0 0 0"
+                            IsDefault="True">
+                        <Path Data="{StaticResource emoji}" 
+                              Stretch="Uniform" Fill="{DynamicResource PrimaryBrush}"></Path>
+                    </Button>
+                    <Popup x:Name="pop" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=RB_Emoji}" 
+                           Placement="Top" HorizontalOffset="-100" AllowsTransparency="True" StaysOpen="False">
+                        <myControls:EmojiTabControlUC x:Name="EmojiTabControlUC" Width="455" Height="250" Close="EmojiTabControlUC_Close"/>
+                    </Popup>
+                    <Button Height="30" Cursor="Hand"
+                            Background="Transparent" BorderThickness="0" Margin="10 0 0 0"
+                            IsDefault="True">
+                        <Path Data="{StaticResource attach}" 
+                              Stretch="Uniform" Fill="{DynamicResource PrimaryBrush}"></Path>
+                    </Button>
                 </StackPanel>
             </Border>
         </Grid>

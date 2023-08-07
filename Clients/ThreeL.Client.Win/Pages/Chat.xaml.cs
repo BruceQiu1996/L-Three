@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using ThreeL.Client.Win.ViewModels;
 
@@ -32,6 +33,21 @@ namespace ThreeL.Client.Win.Pages
         private void ScrollViewer_RequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
         {
             e.Handled = true;
+        }
+
+        private void RB_Emoji_Click(object sender, RoutedEventArgs e)
+        {
+            this.pop.IsOpen = true;
+        }
+
+        private void EmojiTabControlUC_Close(object sender, System.EventArgs e)
+        {
+            var container = new InlineUIContainer(new Image { Source = EmojiTabControlUC.SelectEmoji.Value, Height = 20, Width = 20 }, 
+                rtb.CaretPosition);
+
+            rtb.CaretPosition = container.ElementEnd;
+            rtb.Focus();
+            pop.IsOpen = false;
         }
     }
 }

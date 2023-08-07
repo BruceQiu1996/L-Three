@@ -43,6 +43,7 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<ChatViewModel>();
                 service.AddSingleton<GrowlHelper>();
                 service.AddSingleton<DateTimeHelper>();
+                service.AddSingleton<EmojiHelper>();
                 service.AddSuperSocket(true);
                 service.AddHostedService<UdpServerRunningService>();
                 //message handlers
