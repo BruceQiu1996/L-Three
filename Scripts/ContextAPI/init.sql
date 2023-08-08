@@ -30,3 +30,12 @@ CREATE TABLE [USER](
     createTime datetime not null,
     lastLoginTime datetime
 );
+GO
+CREATE TABLE [EMOJI](
+    id bigint PRIMARY key identity,
+    groupName varchar(50) not null,
+    groupIcon varchar(500) not null,
+    folderLocation varchar(500) not null,
+    isDeleted bit NOT NULL,
+    createTime datetime not null
+);

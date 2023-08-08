@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Net;
@@ -14,6 +15,7 @@ using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Application.Impl;
 using ThreeL.ContextAPI.Application.Impl.Services.Grpc;
 using ThreeL.Shared.Application.Contract.Extensions;
+using ThreeL.Shared.Application.Middlewares;
 
 namespace ThreeL.ContextAPI;
 
@@ -106,6 +108,22 @@ internal class Program
         host.UseRouting();
         host.UseAuthentication();
         host.UseAuthorization();
+        //host.UseMiddleware<AuthorizeStaticFilesMiddleware>("/files");
+        host.UseStaticFiles(new StaticFileOptions()
+        {
+            OnPrepareResponse = ctx =>
+            {
+                ctx.Context.Response.Headers.Add("Cache-Control", "public,max-age=600");
+            }
+        });
+
+        host.UseFileServer(new FileServerOptions()
+        {
+            FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
+            RequestPath = new Microsoft.AspNetCore.Http.PathString("/files"),
+            EnableDirectoryBrowsing = true
+        });
+
         host.UseSwagger();
         host.UseSwaggerUI(option =>
         {

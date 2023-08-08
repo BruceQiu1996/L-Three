@@ -10,10 +10,14 @@
 
 	<ItemGroup>
 	  <None Remove="appsettings.json" />
+	  <None Remove="wwwroot\emojis\zhuzhuxia\3ec1348c4e9816e897b4ccc63b8272f.jpg" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Content Include="appsettings.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="wwwroot\*\*\*.jpg">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>

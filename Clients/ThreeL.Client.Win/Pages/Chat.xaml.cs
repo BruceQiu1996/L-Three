@@ -34,20 +34,5 @@ namespace ThreeL.Client.Win.Pages
         {
             e.Handled = true;
         }
-
-        private void RB_Emoji_Click(object sender, RoutedEventArgs e)
-        {
-            this.pop.IsOpen = true;
-        }
-
-        private void EmojiTabControlUC_Close(object sender, System.EventArgs e)
-        {
-            var container = new InlineUIContainer(new Image { Source = EmojiTabControlUC.SelectEmoji.Value, Height = 20, Width = 20 }, 
-                rtb.CaretPosition);
-
-            rtb.CaretPosition = container.ElementEnd;
-            rtb.Focus();
-            pop.IsOpen = false;
-        }
     }
 }

@@ -33,7 +33,6 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
                              Background="#555"
-                             TextWrapping="Wrap"
                              AcceptsReturn="True"
                              VerticalAlignment="Top"
                              IsReadOnly="True"
@@ -270,31 +269,36 @@
 
             <Border Grid.Row="2" Margin="0 2 0 0">
                 <StackPanel Orientation="Horizontal">
-                    <RichTextBox  Grid.Column="0" 
-                                  x:Name="rtb"
-                                  Background="#444"
-                                  Style="{StaticResource RichTextBoxBaseStyle}"
-                                  BorderThickness="0"
-                                  VerticalAlignment="Center" HorizontalAlignment="Stretch"
-                                  Width="460"
-                                  Foreground="#ddd"
-                                  VerticalContentAlignment="Top"
-                                  Height="45" Margin="5 0 0 5"></RichTextBox>
+                    <TextBox  Grid.Column="0" 
+                              Background="#444"
+                              Style="{StaticResource TextBoxExtend}"
+                              BorderThickness="0"
+                              VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                              Width="460"
+                              Foreground="#ddd"
+                              Text="{Binding TextMessage}"
+                              VerticalContentAlignment="Top"
+                              Height="45" Margin="5 0 0 5"></TextBox>
                     <Button Height="30" Cursor="Hand"
                             Background="Transparent" Command="{Binding SendMessageCommandAsync}" BorderThickness="0" Margin="10 0 0 0"
                             IsDefault="True">
                         <Path Data="{StaticResource send}" 
                               Stretch="Uniform" Fill="{DynamicResource PrimaryBrush}"></Path>
                     </Button>
-                    <Button Height="30" Cursor="Hand" Name="RB_Emoji" Click="RB_Emoji_Click"
-                            Background="Transparent" BorderThickness="0" Margin="10 0 0 0"
-                            IsDefault="True">
+                    <Button Height="30" Cursor="Hand" Name="RB_Emoji" Command="{Binding OpenEmojiCommand}"
+                            Background="Transparent" BorderThickness="0" Margin="10 0 0 0">
                         <Path Data="{StaticResource emoji}" 
                               Stretch="Uniform" Fill="{DynamicResource PrimaryBrush}"></Path>
                     </Button>
                     <Popup x:Name="pop" PopupAnimation="Fade" PlacementTarget="{Binding ElementName=RB_Emoji}" 
-                           Placement="Top" HorizontalOffset="-100" AllowsTransparency="True" StaysOpen="False">
-                        <myControls:EmojiTabControlUC x:Name="EmojiTabControlUC" Width="455" Height="250" Close="EmojiTabControlUC_Close"/>
+                           Placement="Top" HorizontalOffset="-100" AllowsTransparency="True" StaysOpen="False" IsOpen="{Binding IsEmojiOpen}">
+                        <myControls:EmojiTabControlUC x:Name="EmojiTabControlUC" Width="455" Height="250" >
+                            <behaviors:Interaction.Triggers>
+                                <behaviors:EventTrigger EventName="SelectEmojiClick">
+                                    <behaviors:InvokeCommandAction Command="{Binding AddEmojiCommandAsync}" PassEventArgsToCommand="True"></behaviors:InvokeCommandAction>
+                                </behaviors:EventTrigger>
+                            </behaviors:Interaction.Triggers>
+                        </myControls:EmojiTabControlUC>
                     </Popup>
                     <Button Height="30" Cursor="Hand"
                             Background="Transparent" BorderThickness="0" Margin="10 0 0 0"

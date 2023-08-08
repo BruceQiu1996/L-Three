@@ -1,24 +1,35 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
-using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.Models;
 
 namespace ThreeL.Client.Win.MyControls
 {
-    /// <summary>
-    /// Interaction logic for EmojiTabControlUC.xaml
-    /// </summary>
     public partial class EmojiTabControlUC : UserControl
-    {
-        public event EventHandler Close;
+    { 
+        public static readonly RoutedEvent selectEmojiClickEvent =
+            EventManager.RegisterRoutedEvent("SelectEmojiClick", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(EmojiTabControlUC));
+
+        public event RoutedEventHandler SelectEmojiClick
+        {
+            add
+            {
+                AddHandler(selectEmojiClickEvent, value);
+            }
+
+            remove
+            {
+                RemoveHandler(selectEmojiClickEvent, value);
+            }
+        }
+
         public EmojiTabControlUC()
         {
             InitializeComponent();
-            EmojiList = new ObservableCollection<EmojiEntity>(App.ServiceProvider.GetRequiredService<EmojiHelper>().EmojiList);
+            //EmojiList = new ObservableCollection<EmojiEntity>(App.ServiceProvider.GetRequiredService<EmojiHelper>().EmojiList);
         }
 
         private static ObservableCollection<EmojiEntity> emojiList = new ObservableCollection<EmojiEntity>();
@@ -62,13 +73,24 @@ namespace ThreeL.Client.Win.MyControls
             if (lb.SelectedItem != null)
             {
                 SelectEmoji = (KeyValuePair<string, BitmapImage>)lb.SelectedItem;
-                if (Close != null)
+                SelectEmojiClickRoutedEventArgs args = new SelectEmojiClickRoutedEventArgs(selectEmojiClickEvent, this) 
                 {
-                    Close(this, null);
-                }
+                    Emoji = selectEmoji
+                };
+                RaiseEvent(args);
             }
             else
                 return;
         }
+    }
+
+    public class SelectEmojiClickRoutedEventArgs : RoutedEventArgs
+    {
+        public SelectEmojiClickRoutedEventArgs(RoutedEvent routedEvent, object source) : base(routedEvent,source)
+        {
+            
+        }
+
+        public KeyValuePair<string, BitmapImage> Emoji { get; set; }
     }
 }
