@@ -36,6 +36,7 @@ CREATE TABLE [EMOJI](
     groupName varchar(50) not null,
     groupIcon varchar(500) not null,
     folderLocation varchar(500) not null,
+    requestPath varchar(500) not null,
     isDeleted bit NOT NULL,
     createTime datetime not null
 );
