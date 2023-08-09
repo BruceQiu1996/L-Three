@@ -8,12 +8,12 @@ using ThreeL.SocketServer.Application.Contract.Configurations;
 
 namespace ThreeL.SocketServer.SuperSocketHandlers
 {
-    public class TextMessageHandler : AbstractMessageHandler
+    public class ImageMessageHandler : AbstractMessageHandler
     {
         private readonly ServerAppSessionManager<ChatSession> _sessionManager;
         private readonly IRedisProvider _redisProvider;
 
-        public TextMessageHandler(ServerAppSessionManager<ChatSession> sessionManager, IRedisProvider redisProvider) : base(MessageType.Text)
+        public ImageMessageHandler(ServerAppSessionManager<ChatSession> sessionManager, IRedisProvider redisProvider) : base(MessageType.Image)
         {
             _redisProvider = redisProvider;
             _sessionManager = sessionManager;
@@ -21,17 +21,16 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
-            var packet = message as Packet<TextMessage>;
-            var resp = new Packet<TextMessageResponse>()
+            var packet = message as Packet<ImageMessage>;
+            var resp = new Packet<ImageMessageResponse>()
             {
                 Sequence = packet.Sequence,
                 Checkbit = packet.Checkbit,
-                MessageType = MessageType.TextResp,
+                MessageType = MessageType.ImageResp,
             };
 
-            var body = new TextMessageResponse();
+            var body = new ImageMessageResponse();
             resp.Body = body;
-
             if (packet.Body.From != packet.Body.To)
             {
                 var e1 = await _redisProvider.SetIsMemberAsync(Const.FRIEND_RELATIONS, $"{packet.Body.From}-{packet.Body.To}");
@@ -46,10 +45,15 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             }
 
             body.Result = true;
-            body.Text = packet.Body.Text;
+            body.Url = packet.Body.Url;
+            body.ImageType = packet.Body.ImageType;
+            body.ImageBytes = packet.Body.ImageBytes;
             body.From = packet.Body.From;
             body.To = packet.Body.To;
+            body.FileName = packet.Body.FileName;
             body.SendTime = packet.Body.SendTime;
+            //TODO保存聊天记录到数据库
+            //如果是本地图片，还需要存储到目录下。
             //分发给发送者和接收者
             var fromSessions = _sessionManager.TryGet(resp.Body.From);
             var toSessions = _sessionManager.TryGet(resp.Body.To);

@@ -81,5 +81,27 @@ namespace ThreeL.Infra.Redis.Providers
 
             return dict;
         }
+
+        public async Task SetAddAsync(string cacheKey, string[] cacheValues, TimeSpan? expiration = null)
+        {
+            var list = new List<RedisValue>();
+
+            foreach (var item in cacheValues)
+            {
+                list.Add(item);
+            }
+
+            await _redisDb.SetAddAsync(cacheKey, list.ToArray());
+
+            if (expiration.HasValue)
+            {
+                _redisDb.KeyExpire(cacheKey, expiration.Value);
+            }
+        }
+
+        public async Task<bool> SetIsMemberAsync(string cacheKey, string cacheValue)
+        {
+            return await _redisDb.SetContainsAsync(cacheKey, cacheValue);
+        }
     }
 }

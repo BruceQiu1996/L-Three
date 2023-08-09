@@ -5,6 +5,9 @@ using ThreeL.Shared.SuperSocket.Filters;
 
 namespace ThreeL.Shared.SuperSocket.Client
 {
+    /// <summary>
+    /// UDP服务只做视频和语音
+    /// </summary>
     public class UdpSuperSocketClient
     {
         public EasyClient<IPacket> mClient;

@@ -12,5 +12,7 @@ namespace ThreeL.Infra.Redis
         Task<T> HGetAsync<T>(string cacheKey, string field);
         Task<Dictionary<string, T>> HGetAllAsync<T>(string cacheKey);
         Task<bool> HExistsAsync(string cacheKey, string field);
+        Task SetAddAsync(string cacheKey, string[] cacheValues, TimeSpan? expiration = null);
+        Task<bool> SetIsMemberAsync(string cacheKey, string cacheValue);
     }
 }

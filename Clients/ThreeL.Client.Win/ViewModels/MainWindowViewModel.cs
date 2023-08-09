@@ -96,6 +96,7 @@ namespace ThreeL.Client.Win.ViewModels
             }
             catch (Exception ex) 
             {
+                await _tcpSuperSocket.CloseConnectAsync();
                 _growlHelper.Warning(ex.Message);
             }
         }

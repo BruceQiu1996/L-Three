@@ -17,6 +17,7 @@
             <Setter Property="MaxWidth" Value="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelWidth)}" />
         </Style>
         <converts:ValueHalfConverter x:Key="ValueHalfConverter"></converts:ValueHalfConverter>
+        <converts:ValueHalfConverter_2 x:Key="ValueHalfConverter_2"></converts:ValueHalfConverter_2>
         <converts:MessageDataTemplateSelector x:Key="MessageDataTemplateSelector"></converts:MessageDataTemplateSelector>
         <DataTemplate x:Key="loadData">
             <TextBlock Text="加载历史聊天记录" HorizontalAlignment="Center" FontSize="13" Foreground="{DynamicResource LoadColor}" Cursor="Hand" TextDecorations="Underline">
@@ -48,14 +49,21 @@
         </DataTemplate>
         <DataTemplate x:Key="imageSender">
             <Grid Name="ctx">
-                <Image Source="{Binding ImageLocation}" 
-                        MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter},UpdateSourceTrigger=PropertyChanged}"
+                <Image Source="{Binding Url}" 
+                       MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
                        HorizontalAlignment="Right">
                 </Image>
             </Grid>
         </DataTemplate>
 
-
+        <DataTemplate x:Key="imageSenderLocal">
+            <Grid Name="ctx">
+                <Image Source="{Binding Source}" 
+                       MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
+                       HorizontalAlignment="Right">
+                </Image>
+            </Grid>
+        </DataTemplate>
 
 
 
@@ -80,20 +88,18 @@
         </DataTemplate>
         <DataTemplate x:Key="imageReceiver">
             <Grid Name="ctx">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
-                             Background="{DynamicResource DefaultHoverColor}"
-                             TextWrapping="Wrap"
-                             AcceptsReturn="True"
-                             VerticalAlignment="Top"
-                             VerticalContentAlignment="Top"
-                             MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter},UpdateSourceTrigger=PropertyChanged}"
-                             BorderThickness="0"
-                             Foreground="{DynamicResource DefaultFontColor}"
-                             HorizontalAlignment="Right"
-                             FontSize="15">
-                    </TextBox>
-                </StackPanel>
+                <Image Source="{Binding Url}" 
+                       MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
+                       HorizontalAlignment="Left">
+                </Image>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="imageReceiverLocal">
+            <Grid Name="ctx">
+                <Image Source="{Binding Source}" 
+                       MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
+                       HorizontalAlignment="Left">
+                </Image>
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="time">
@@ -271,14 +277,14 @@
                 <StackPanel Orientation="Horizontal">
                     <TextBox  Grid.Column="0" 
                               Background="#444"
+                              MinWidth="{Binding ElementName=chatScrollViewer,Path=ActualWidth,Converter={StaticResource ValueHalfConverter}}"
                               Style="{StaticResource TextBoxExtend}"
                               BorderThickness="0"
                               VerticalAlignment="Center" HorizontalAlignment="Stretch"
-                              Width="460"
                               Foreground="#ddd"
                               Text="{Binding TextMessage}"
                               VerticalContentAlignment="Top"
-                              Height="45" Margin="5 0 0 5"></TextBox>
+                              Height="45" Margin="50 0 0 5"></TextBox>
                     <Button Height="30" Cursor="Hand"
                             Background="Transparent" Command="{Binding SendMessageCommandAsync}" BorderThickness="0" Margin="10 0 0 0"
                             IsDefault="True">
@@ -301,8 +307,8 @@
                         </myControls:EmojiTabControlUC>
                     </Popup>
                     <Button Height="30" Cursor="Hand"
-                            Background="Transparent" BorderThickness="0" Margin="10 0 0 0"
-                            IsDefault="True">
+                            Command="{Binding ChooseFileSendCommandAsync}"
+                            Background="Transparent" BorderThickness="0" Margin="10 0 0 0">
                         <Path Data="{StaticResource attach}" 
                               Stretch="Uniform" Fill="{DynamicResource PrimaryBrush}"></Path>
                     </Button>

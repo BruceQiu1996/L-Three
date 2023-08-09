@@ -43,7 +43,7 @@ namespace ThreeL.Shared.Application.Contract.Extensions
         public static void AddApplicationContainer(this ContainerBuilder container, Assembly implAssembly)
         {
             container.RegisterAssemblyTypes(implAssembly).Where(t => typeof(IAppService).IsAssignableFrom(t)).SingleInstance().AsImplementedInterfaces().EnableInterfaceInterceptors();
-            container.RegisterAssemblyTypes(implAssembly).Where(t => typeof(DbContext).IsAssignableFrom(t)).SingleInstance().AsSelf().As<DbContext>();
+            container.RegisterAssemblyTypes(implAssembly).Where(t => typeof(DbContext).IsAssignableFrom(t)).InstancePerDependency().AsSelf().As<DbContext>();
         }
     }
 }

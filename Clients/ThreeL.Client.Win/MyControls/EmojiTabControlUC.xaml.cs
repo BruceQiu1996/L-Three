@@ -1,15 +1,19 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media.Imaging;
+using ThreeL.Client.Shared.Configurations;
+using ThreeL.Client.Shared.Dtos.ContextAPI;
+using ThreeL.Client.Shared.Entities.Metadata;
+using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Win.Models;
 
 namespace ThreeL.Client.Win.MyControls
 {
     public partial class EmojiTabControlUC : UserControl
-    { 
+    {
         public static readonly RoutedEvent selectEmojiClickEvent =
             EventManager.RegisterRoutedEvent("SelectEmojiClick", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(EmojiTabControlUC));
 
@@ -29,15 +33,14 @@ namespace ThreeL.Client.Win.MyControls
         public EmojiTabControlUC()
         {
             InitializeComponent();
-            //EmojiList = new ObservableCollection<EmojiEntity>(App.ServiceProvider.GetRequiredService<EmojiHelper>().EmojiList);
         }
 
-        private static ObservableCollection<EmojiEntity> emojiList = new ObservableCollection<EmojiEntity>();
+        private ObservableCollection<EmojiGroup> emojiList = new ObservableCollection<EmojiGroup>();
 
         /// <summary>
         /// emoji集合
         /// </summary>
-        public static ObservableCollection<EmojiEntity> EmojiList
+        public ObservableCollection<EmojiGroup> EmojiList
         {
             get
             {
@@ -50,11 +53,11 @@ namespace ThreeL.Client.Win.MyControls
             }
         }
 
-        private KeyValuePair<string, BitmapImage> selectEmoji = new KeyValuePair<string, BitmapImage>();
+        private EmojiEntity selectEmoji;
         /// <summary>
         /// 选中项
         /// </summary>
-        public KeyValuePair<string, BitmapImage> SelectEmoji
+        public EmojiEntity SelectEmoji
         {
             get
             {
@@ -72,8 +75,8 @@ namespace ThreeL.Client.Win.MyControls
             ListBox lb = sender as ListBox;
             if (lb.SelectedItem != null)
             {
-                SelectEmoji = (KeyValuePair<string, BitmapImage>)lb.SelectedItem;
-                SelectEmojiClickRoutedEventArgs args = new SelectEmojiClickRoutedEventArgs(selectEmojiClickEvent, this) 
+                SelectEmoji = (EmojiEntity)lb.SelectedItem;
+                SelectEmojiClickRoutedEventArgs args = new SelectEmojiClickRoutedEventArgs(selectEmojiClickEvent, this)
                 {
                     Emoji = selectEmoji
                 };
@@ -82,15 +85,45 @@ namespace ThreeL.Client.Win.MyControls
             else
                 return;
         }
+
+        private bool _isLoaded = false;
+        private async void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!_isLoaded)
+            {
+                var resp = await App.ServiceProvider.GetRequiredService<ContextAPIService>()
+                    .GetAsync<EmojiResponseDto>(Const.FETCH_EMOJIS);
+
+                if (resp != null)
+                {
+                    EmojiList.Clear();
+                    foreach (var group in resp.EmojiGroups)
+                    {
+                        EmojiList.Add(new EmojiGroup()
+                        {
+                            GroupIcon = $"http://{group.GroupIcon}",
+                            GroupName = group.GroupName,
+                            EmojiEntities = group.Emojis.Select(x => new EmojiEntity()
+                            {
+                                ImageType = ImageType.Network,
+                                Url = $"http://{x}"
+                            }).ToList()
+                        });
+                    }
+
+                    _isLoaded = true;
+                }
+            }
+        }
     }
 
     public class SelectEmojiClickRoutedEventArgs : RoutedEventArgs
     {
-        public SelectEmojiClickRoutedEventArgs(RoutedEvent routedEvent, object source) : base(routedEvent,source)
+        public SelectEmojiClickRoutedEventArgs(RoutedEvent routedEvent, object source) : base(routedEvent, source)
         {
-            
+
         }
 
-        public KeyValuePair<string, BitmapImage> Emoji { get; set; }
+        public EmojiEntity Emoji { get; set; }
     }
 }

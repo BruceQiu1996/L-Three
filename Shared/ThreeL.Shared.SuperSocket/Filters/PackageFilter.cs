@@ -29,6 +29,9 @@ namespace ThreeL.Shared.SuperSocket.Filters
                 IPacket packet = (MessageType)msgType switch
                 {
                     MessageType.Text => new Packet<TextMessage>(),
+                    MessageType.TextResp => new Packet<TextMessageResponse>(),
+                    MessageType.Image => new Packet<ImageMessage>(),
+                    MessageType.ImageResp => new Packet<ImageMessageResponse>(),
                     MessageType.Login => new Packet<LoginCommand>(),
                     MessageType.LoginResponse => new Packet<LoginCommandResponse>(),
                     MessageType.RequestForUserEndpoint => new Packet<RequestForUserEndpointCommand>(),

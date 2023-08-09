@@ -11,6 +11,14 @@
         Link = 7,
         Recall = 8,
 
+        TextResp,
+        ImageResp,
+        AudioResp,
+        VideoResp,
+        FileResp,
+        LocationResp,
+        LinkResp,
+        RecallResp,
         //command
         Login,
         LoginResponse,

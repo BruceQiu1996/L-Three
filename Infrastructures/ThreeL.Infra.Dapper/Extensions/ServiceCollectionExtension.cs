@@ -8,8 +8,8 @@ namespace ThreeL.Infra.Dapper.Extensions
     {
         public static IServiceCollection AddInfraDapper(this IServiceCollection services)
         {
-            services.AddScoped(typeof(IAdoQuerierRepository<>), typeof(DapperRepository<>));
-            services.AddScoped(typeof(IAdoExecuterRepository<>), typeof(DapperRepository<>));
+            services.AddTransient(typeof(IAdoQuerierRepository<>), typeof(DapperRepository<>));
+            services.AddTransient(typeof(IAdoExecuterRepository<>), typeof(DapperRepository<>));
             services.AddSingleton<DbConnectionFactory>();
 
             return services;

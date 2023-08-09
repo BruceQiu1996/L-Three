@@ -1,6 +1,6 @@
 ﻿namespace ThreeL.Client.Shared.Entities.Metadata
 {
-    public enum ImageType
+    public enum ImageType : byte
     {
         Network,
         Local

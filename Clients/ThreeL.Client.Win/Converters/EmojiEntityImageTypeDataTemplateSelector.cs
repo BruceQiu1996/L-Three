@@ -1,0 +1,30 @@
+﻿using System.Windows;
+using System.Windows.Controls;
+using ThreeL.Client.Shared.Entities.Metadata;
+using ThreeL.Client.Win.Models;
+
+namespace ThreeL.Client.Win.Converters
+{
+    internal class EmojiEntityImageTypeDataTemplateSelector : DataTemplateSelector
+    {
+        public override DataTemplate SelectTemplate(object item, DependencyObject container)
+        {
+            var fe = container as FrameworkElement;
+            var obj = item as EmojiEntity;
+            DataTemplate dt = null;
+            if (obj != null && fe != null)
+            {
+                if (obj.ImageType == ImageType.Network)
+                {
+                    dt = fe.FindResource("network") as DataTemplate;
+                }
+                else 
+                {
+                    dt = fe.FindResource("local") as DataTemplate;
+                }    
+            }
+
+            return dt;
+        }
+    }
+}

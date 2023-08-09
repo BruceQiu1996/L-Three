@@ -8,7 +8,6 @@ namespace ThreeL.Client.Win.Models
     /// </summary>
     public class EmojiEntity
     {
-        public string Group { get; set; }
         public ImageType ImageType { get; set; }
         public string Url { get; set; }
         public BitmapImage BitmapImage { get; set; }

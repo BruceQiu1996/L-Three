@@ -21,7 +21,8 @@ namespace ThreeL.Shared.SuperSocket.Client
             mClient.LocalEndPoint = ipEndPoint;
             mClient.Closed += (s, e) =>
             {
-                throw new Exception("SuperSocket连接断开"); //TODO: 重连,显示断开连接
+                Connected = false;
+                throw new Exception("连接已经断开!"); //TODO: 重连,显示断开连接
             };
 
             mClient.PackageHandler += async (sender, package) =>
@@ -45,7 +46,7 @@ namespace ThreeL.Shared.SuperSocket.Client
             return isConnect;
         }
 
-        public async Task<bool> CloseConnect()
+        public async Task<bool> CloseConnectAsync()
         {
             await mClient.CloseAsync();
             Connected = false;
@@ -56,11 +57,15 @@ namespace ThreeL.Shared.SuperSocket.Client
         {
             try
             {
+                if (!Connected) 
+                {
+                    throw new Exception("连接已经断开!");
+                }
                 await mClient.SendAsync(data);
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"SuperSocket发送数据异常  {ex.Message}");
+                throw;
             }
         }
     }

@@ -3,9 +3,9 @@
 namespace ThreeL.Shared.SuperSocket.Dto.Commands
 {
     [ProtoContract]
-    [ProtoInclude(100, typeof(LoginCommandResponse))]
-    [ProtoInclude(200, typeof(RequestForUserEndpointCommandResponse))]
-    public class CommandResponse : AbstractMessage
+    [ProtoInclude(5100, typeof(LoginCommandResponse))]
+    [ProtoInclude(5200, typeof(RequestForUserEndpointCommand))]
+    public abstract class CommandResponse : AbstractMessage
     {
         [ProtoMember(4)]
         public bool Result { get; set; }

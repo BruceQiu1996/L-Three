@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 
 using System.Threading.Tasks;
+using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Client.Shared.Entities;
@@ -46,7 +47,7 @@ namespace ThreeL.Client.Win.ViewModels
         private async Task LoginAsync(PasswordBox password)
         {
             password.Password = "123456";
-            var data = await _contextAPIService.PostAsync<UserLoginResponseDto>("user/login", new UserLoginDto
+            var data = await _contextAPIService.PostAsync<UserLoginResponseDto>(Const.LOGIN, new UserLoginDto
             {
                 UserName = UserName,
                 Password = password.Password,

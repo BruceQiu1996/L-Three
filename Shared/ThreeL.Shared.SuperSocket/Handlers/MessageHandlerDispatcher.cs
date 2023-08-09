@@ -25,7 +25,14 @@ namespace ThreeL.Shared.SuperSocket.Handlers
                 return;
             }
 
-            await handler.ExcuteAsync(appSession, message);
+            try
+            {
+                await handler.ExcuteAsync(appSession, message);
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError(ex.ToString());
+            }
         }
     }
 }

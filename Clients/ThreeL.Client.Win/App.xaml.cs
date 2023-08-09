@@ -42,11 +42,13 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<Chat>();
                 service.AddSingleton<ChatViewModel>();
                 service.AddSingleton<GrowlHelper>();
+                service.AddSingleton<FileHelper>();
                 service.AddSingleton<DateTimeHelper>();
                 service.AddSuperSocket(true);
                 service.AddHostedService<UdpServerRunningService>();
                 //message handlers
-                service.AddSingleton<IMessageHandler, TextMessageHandler>();
+                service.AddSingleton<IMessageHandler, TextMessageResponseHandler>();
+                service.AddSingleton<IMessageHandler, ImageMessageResponseHandler>();
                 service.AddSingleton<IMessageHandler, LoginCommandResponseHandler>();
                 service.AddSingleton<IMessageHandler, RequestForUserEndpointResponseHandler>();
 
