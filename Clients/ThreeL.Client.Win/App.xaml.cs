@@ -45,6 +45,7 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<FileHelper>();
                 service.AddSingleton<DateTimeHelper>();
                 service.AddSuperSocket(true);
+                service.AddSingleton<SaveChatRecordService>();
                 service.AddHostedService<UdpServerRunningService>();
                 //message handlers
                 service.AddSingleton<IMessageHandler, TextMessageResponseHandler>();

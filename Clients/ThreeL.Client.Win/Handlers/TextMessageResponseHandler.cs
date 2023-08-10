@@ -3,8 +3,12 @@ using SuperSocket;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using ThreeL.Client.Shared.Entities;
+using ThreeL.Client.Shared.Entities.Metadata;
+using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.ViewModels;
+using ThreeL.Client.Win.ViewModels.Messages;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Handlers;
@@ -15,18 +19,20 @@ namespace ThreeL.Client.Win.Handlers
     public class TextMessageResponseHandler : AbstractMessageHandler
     {
         private readonly GrowlHelper _growlHelper;
-        public TextMessageResponseHandler(GrowlHelper growlHelper) : base(MessageType.TextResp) 
+        private readonly SaveChatRecordService _saveChatRecordService;
+        public TextMessageResponseHandler(GrowlHelper growlHelper, SaveChatRecordService saveChatRecordService) : base(MessageType.TextResp) 
         {
             _growlHelper = growlHelper;
+            _saveChatRecordService = saveChatRecordService;
         }
 
-        public override Task ExcuteAsync(IAppSession appSession, IPacket message)
+        public async override Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
             var packet = message as Packet<TextMessageResponse>;
             if (packet != null && !packet.Body.Result) //消息发送失败
             {
                 _growlHelper.Warning(packet.Body.Message);
-                return Task.CompletedTask;
+                return;
             }
             FriendViewModel friend = null;
             if (App.UserProfile.UserId == packet.Body.From)
@@ -42,9 +48,19 @@ namespace ThreeL.Client.Win.Handlers
 
             if (friend != null)
             {
+                await _saveChatRecordService.WriteLogAsync(new ChatRecord
+                {
+                    From = packet.Body.From,
+                    To = packet.Body.To,
+                    MessageId = packet.Body.MessageId,
+                    Message = packet.Body.Text,
+                    MessageRecordType = MessageRecordType.Text,
+                    SendTime = packet.Body.SendTime
+                });
+
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    friend.Messages.Add(new ViewModels.Messages.TextMessage()
+                    friend.AddMessage(new TextMessageViewModel()
                     {
                         FromSelf = App.UserProfile.UserId == packet.Body.From,
                         Text = packet.Body.Text,
@@ -55,8 +71,6 @@ namespace ThreeL.Client.Win.Handlers
                     });
                 });
             }
-
-            return Task.CompletedTask;
         }
     }
 }

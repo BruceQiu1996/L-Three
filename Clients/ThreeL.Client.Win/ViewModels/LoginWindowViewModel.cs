@@ -2,10 +2,8 @@
 using CommunityToolkit.Mvvm.Input;
 using Dapper;
 using HandyControl.Controls;
-using HandyControl.Data;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-
 using System.Threading.Tasks;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
@@ -57,17 +55,21 @@ namespace ThreeL.Client.Win.ViewModels
             if (data != null)
             {
                 _contextAPIService.SetToken($"{data.AccessToken}");
-                var user = await SqlMapper.QueryFirstOrDefaultAsync<UserProfile>(_clientSqliteContext.dbConnection, $"select * from userprofile where userId = {data.UserId}");
+                var user = await SqlMapper.QueryFirstOrDefaultAsync<UserProfile>
+                    (_clientSqliteContext.dbConnection, $"select * from userprofile where userId = {data.UserId}");
                 if (user == null)
                 {
-                    await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, $"insert into userprofile (UserId,UserName,Role,AccessToken,RefreshToken) values (@UserId,@UserName,@Role,@AccessToken,@RefreshToken)", data);
+                    await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, 
+                        $"insert into userprofile (UserId,UserName,Role,AccessToken,RefreshToken) values (@UserId,@UserName,@Role,@AccessToken,@RefreshToken)", data);
                 }
                 else
                 {
-                    await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, $"update userprofile set UserName = @UserName,Role =@Role,AccessToken = @AccessToken, RefreshToken = @RefreshToken where UserId = @UserId", data);
+                    await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, 
+                        $"update userprofile set UserName = @UserName,Role =@Role,AccessToken = @AccessToken, RefreshToken = @RefreshToken where UserId = @UserId", data);
                 }
 
-                await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, $"update userprofile set LastLoginTime = @LastLoginTime where UserId = @UserId", new
+                await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, 
+                    $"update userprofile set LastLoginTime = @LastLoginTime where UserId = @UserId", new
                 {
                     LastLoginTime = DateTime.Now,
                     data.UserId
@@ -78,7 +80,8 @@ namespace ThreeL.Client.Win.ViewModels
                     UserId = data.UserId,
                     UserName = data.UserName,
                     RefreshToken = data.RefreshToken,
-                    AccessToken = data.AccessToken
+                    AccessToken = data.AccessToken,
+                    Role = data.Role,
                 };
                 App.ServiceProvider.GetRequiredService<MainWindow>().Show();
                 App.ServiceProvider.GetRequiredService<Login>().Close();

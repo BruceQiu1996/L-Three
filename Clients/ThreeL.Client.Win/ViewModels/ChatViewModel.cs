@@ -1,26 +1,30 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Dapper;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using ThreeL.Client.Shared.Configurations;
+using ThreeL.Client.Shared.Database;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
+using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Shared.Entities.Metadata;
 using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Shared.Utils;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.MyControls;
+using ThreeL.Client.Win.ViewModels.Messages;
 using ThreeL.Shared.SuperSocket.Cache;
 using ThreeL.Shared.SuperSocket.Client;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Metadata;
-using TextMessage = ThreeL.Shared.SuperSocket.Dto.Message.TextMessage;
 
 namespace ThreeL.Client.Win.ViewModels
 {
@@ -61,7 +65,15 @@ namespace ThreeL.Client.Win.ViewModels
             set => SetProperty(ref _isEmojiOpen, value);
         }
 
+        private UserProfile userProfile;
+        public UserProfile UserProfile
+        {
+            get { return userProfile; }
+            set => SetProperty(ref userProfile, value);
+        }
+
         private readonly ContextAPIService _contextAPIService;
+        private readonly ClientSqliteContext _clientSqliteContext;
         private readonly GrowlHelper _growlHelper;
         private readonly FileHelper _fileHelper;
         private readonly UdpSuperSocketClient _udpSuperSocketClient;
@@ -71,7 +83,8 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly IPEndPoint _iPEndPoint;
 
         public ChatViewModel(ContextAPIService contextAPIService,
-                             GrowlHelper growlHelper, 
+                             ClientSqliteContext clientSqliteContext,
+                             GrowlHelper growlHelper,
                              FileHelper fileHelper,
                              PacketWaiter packetWaiter,
                              IPEndPoint iPEndPoint,
@@ -80,6 +93,7 @@ namespace ThreeL.Client.Win.ViewModels
                              TcpSuperSocketClient tcpSuperSocketClient)
         {
             _contextAPIService = contextAPIService;
+            _clientSqliteContext = clientSqliteContext;
             _growlHelper = growlHelper;
             _packetWaiter = packetWaiter;
             _iPEndPoint = iPEndPoint;
@@ -97,6 +111,7 @@ namespace ThreeL.Client.Win.ViewModels
 
         private async Task LoadAsync()
         {
+            UserProfile = App.UserProfile;
             //TODO删除代码
             try
             {
@@ -128,11 +143,17 @@ namespace ThreeL.Client.Win.ViewModels
                         }
                     }
                     //加载好友列表
-                    FriendViewModels = new ObservableCollection<FriendViewModel>(friends); FriendViewModels.Insert(0, new FriendViewModel()
+                    FriendViewModels = new ObservableCollection<FriendViewModel>(friends)
                     {
-                        Id = App.UserProfile.UserId,
-                        Remark = "我"
-                    });
+                        new FriendViewModel()
+                        {
+                            Id = App.UserProfile.UserId,
+                            Remark = "我自己",
+                            UserName = App.UserProfile.UserName,
+                        }
+                    };
+
+                    FriendViewModel = FriendViewModels.FirstOrDefault();
                 }
             }
             catch (Exception ex)
@@ -147,31 +168,37 @@ namespace ThreeL.Client.Win.ViewModels
         /// <returns></returns>
         private async Task SelectFriendAsync()
         {
-            //if (FriendViewModel.Hosts.Count <= 0)
-            //{
-            //    var packet = new Packet<RequestForUserEndpointCommand>()
-            //    {
-            //        Checkbit = 8240,
-            //        Sequence = _sequenceIncrementer.GetNextSequence(),
-            //        MessageType = MessageType.RequestForUserEndpoint,
-            //        Body = new RequestForUserEndpointCommand
-            //        {
-            //            UserId = FriendViewModel.Id,
-            //            SsToken = App.UserProfile.SocketAccessToken
-            //        }
-            //    };
+            var tempFriend = FriendViewModel;
+            if (!tempFriend.LoadedChatRecord)
+            {
+                //加载历史100条聊天记录 //TODO与服务器聊天记录做比较
+                var redords =
+                    await SqlMapper.QueryAsync<ChatRecord>(_clientSqliteContext.dbConnection,
+                        "SELECT * FROM ChatRecord WHERE (([FROM] = @Id AND [TO] = @Cid) OR ([TO] = @Id and [FROM] = @Cid)) AND rowid IN (SELECT rowid FROM ChatRecord ORDER BY SendTime Desc LIMIT 100)",
+                        new { tempFriend.Id, Cid = App.UserProfile.UserId });
 
-            //    _packetWaiter.AddWaitPacket($"answer:{packet.Sequence}", null, false);
-            //    await _tcpSuperSocketClient.SendBytes(packet.Serialize());
-            //    var answer =
-            //        await _packetWaiter.GetAnswerPacketAsync<Packet<RequestForUserEndpointCommandResponse>>($"answer:{packet.Sequence}");
+                if (redords != null && redords.Count() > 0)
+                {
+                    foreach (var record in redords.OrderBy(x => x.SendTime))
+                    {
+                        MessageViewModel messageViewModel = null;
+                        if (record.MessageRecordType == MessageRecordType.Text)
+                        {
+                            messageViewModel = new TextMessageViewModel();
+                            messageViewModel.FromEntity(record);
+                        }
 
-            //    if (answer != null && answer.Body.Result && !string.IsNullOrEmpty(answer.Body.Addresses))
-            //    {
-            //        var addrs = answer.Body.Addresses.Split(",");
-            //        FriendViewModel.Hosts.AddRange(addrs);
-            //    }
-            //}
+                        if (record.MessageRecordType == MessageRecordType.Image)
+                        {
+                            messageViewModel = new ImageMessageViewModel();
+                            messageViewModel.FromEntity(record);
+                        }
+
+                        tempFriend.AddMessage(messageViewModel);
+                    }
+                }
+                tempFriend.LoadedChatRecord = true;
+            }
         }
 
         private async Task SendMessageAsync()
@@ -259,7 +286,7 @@ namespace ThreeL.Client.Win.ViewModels
                     }
                     else //其他文件
                     {
-                        
+
                     }
                 }
             }

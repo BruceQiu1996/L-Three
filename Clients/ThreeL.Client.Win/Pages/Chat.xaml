@@ -9,6 +9,7 @@
       xmlns:helpers="clr-namespace:ThreeL.Client.Win.Helpers"
       xmlns:myControls ="clr-namespace:ThreeL.Client.Win.MyControls"
       mc:Ignorable="d" 
+      FontFamily="微软雅黑"
       d:DesignHeight="450" d:DesignWidth="800"
       Title="Friend">
     <Page.Resources>
@@ -131,7 +132,7 @@
         <Grid Grid.Column="0" Margin="0 0 0 0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"></RowDefinition>
-                <RowDefinition Height="45"></RowDefinition>
+                <RowDefinition Height="55"></RowDefinition>
             </Grid.RowDefinitions>
             <ScrollViewer Margin="0" Grid.Row="0">
                 <ListBox ScrollViewer.CanContentScroll="False"
@@ -179,15 +180,20 @@
                                                 <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
                                                         Width="50" Height="50" HorizontalAlignment="Left" Margin="5 0 0 0"
                                                         Background="{DynamicResource PrimaryBrush}">
-                                                    <TextBlock Text="J" FontSize="28" HorizontalAlignment="Center" 
+                                                    <TextBlock Text="{Binding ShowName}" FontSize="28" HorizontalAlignment="Center" 
                                                                Foreground="White"
                                                                VerticalAlignment="Center"></TextBlock>
                                                 </Border>
-                                                <TextBlock Grid.Column="1" Margin="2 5 0 0" 
+                                                <TextBlock Grid.Column="1" Margin="2 8 0 0" 
                                                            HorizontalAlignment="Left"
                                                            Foreground="White"
                                                            Text="{Binding DisplayName,UpdateSourceTrigger=PropertyChanged}"
                                                            FontSize="16"/>
+
+                                                <TextBlock Grid.Column="1" Grid.Row="1"
+                                                           FontSize="13" Foreground="#aaa"
+                                                           VerticalAlignment="Center"
+                                                           Text="{Binding LastMessageShortDesc}"></TextBlock>
                                             </Grid>
                                         </Border>
                                     </ControlTemplate>
@@ -209,6 +215,22 @@
                 </ListBox>
             </ScrollViewer>
             <Grid Grid.Row="1" Background="#111">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                    <Border Background="{DynamicResource PrimaryBrush}" 
+                            Height="44" Width="44" CornerRadius="22"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="{Binding UserProfile.ShowName}" 
+                                   VerticalAlignment="Center" FontSize="30" HorizontalAlignment="Center"  Foreground="White"></TextBlock>
+                    </Border>
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="10 0" VerticalAlignment="Center" Cursor="Hand">
+                        <TextBlock Text="{Binding UserProfile.UserName}" FontSize="16" HorizontalAlignment="Left"  Foreground="#aaa"/>
+                        <TextBlock Text="{Binding UserProfile.Role}" FontSize="12" HorizontalAlignment="Left"  Foreground="#aaa"/>
+                    </StackPanel>
+                    <Label Height="40" Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center"
+                           HorizontalAlignment="Right" ToolTip="设置">
+                        <Path Data="{StaticResource setting}" Stretch="Uniform" Fill="#aaa"></Path>
+                    </Label>
+                </StackPanel>
             </Grid>
         </Grid>
 
@@ -258,7 +280,7 @@
 
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem" BasedOn="{StaticResource ClockListBoxItemStyle}">
-                            <Setter Property="Margin" Value="0 4"></Setter>
+                            <Setter Property="Margin" Value="0 8"></Setter>
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">

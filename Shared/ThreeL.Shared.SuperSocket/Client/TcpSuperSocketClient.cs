@@ -48,8 +48,11 @@ namespace ThreeL.Shared.SuperSocket.Client
 
         public async Task<bool> CloseConnectAsync()
         {
-            await mClient.CloseAsync();
-            Connected = false;
+            if (Connected)
+            {
+                await mClient.CloseAsync();
+                Connected = false;
+            }
             return true;
         }
 

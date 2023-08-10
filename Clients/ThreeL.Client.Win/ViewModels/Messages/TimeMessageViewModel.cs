@@ -1,6 +1,6 @@
 ﻿namespace ThreeL.Client.Win.ViewModels.Messages
 {
-    public class TimeMessage : MessageViewModel
+    public class TimeMessageViewModel : MessageViewModel
     {
         public string DateTime { get; set; }
     }

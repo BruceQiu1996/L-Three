@@ -15,19 +15,19 @@ namespace ThreeL.Client.Win.Converters
             DataTemplate dt = null;
             if (obj != null && fe != null)
             {
-                if (obj is TimeMessage)
+                if (obj is TimeMessageViewModel)
                     dt = fe.FindResource("time") as DataTemplate;
-                else if (obj is TextMessage && obj.FromSelf)
+                else if (obj is TextMessageViewModel && obj.FromSelf)
                     dt = fe.FindResource("txtSender") as DataTemplate;
-                else if (obj is TextMessage && !obj.FromSelf)
+                else if (obj is TextMessageViewModel && !obj.FromSelf)
                     dt = fe.FindResource("txtReceiver") as DataTemplate;
-                else if (obj is ImageMessage && obj.FromSelf && (obj as ImageMessage).ImageType == ImageType.Local)
+                else if (obj is ImageMessageViewModel && obj.FromSelf && (obj as ImageMessageViewModel).ImageType == ImageType.Local)
                     dt = fe.FindResource("imageSenderLocal") as DataTemplate;
-                else if (obj is ImageMessage && obj.FromSelf)
+                else if (obj is ImageMessageViewModel && obj.FromSelf)
                     dt = fe.FindResource("imageSender") as DataTemplate;
-                else if (obj is ImageMessage && !obj.FromSelf && (obj as ImageMessage).ImageType == ImageType.Local)
+                else if (obj is ImageMessageViewModel && !obj.FromSelf && (obj as ImageMessageViewModel).ImageType == ImageType.Local)
                     dt = fe.FindResource("imageReceiverLocal") as DataTemplate;
-                else if (obj is ImageMessage && !obj.FromSelf)
+                else if (obj is ImageMessageViewModel && !obj.FromSelf)
                     dt = fe.FindResource("imageReceiver") as DataTemplate;
             }
 
