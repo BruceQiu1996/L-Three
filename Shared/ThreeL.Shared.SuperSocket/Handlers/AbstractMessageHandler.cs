@@ -15,6 +15,29 @@ namespace ThreeL.Shared.SuperSocket.Handlers
             MessageType = messageType;
         }
 
+        protected virtual async Task SendMessageBothAsync<TIPacket>(IEnumerable<IAppSession> fromSessions,IEnumerable<IAppSession> toSessions, 
+            long from, long to, IPacket resp) where TIPacket : class, IPacket
+        {
+            if (fromSessions != null)
+            {
+                foreach (var item in fromSessions)
+                {
+                    await item!.SendAsync(resp.Serialize());
+                }
+            }
+
+            if (from != to)
+            {
+                if (toSessions != null)
+                {
+                    foreach (var item in toSessions)
+                    {
+                        await item!.SendAsync(resp.Serialize());
+                    }
+                }
+            }
+        }
+
         public abstract Task ExcuteAsync(IAppSession appSession, IPacket message);
     }
 }

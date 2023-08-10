@@ -21,6 +21,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\..\Shared\ThreeL.Shared.Application.Contract\ThreeL.Shared.Application.Contract.csproj" />
+	  <ProjectReference Include="..\..\..\Shared\ThreeL.Shared.SuperSocket\ThreeL.Shared.SuperSocket.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

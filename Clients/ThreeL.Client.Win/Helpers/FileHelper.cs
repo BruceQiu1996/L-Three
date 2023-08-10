@@ -15,7 +15,7 @@ namespace ThreeL.Client.Win.Helpers
                 Directory.CreateDirectory(location);
             }
 
-            await File.WriteAllBytesAsync(Path.Combine(location, $"{Guid.NewGuid()}.{Path.GetExtension(fileName)}"), data);
+            await File.WriteAllBytesAsync(Path.Combine(location, $"{Guid.NewGuid()}{Path.GetExtension(fileName)}"), data);
         }
     }
 }

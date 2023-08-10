@@ -21,7 +21,7 @@ namespace ThreeL.ContextAPI.Controllers
         [HttpPost]
         public async Task<ActionResult> Create(UserCreationDto creationDto)
         {
-            await _userService.CreateUserAsync(creationDto, 0);
+            await _userService.CreateUserAsync(creationDto, 0); //TODO使用用户id
             return Ok();
         }
 

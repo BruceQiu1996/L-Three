@@ -3,6 +3,8 @@ using SuperSocket.Channel;
 using System.Collections.Concurrent;
 
 namespace ThreeL.Shared.SuperSocket.Handlers;
+
+
 public class ServerAppSessionManager<TSession> : IDisposable where TSession : IAppSession
 {
     /// <summary>
@@ -14,13 +16,6 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
     /// Session的数量
     /// </summary>
     public int Count => Sessions.SelectMany(x => x.Value).Count();
-
-    /// <summary>
-    /// </summary>
-    public ServerAppSessionManager()
-    {
-
-    }
 
     /// <summary>
     /// 获取某人的连接
@@ -57,26 +52,6 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
 
         var sessions = Sessions[userId];
         sessions.RemoveAll(x => x.SessionID == sessionId);
-    }
-
-    /// <summary>
-    /// </summary>
-    /// <param name="session"> </param>
-    /// <param name="message"> </param>
-    /// <returns> </returns>
-    public virtual async Task SendAsync(IAppSession session, ReadOnlyMemory<byte> message)
-    {
-        if (session == null)
-        {
-            throw new ArgumentNullException(nameof(session));
-        }
-
-        if (session.State != SessionState.Connected)
-        {
-            throw new InvalidOperationException("can't send message because session had closed.");
-        }
-
-        await session.SendAsync(message);
     }
 
     public async void Dispose()
