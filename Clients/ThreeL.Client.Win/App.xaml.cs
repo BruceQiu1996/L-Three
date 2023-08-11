@@ -50,6 +50,7 @@ namespace ThreeL.Client.Win
                 //message handlers
                 service.AddSingleton<IMessageHandler, TextMessageResponseHandler>();
                 service.AddSingleton<IMessageHandler, ImageMessageResponseHandler>();
+                service.AddSingleton<IMessageHandler, FileMessageResponseHandler>();
                 service.AddSingleton<IMessageHandler, LoginCommandResponseHandler>();
                 service.AddSingleton<IMessageHandler, RequestForUserEndpointResponseHandler>();
 

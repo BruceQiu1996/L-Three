@@ -2,13 +2,13 @@
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ThreeL.Shared.Application.Contract.Extensions;
 using ThreeL.Shared.SuperSocket.Extensions;
 using ThreeL.Shared.SuperSocket.Handlers;
 using ThreeL.SocketServer.Application.Contract.Extensions;
 using ThreeL.SocketServer.Application.Impl;
 using ThreeL.SocketServer.BackgroundService;
 using ThreeL.SocketServer.SuperSocketHandlers;
-using ThreeL.Shared.Application.Contract.Extensions;
 
 namespace ThreeL.SocketServer
 {
@@ -30,6 +30,7 @@ namespace ThreeL.SocketServer
 
                 service.AddSingleton<IMessageHandler, TextMessageHandler>();
                 service.AddSingleton<IMessageHandler, ImageMessageHandler>();
+                service.AddSingleton<IMessageHandler, FileMessageHandler>();
                 service.AddSingleton<IMessageHandler, LoginCommandHandler>();
                 service.AddSingleton<IMessageHandler, RequestForUserEndpointHandler>();
                 service.AddSuperSocket();

@@ -42,7 +42,7 @@ CREATE TABLE FRIEND(
 GO
 CREATE TABLE [EMOJI](
     id bigint PRIMARY key identity,
-    groupName varchar(50) not null,
+    groupName nvarchar(50) not null,
     groupIcon varchar(500) not null,
     folderLocation varchar(500) not null,
     requestPath varchar(500) not null,
@@ -60,6 +60,7 @@ CREATE TABLE [File](
     createTime datetime not null,
     Receiver bigint not null
 );
-INSERT INTO FRIEND(Activer,Passiver,ActiverRemark,PassiverRemark,createTime) VALUES(1,2,NULL,'¥Ûb∏Á',GETDATE())
+INSERT INTO FRIEND(Activer,Passiver,ActiverRemark,PassiverRemark,createTime) VALUES(1,2,NULL,'big b bro',GETDATE())
+
 INSERT INTO EMOJI (groupName,groupIcon,folderLocation,requestPath,isDeleted,createTime) 
-VALUES('÷Ì÷Ìœ¿',	'icon.jpg',	'wwwroot/emojis/zhuzhuxia','files/emojis/zhuzhuxia',	0	,'2023-08-08 00:00:00.000')
+VALUES('GG Bond',	'icon.jpg',	'wwwroot/emojis/zhuzhuxia','files/emojis/zhuzhuxia',	0	,'2023-08-08 00:00:00.000')

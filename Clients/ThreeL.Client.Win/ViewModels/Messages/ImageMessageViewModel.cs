@@ -21,7 +21,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             }
             else 
             {
-                return "表情信息";
+                return "[表情信息]";
             }
         }
 

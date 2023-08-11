@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -70,7 +71,7 @@ namespace ThreeL.Client.Win.BackgroundService
             private async Task HandleMessageIntoSqliteDatabaseAsync(IEnumerable<ChatRecord> messages)
             {
                 await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection,
-                    "INSERT INTO ChatRecord VALUES(@MessageId,@Message,@MessageRecordType,@ImageType,@SendTime,@From,@To,@ResourceLocalLocation)", messages);
+                    "INSERT INTO ChatRecord VALUES(@MessageId,@Message,@MessageRecordType,@ImageType,@SendTime,@From,@To,@ResourceLocalLocation,@FileId,@ResourceSize,@Tag1,@Tag2,@Tag3)", messages);
             }
 
             public Task StopAsync(CancellationToken cancellationToken)

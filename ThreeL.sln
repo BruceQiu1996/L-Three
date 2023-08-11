@@ -55,7 +55,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.SocketServer.Applica
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.SocketServer.Application.Impl", "Application\SocketServer\ThreeL.SocketServer.Application.Impl\ThreeL.SocketServer.Application.Impl.csproj", "{A7A0DDC3-5EB6-4FFB-AA56-339EA2FE4AFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThreeL.Client.Shared", "Clients\ThreeL.Client.Shared\ThreeL.Client.Shared.csproj", "{BD5611E7-8A70-42E9-8F0A-234676DF30ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThreeL.Client.Shared", "Clients\ThreeL.Client.Shared\ThreeL.Client.Shared.csproj", "{BD5611E7-8A70-42E9-8F0A-234676DF30ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

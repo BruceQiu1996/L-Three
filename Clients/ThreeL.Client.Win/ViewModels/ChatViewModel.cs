@@ -197,6 +197,12 @@ namespace ThreeL.Client.Win.ViewModels
                             messageViewModel.FromEntity(record);
                         }
 
+                        if (record.MessageRecordType == MessageRecordType.File)
+                        {
+                            messageViewModel = new FileMessageViewModel(record.Message);
+                            messageViewModel.FromEntity(record);
+                        }
+
                         tempFriend.AddMessage(messageViewModel);
                     }
                 }
@@ -313,7 +319,20 @@ namespace ThreeL.Client.Win.ViewModels
                         }
                         else //其他文件
                         {
+                            var packet = new Packet<FileMessage>()
+                            {
+                                Sequence = _sequenceIncrementer.GetNextSequence(),
+                                MessageType = MessageType.File,
+                                Body = new FileMessage
+                                {
+                                    SendTime = DateTime.Now,
+                                    From = App.UserProfile.UserId,
+                                    To = FriendViewModel.Id,
+                                    FileId = resp.FileId
+                                }
+                            };
 
+                            await _tcpSuperSocketClient.SendBytes(packet.Serialize());
                         }
                     }
                     catch (Exception ex)

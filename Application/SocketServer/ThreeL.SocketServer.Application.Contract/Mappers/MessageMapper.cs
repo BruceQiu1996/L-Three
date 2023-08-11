@@ -9,6 +9,7 @@ namespace ThreeL.SocketServer.Application.Contract.Mappers
         {
             CreateMap<TextMessage, TextMessageResponse>();
             CreateMap<ImageMessage, ImageMessageResponse>();
+            CreateMap<FileMessage, FileMessageResponse>();
         }
     }
 }

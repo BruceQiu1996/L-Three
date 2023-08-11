@@ -9,6 +9,7 @@ namespace ThreeL.Shared.SuperSocket.Dto
     [ProtoInclude(95, typeof(MessageResponse))]
     [ProtoInclude(100, typeof(TextMessage))]
     [ProtoInclude(300, typeof(ImageMessage))]
+    [ProtoInclude(400, typeof(FileMessage))]
     [ProtoInclude(500, typeof(LoginCommand))]
     [ProtoInclude(700, typeof(RequestForUserEndpointCommand))]
     

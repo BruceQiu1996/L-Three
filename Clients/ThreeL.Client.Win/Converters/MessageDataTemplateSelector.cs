@@ -29,6 +29,10 @@ namespace ThreeL.Client.Win.Converters
                     dt = fe.FindResource("imageReceiverLocal") as DataTemplate;
                 else if (obj is ImageMessageViewModel && !obj.FromSelf)
                     dt = fe.FindResource("imageReceiver") as DataTemplate;
+                else if (obj is FileMessageViewModel && obj.FromSelf)
+                    dt = fe.FindResource("fileSender") as DataTemplate;
+                else if (obj is FileMessageViewModel && !obj.FromSelf)
+                    dt = fe.FindResource("fileReceiver") as DataTemplate;
             }
 
             return dt;

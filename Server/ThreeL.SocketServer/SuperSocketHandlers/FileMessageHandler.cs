@@ -10,19 +10,18 @@ using ThreeL.SocketServer.Application.Contract.Services;
 
 namespace ThreeL.SocketServer.SuperSocketHandlers
 {
-    public class ImageMessageHandler : AbstractMessageHandler
+    public class FileMessageHandler : AbstractMessageHandler
     {
         private readonly IContextAPIGrpcService _contextAPIGrpcService;
         private readonly IMessageHandlerService _messageHandlerService;
         private readonly ServerAppSessionManager<ChatSession> _sessionManager;
         private readonly IRedisProvider _redisProvider;
         private readonly IMapper _mapper;
-
-        public ImageMessageHandler(ServerAppSessionManager<ChatSession> sessionManager,
-                                   IRedisProvider redisProvider,
-                                   IContextAPIGrpcService contextAPIGrpcService,
-                                   IMapper mapper,
-                                   IMessageHandlerService messageHandlerService) : base(MessageType.Image)
+        public FileMessageHandler(ServerAppSessionManager<ChatSession> sessionManager,
+                                  IRedisProvider redisProvider,
+                                  IContextAPIGrpcService contextAPIGrpcService,
+                                  IMapper mapper,
+                                  IMessageHandlerService messageHandlerService) : base(MessageType.File)
         {
             _mapper = mapper;
             _redisProvider = redisProvider;
@@ -33,15 +32,15 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
-            var packet = message as Packet<ImageMessage>;
-            var resp = new Packet<ImageMessageResponse>()
+            var packet = message as Packet<FileMessage>;
+            var resp = new Packet<FileMessageResponse>()
             {
                 Sequence = packet.Sequence,
                 Checkbit = packet.Checkbit,
-                MessageType = MessageType.ImageResp,
+                MessageType = MessageType.FileResp,
             };
 
-            var body = new ImageMessageResponse();
+            var body = new FileMessageResponse();
             resp.Body = body;
             if (packet.Body.From != packet.Body.To)
             {
@@ -54,21 +53,19 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                     return;
                 }
             }
-            if (packet.Body.ImageType == 1) //本地图片文件
+            var fileinfo = await _contextAPIGrpcService.FetchFileInfoAsync(new FileInfoRequest() { Id = packet.Body.FileId });
+            if (fileinfo == null || !fileinfo.Result)
             {
-                var fileinfo = await _contextAPIGrpcService.FetchFileInfoAsync(new FileInfoRequest() { Id = packet.Body.FileId });
-                if (fileinfo == null || !fileinfo.Result)
-                {
-                    body.Result = false;
-                    body.Message = "发送图片失败";
-                    await appSession.SendAsync(resp.Serialize());
+                body.Result = false;
+                body.Message = "发送文件失败";
+                await appSession.SendAsync(resp.Serialize());
 
-                    return;
-                }
-
-                body.FileId = fileinfo.Id;
-                body.FileName = fileinfo.Name; //本地图片独有的属性
+                return;
             }
+
+            body.FileId = fileinfo.Id;
+            body.FileName = fileinfo.Name;
+            body.Size = fileinfo.Size;
             _mapper.Map(packet.Body, body);
             body.Result = true;
             //TODO保存聊天记录到数据库
