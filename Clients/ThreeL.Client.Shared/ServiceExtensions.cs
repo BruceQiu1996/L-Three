@@ -17,6 +17,7 @@ namespace ThreeL.Client.Shared
             services.Configure<ContextAPIOptions>(configuration.GetSection("ContextAPIOptions"));
             services.AddSingleton<ContextAPIService>();
             services.Configure<SocketServerOptions>(configuration.GetSection("SocketServerOptions"));
+            services.AddHttpClient();
         }
     }
 }

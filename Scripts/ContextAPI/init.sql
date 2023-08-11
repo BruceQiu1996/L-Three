@@ -49,6 +49,17 @@ CREATE TABLE [EMOJI](
     isDeleted bit NOT NULL,
     createTime datetime not null
 );
+GO
+CREATE TABLE [File](
+    id bigint PRIMARY key identity,
+    CreateBy bigint not NULL,
+		FileName VARCHAR(500) NOT NULL,
+		[Size] bigint not NULL,
+		Code VARCHAR(500) NOT NULL,
+		Location VARCHAR(500) NOT NULL,
+    createTime datetime not null,
+    Receiver bigint not null
+);
 INSERT INTO FRIEND(Activer,Passiver,ActiverRemark,PassiverRemark,createTime) VALUES(1,2,NULL,'¥Ûb∏Á',GETDATE())
 INSERT INTO EMOJI (groupName,groupIcon,folderLocation,requestPath,isDeleted,createTime) 
 VALUES('÷Ì÷Ìœ¿',	'icon.jpg',	'wwwroot/emojis/zhuzhuxia','files/emojis/zhuzhuxia',	0	,'2023-08-08 00:00:00.000')

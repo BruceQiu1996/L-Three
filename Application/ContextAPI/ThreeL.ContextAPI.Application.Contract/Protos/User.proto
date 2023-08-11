@@ -2,6 +2,8 @@ syntax = "proto3";
 
 option csharp_namespace = "ThreeL.ContextAPI.Application.Contract.Protos";
 
+import "Protos/File.proto";
+
 message SocketServerUserLoginRequest{
 }
 
@@ -11,4 +13,5 @@ message SocketServerUserLoginResponse{
 
 service SocketServerService{
 	rpc SocketServerUserLogin(SocketServerUserLoginRequest) returns (SocketServerUserLoginResponse);
+	rpc FetchFileInfo(FileInfoRequest) returns (FileInfoResponse);
 }

@@ -13,6 +13,7 @@ namespace ThreeL.SocketServer.Application.Impl.Services
     {
         private SocketServerService.SocketServerServiceClient _serverServiceClient;
         private readonly ContextAPIOptions _contextAPIOptions;
+        private Metadata _header = null;
 
         public ContextAPIGrpcService(IOptions<ContextAPIOptions> options)
         {
@@ -39,12 +40,20 @@ namespace ThreeL.SocketServer.Application.Impl.Services
 
         public async Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request)
         {
-            var headers = new Metadata
-            {
-                { "Authorization", $"Bearer {request.AccessToken}" }
-            };
+            return await _serverServiceClient.SocketServerUserLoginAsync(request, _header);
+        }
 
-            return await _serverServiceClient.SocketServerUserLoginAsync(request, headers);
+        public async Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request) 
+        {
+            return await _serverServiceClient.FetchFileInfoAsync(request, _header);
+        }
+
+        public void SetToken(string token)
+        {
+            _header = new Metadata
+            {
+                { "Authorization", $"Bearer {token}" }
+            };
         }
     }
 }

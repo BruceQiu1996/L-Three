@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ThreeL.ContextAPI.Application.Contract.Services;
+using ThreeL.Shared.Domain.Metadata;
 
 namespace ThreeL.ContextAPI.Controllers
 {
@@ -13,7 +15,7 @@ namespace ThreeL.ContextAPI.Controllers
             _emojiService = emojiServic;
         }
 
-        //[Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         [HttpGet]
         public async Task<ActionResult> GetEmojis()
         {

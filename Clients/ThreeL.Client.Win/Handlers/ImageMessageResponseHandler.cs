@@ -6,6 +6,7 @@ using System.Windows;
 using ThreeL.Client.Shared.Database;
 using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Shared.Entities.Metadata;
+using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.ViewModels;
@@ -23,15 +24,18 @@ namespace ThreeL.Client.Win.Handlers
         private readonly FileHelper _fileHelper;
         private readonly ClientSqliteContext _clientSqliteContext;
         private readonly SaveChatRecordService _saveChatRecordService;
+        private readonly ContextAPIService _contextAPIService;
         public ImageMessageResponseHandler(GrowlHelper growlHelper,
                                            ClientSqliteContext clientSqliteContext,
                                            SaveChatRecordService saveChatRecordService,
+                                           ContextAPIService contextAPIService,
                                            FileHelper fileHelper) : base(MessageType.ImageResp)
         {
             _growlHelper = growlHelper;
             _fileHelper = fileHelper;
             _clientSqliteContext = clientSqliteContext;
             _saveChatRecordService = saveChatRecordService;
+            _contextAPIService = contextAPIService;
         }
 
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
@@ -60,7 +64,7 @@ namespace ThreeL.Client.Win.Handlers
                 {
                     FromSelf = App.UserProfile.UserId == packet.Body.From,
                     ImageType = (ImageType)packet.Body.ImageType,
-                    Url = packet.Body.Url,
+                    Url = packet.Body.RemoteUrl,
                     SendTime = packet.Body.SendTime,
                     MessageId = packet.Body.MessageId,
                     From = packet.Body.From,
@@ -71,10 +75,12 @@ namespace ThreeL.Client.Win.Handlers
 
                 if (image.ImageType == ImageType.Local)
                 {
-                    image.Source = _fileHelper.ByteArrayToBitmapImage(packet.Body.ImageBytes);
-                    imageLocation = await _fileHelper.AutoSaveImageAsync(packet.Body.ImageBytes, packet.Body.FileName);
-                    if (string.IsNullOrEmpty(imageLocation))
-                        return;
+                    //TODO请求图片
+
+                    //image.Source = _fileHelper.ByteArrayToBitmapImage(packet.Body.ImageBytes);
+                    //imageLocation = await _fileHelper.AutoSaveImageAsync(packet.Body.ImageBytes, packet.Body.FileName);
+                    //if (string.IsNullOrEmpty(imageLocation))
+                    //    return;
                 }
 
                 await _saveChatRecordService.WriteLogAsync(new ChatRecord

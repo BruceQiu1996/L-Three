@@ -16,6 +16,7 @@ namespace ThreeL.ContextAPI.Application.Contract.Extensions
             services.AddApplicationService(configuration, contractAssembly);
             services.Configure<DbConnectionOptions>(configuration.GetSection("ContextAPIDbConnection"));
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+            services.Configure<FileStorageOptions>(configuration.GetSection("FileStorage"));
         }
 
         public static void AddContextAPIApplicationContainer(this ContainerBuilder container, Assembly implAssembly)

@@ -1,0 +1,14 @@
+syntax = "proto3";
+option csharp_namespace = "ThreeL.ContextAPI.Application.Contract.Protos";
+
+message FileInfoRequest{
+	int64 id = 1;
+}
+
+message FileInfoResponse{
+	int64 id = 1;
+	int64 size = 2;
+	string name = 3;
+	string remoteLocation = 4;
+	bool result = 5;
+}

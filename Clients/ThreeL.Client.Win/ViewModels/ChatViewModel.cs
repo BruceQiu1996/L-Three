@@ -9,6 +9,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Handlers;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
@@ -20,6 +22,7 @@ using ThreeL.Client.Shared.Utils;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.MyControls;
 using ThreeL.Client.Win.ViewModels.Messages;
+using ThreeL.Infra.Core.Cryptography;
 using ThreeL.Shared.SuperSocket.Cache;
 using ThreeL.Shared.SuperSocket.Client;
 using ThreeL.Shared.SuperSocket.Dto;
@@ -220,6 +223,7 @@ namespace ThreeL.Client.Win.ViewModels
             };
 
             await _tcpSuperSocketClient.SendBytes(packet.Serialize());
+            TextMessage = string.Empty;
             //foreach (var endpoint in FriendViewModel.Hosts)
             //{
             //    await _udpSuperSocketClient.SendBytes(IPEndPoint.Parse(endpoint), packet.Serialize());
@@ -241,7 +245,7 @@ namespace ThreeL.Client.Win.ViewModels
                         From = App.UserProfile.UserId,
                         To = FriendViewModel.Id,
                         ImageType = (byte)routedEventArgs.Emoji.ImageType,
-                        Url = routedEventArgs.Emoji.Url //如果是bitmap需要转byte[]
+                        RemoteUrl = routedEventArgs.Emoji.Url //如果是bitmap需要转byte[]
                     }
                 };
 
@@ -256,40 +260,76 @@ namespace ThreeL.Client.Win.ViewModels
 
         private async Task ChooseFileSendAsync()
         {
-            var openFileDialog = new OpenFileDialog();
-            var result = openFileDialog.ShowDialog();
-            if (result == true)
+            var tempViewModel = FriendViewModel;
+            if (tempViewModel != null)
             {
-                var path = openFileDialog.FileName;
-                FileInfo fileInfo = new FileInfo(path);
-
-                if (FriendViewModel != null)
+                var openFileDialog = new OpenFileDialog();
+                var result = openFileDialog.ShowDialog();
+                if (result == true)
                 {
-                    if (IsRealImage(path))
+                    var path = openFileDialog.FileName;
+                    FileInfo fileInfo = new FileInfo(path);
+                    if (fileInfo.Length > 50 * 1024 * 1024)
                     {
-                        var packet = new Packet<ImageMessage>()
-                        {
-                            Sequence = _sequenceIncrementer.GetNextSequence(),
-                            MessageType = MessageType.Image,
-                            Body = new ImageMessage
-                            {
-                                SendTime = DateTime.Now,
-                                From = App.UserProfile.UserId,
-                                To = FriendViewModel.Id,
-                                ImageType = (byte)ImageType.Local,
-                                ImageBytes = await File.ReadAllBytesAsync(path),
-                                FileName = fileInfo.Name
-                            }
-                        };
-
-                        await _tcpSuperSocketClient.SendBytes(packet.Serialize());
+                        _growlHelper.Warning("文件大小不可以超过50M");
+                        return;
                     }
-                    else //其他文件
+                    try
+                    {
+                        var data = await File.ReadAllBytesAsync(fileInfo.FullName);
+                        string code = data.ToSHA256();
+                        var resp = await _contextAPIService
+                            .GetAsync<CheckFileExistResponseDto>(string.Format(Const.FILE_EXIST, code));
+
+                        if (resp == null) throw new Exception("服务器异常");
+
+                        if (!resp.Exist)//文件存在，直接发送
+                        {
+                            var fileResp = await _contextAPIService.UploadFileAsync<UploadFileResponseDto>
+                                (fileInfo.Name, data, code, tempViewModel.Id, UploadProgressCallback, false);
+
+                            if (fileResp == null) throw new Exception("发送文件异常，请稍后再试");
+                            resp.FileId = fileResp.FileId;
+                        }
+
+                        if (IsRealImage(path))
+                        {
+                            var packet = new Packet<ImageMessage>()
+                            {
+                                Sequence = _sequenceIncrementer.GetNextSequence(),
+                                MessageType = MessageType.Image,
+                                Body = new ImageMessage
+                                {
+                                    SendTime = DateTime.Now,
+                                    From = App.UserProfile.UserId,
+                                    To = FriendViewModel.Id,
+                                    ImageType = (byte)ImageType.Local,
+                                    FileId = resp.FileId,
+                                    FileName = fileInfo.Name
+                                }
+                            };
+
+                            await _tcpSuperSocketClient.SendBytes(packet.Serialize());
+                        }
+                        else //其他文件
+                        {
+
+                        }
+                    }
+                    catch (Exception ex)
                     {
 
+                    }
+                    finally
+                    {
                     }
                 }
             }
+        }
+
+        private void UploadProgressCallback(object obj, HttpProgressEventArgs args)
+        {
+            Console.WriteLine(args.ProgressPercentage);
         }
 
         public bool IsRealImage(string path)
@@ -304,6 +344,5 @@ namespace ThreeL.Client.Win.ViewModels
                 return false;
             }
         }
-
     }
 }

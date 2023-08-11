@@ -86,14 +86,15 @@ internal class Program
             });
         });
 
-        builder.WebHost.UseKestrel((context,options) =>
+        builder.WebHost.UseKestrel((context, options) =>
         {
-            options.Listen(IPAddress.Any, 5824, listenOptions =>
+            options.Limits.MaxRequestBodySize = context.Configuration.GetSection("FileStorage:MaxSize")!.Get<long>(); //最大50M上传
+            options.Listen(IPAddress.Any, context.Configuration.GetSection("Ports:API")!.Get<int>(), listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
             });
 
-            options.Listen(IPAddress.Any, 5825, listenOptions =>
+            options.Listen(IPAddress.Any, context.Configuration.GetSection("Ports:Grpc")!.Get<int>(), listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http2;
             });

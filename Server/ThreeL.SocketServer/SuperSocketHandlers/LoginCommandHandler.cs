@@ -23,11 +23,8 @@ public class LoginCommandHandler : AbstractMessageHandler
     {
         var session = appSession as ChatSession;
         var packet = message as Packet<LoginCommand>;
-        var resp = await _contextAPIGrpc.SocketServerUserLoginAsync(new SocketServerUserLoginRequest()
-        {
-            AccessToken = packet.Body.AccessToken,
-            Id = packet.Body.UserId,
-        });
+        _contextAPIGrpc.SetToken(packet.Body.AccessToken);
+        var resp = await _contextAPIGrpc.SocketServerUserLoginAsync(new SocketServerUserLoginRequest());
         if (resp.Result)
         {
             session.UserId = packet.Body.UserId;

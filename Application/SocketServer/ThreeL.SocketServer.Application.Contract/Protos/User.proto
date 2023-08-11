@@ -1,10 +1,9 @@
 syntax = "proto3";
 
 option csharp_namespace = "ThreeL.SocketServer.Application.Contract";
+import "Protos/File.proto";
 
 message SocketServerUserLoginRequest{
-	int64 id = 1;
-	string accessToken = 2;
 }
 
 message SocketServerUserLoginResponse{
@@ -13,4 +12,5 @@ message SocketServerUserLoginResponse{
 
 service SocketServerService{
 	rpc SocketServerUserLogin(SocketServerUserLoginRequest) returns (SocketServerUserLoginResponse);
+	rpc FetchFileInfo(FileInfoRequest) returns (FileInfoResponse);
 }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using System.Net;
+using System.Net.Http.Handlers;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using ThreeL.Client.Shared.Configurations;
@@ -9,6 +11,7 @@ namespace ThreeL.Client.Shared.Services
 {
     public class ContextAPIService
     {
+        private string _token;
         private readonly HttpClient _httpClient;
         private readonly ContextAPIOptions _contextAPIOptions;
         private readonly JsonSerializerOptions _jsonOptions = SystemTextJson.GetAdncDefaultOptions();
@@ -17,14 +20,12 @@ namespace ThreeL.Client.Shared.Services
         {
             _contextAPIOptions = contextAPIOptions.Value;
             _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri($"http://{_contextAPIOptions.Host}:{_contextAPIOptions.Port}/api/");
-            _httpClient.Timeout = TimeSpan.FromSeconds(600); //Test
-            _httpClient.DefaultRequestVersion = HttpVersion.Version10;
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            BuildHttpClient(_httpClient);
         }
 
         public void SetToken(string token)
         {
+            _token = token;
             if (_httpClient.DefaultRequestHeaders.Contains("Authorization"))
             {
                 _httpClient.DefaultRequestHeaders.Remove("Authorization");
@@ -88,11 +89,65 @@ namespace ThreeL.Client.Shared.Services
             return default;
         }
 
-        public async Task<T> RefreshTokenAsync<T>(dynamic body) 
+        public async Task<T> UploadFileAsync<T>(string filename, byte[] bytes, string code, long receiver,
+                                                Action<object, HttpProgressEventArgs> progressCallBack, bool excuted = false)
+        {
+            HttpClientHandler httpClientHandler = new HttpClientHandler();
+            ProgressMessageHandler progressMessageHandler = new ProgressMessageHandler(httpClientHandler);
+            progressMessageHandler.HttpSendProgress += (obj, e) => progressCallBack(obj, e);
+            using (var client = new HttpClient(progressMessageHandler))
+            {
+                BuildHttpClient(client);
+                if (!string.IsNullOrEmpty(_token))
+                {
+                    if (client.DefaultRequestHeaders.Contains("Authorization"))
+                    {
+                        client.DefaultRequestHeaders.Remove("Authorization");
+                    }
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_token}");
+                }
+                var fileContent = new ByteArrayContent(bytes);
+                fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "file",
+                    FileName = filename
+                };
+                var content = new MultipartFormDataContent
+                {
+                    fileContent
+                };
+
+                var resp = await client.PostAsync(string.Format(Const.UPLOAD_FILE, receiver, code), content);
+                if (resp.IsSuccessStatusCode)
+                {
+                    return JsonSerializer.Deserialize<T>(await resp.Content.ReadAsStringAsync(), _jsonOptions);
+                }
+                else if (resp.StatusCode == HttpStatusCode.Unauthorized && !excuted)
+                {
+                    var result = await TryRefreshTokenAsync?.Invoke();
+                    if (!result)
+                    {
+                        await ExcuteWhileUnauthorizedAsync?.Invoke();
+                        return default;
+                    }
+                    excuted = true;
+                    return await UploadFileAsync<T>(filename, bytes, code, receiver, progressCallBack, excuted);
+                }
+                else if (resp.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    var message = await resp.Content.ReadAsStringAsync();
+                    await ExcuteWhileBadRequestAsync?.Invoke(message);
+                }
+            }
+
+            return default;
+        }
+
+        public async Task<T> RefreshTokenAsync<T>(dynamic body)
         {
             var content = new StringContent(JsonSerializer.Serialize(body, _jsonOptions));
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            var resp = await _httpClient.PostAsync("refresh/token", content);
+            var resp = await _httpClient.PostAsync(Const.REFRESH_TOKEN, content);
             if (resp.IsSuccessStatusCode)
             {
                 return JsonSerializer.Deserialize<T>(await resp.Content.ReadAsStringAsync(), _jsonOptions);
@@ -104,5 +159,13 @@ namespace ThreeL.Client.Shared.Services
         public Func<Task<bool>> TryRefreshTokenAsync { get; set; } //当服务端返回401的时候，尝试利用refreshtoken重新获取accesstoken以及refreshtoken
         public Func<Task> ExcuteWhileUnauthorizedAsync { get; set; } //401
         public Func<string, Task> ExcuteWhileBadRequestAsync { get; set; } //400
+
+        private void BuildHttpClient(HttpClient httpClient)
+        {
+            httpClient.BaseAddress = new Uri($"http://{_contextAPIOptions.Host}:{_contextAPIOptions.Port}/api/");
+            httpClient.Timeout = TimeSpan.FromSeconds(600); //Test
+            httpClient.DefaultRequestVersion = HttpVersion.Version10;
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        }
     }
 }

@@ -46,13 +46,13 @@ namespace ThreeL.Client.Win.ViewModels
             if (LastMessage == null)
                 Messages.Add(new TimeMessageViewModel()
                 {
-                    DateTime = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(DateTime.Now)
+                    DateTime = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(message.SendTime)
                 });
 
             if (LastMessage != null && LastMessage.SendTime.AddMinutes(5) <= message.SendTime)
                 Messages.Add(new TimeMessageViewModel()
                 {
-                    DateTime = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(DateTime.Now)
+                    DateTime = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(message.SendTime)
                 });
 
             Messages?.Add(message);
