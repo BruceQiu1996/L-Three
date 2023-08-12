@@ -76,7 +76,7 @@ namespace ThreeL.Client.Win.Handlers
                 if (image.ImageType == ImageType.Local)
                 {
                     var result = await _fileHelper.AutoSaveImageAsync(packet.Body.FileBase64, packet.Body.FileName);
-                    if(result==default)
+                    if (result == default)
                     {
                         _growlHelper.Warning("接收图片出现异常");
                         return;

@@ -53,6 +53,10 @@ namespace ThreeL.Client.Win.Helpers
                 _logger.LogError(ex.ToString());
                 bmp = null;
             }
+            finally 
+            {
+                bmp.Freeze();
+            }
 
             return bmp;
         }

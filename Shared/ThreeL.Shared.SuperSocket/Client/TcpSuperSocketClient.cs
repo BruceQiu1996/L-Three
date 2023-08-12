@@ -1,4 +1,5 @@
-﻿using SuperSocket.Client;
+﻿using SuperSocket.Channel;
+using SuperSocket.Client;
 using System.Net;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Filters;
@@ -10,19 +11,27 @@ namespace ThreeL.Shared.SuperSocket.Client
     {
         public bool Connected { get; private set; } = false;
         public IEasyClient<IPacket> mClient;
+        private readonly PackageFilter _packageFilter;
         private readonly MessageHandlerDispatcher _messageHandlerDispatcher;
+        public Func<CloseEventArgs, Task> DisConnectionEvent { get; set; }
+        public Action ConnectedEvent { get; set; }
 
         public TcpSuperSocketClient(PackageFilter packageFilter,
-                                    IPEndPoint ipEndPoint,
                                     MessageHandlerDispatcher messageHandlerDispatcher)
         {
+            _packageFilter = packageFilter;
             _messageHandlerDispatcher = messageHandlerDispatcher;
-            mClient = new EasyClient<IPacket>(packageFilter).AsClient();
-            mClient.LocalEndPoint = ipEndPoint;
+            Initialize();
+        }
+
+        public void Initialize()
+        {
+            mClient = new EasyClient<IPacket>(_packageFilter).AsClient();
             mClient.Closed += (s, e) =>
             {
                 Connected = false;
-                throw new Exception("连接已经断开!"); //TODO: 重连,显示断开连接
+                Initialize();
+                DisConnectionEvent?.Invoke(e as CloseEventArgs);
             };
 
             mClient.PackageHandler += async (sender, package) =>
@@ -43,6 +52,10 @@ namespace ThreeL.Shared.SuperSocket.Client
             }
 
             Connected = isConnect;
+            if (Connected)
+            {
+                ConnectedEvent?.Invoke();
+            }
             return isConnect;
         }
 
@@ -56,19 +69,21 @@ namespace ThreeL.Shared.SuperSocket.Client
             return true;
         }
 
-        public async Task SendBytes(byte[] data)
+        public async Task<bool> SendBytesAsync(byte[] data)
         {
             try
             {
-                if (!Connected) 
+                if (!Connected)
                 {
                     throw new Exception("连接已经断开!");
                 }
                 await mClient.SendAsync(data);
+
+                return true;
             }
             catch
             {
-                throw;
+                return false;
             }
         }
     }

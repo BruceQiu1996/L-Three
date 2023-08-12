@@ -82,14 +82,12 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly PacketWaiter _packetWaiter;
         private readonly SequenceIncrementer _sequenceIncrementer;
         private readonly TcpSuperSocketClient _tcpSuperSocketClient;
-        private readonly IPEndPoint _iPEndPoint;
 
         public ChatViewModel(ContextAPIService contextAPIService,
                              ClientSqliteContext clientSqliteContext,
                              GrowlHelper growlHelper,
                              FileHelper fileHelper,
                              PacketWaiter packetWaiter,
-                             IPEndPoint iPEndPoint,
                              UdpSuperSocketClient udpSuperSocketClient,
                              SequenceIncrementer sequenceIncrementer,
                              TcpSuperSocketClient tcpSuperSocketClient)
@@ -98,7 +96,6 @@ namespace ThreeL.Client.Win.ViewModels
             _clientSqliteContext = clientSqliteContext;
             _growlHelper = growlHelper;
             _packetWaiter = packetWaiter;
-            _iPEndPoint = iPEndPoint;
             _fileHelper = fileHelper;
             _udpSuperSocketClient = udpSuperSocketClient;
             LoadCommandAsync = new AsyncRelayCommand(LoadAsync);
@@ -227,12 +224,9 @@ namespace ThreeL.Client.Win.ViewModels
                 }
             };
 
-            await _tcpSuperSocketClient.SendBytes(packet.Serialize());
+            var sendResult =  await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+            if (!sendResult) _growlHelper.Warning("发送消息失败，请稍后再试");
             TextMessage = string.Empty;
-            //foreach (var endpoint in FriendViewModel.Hosts)
-            //{
-            //    await _udpSuperSocketClient.SendBytes(IPEndPoint.Parse(endpoint), packet.Serialize());
-            //}
         }
 
         private async Task AddEmojiAsync(SelectEmojiClickRoutedEventArgs routedEventArgs)
@@ -254,7 +248,8 @@ namespace ThreeL.Client.Win.ViewModels
                     }
                 };
 
-                await _tcpSuperSocketClient.SendBytes(packet.Serialize());
+                var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+                if (!sendResult) _growlHelper.Warning("发送消息失败，请稍后再试");
             }
         }
 
@@ -314,7 +309,8 @@ namespace ThreeL.Client.Win.ViewModels
                                 }
                             };
 
-                            await _tcpSuperSocketClient.SendBytes(packet.Serialize());
+                            var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+                            if (!sendResult) _growlHelper.Warning("发送消息失败，请稍后再试");
                         }
                         else //其他文件
                         {
@@ -331,15 +327,13 @@ namespace ThreeL.Client.Win.ViewModels
                                 }
                             };
 
-                            await _tcpSuperSocketClient.SendBytes(packet.Serialize());
+                            var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+                            if (!sendResult) _growlHelper.Warning("发送消息失败，请稍后再试");
                         }
                     }
                     catch (Exception ex)
                     {
 
-                    }
-                    finally
-                    {
                     }
                 }
             }

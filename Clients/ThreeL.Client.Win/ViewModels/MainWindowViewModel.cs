@@ -1,8 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Options;
+using SuperSocket.Channel;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
@@ -31,12 +34,19 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly TcpSuperSocketClient _tcpSuperSocket; //通讯服务器socket
         private readonly UdpSuperSocketClient _udpSuperSocket; //本地udp通讯socket
         private readonly Page _chatPage;
-        
+
         private Page _currentPage;
         public Page CurrentPage
         {
             get => _currentPage;
             set => SetProperty(ref _currentPage, value);
+        }
+
+        private string _tips;
+        public string Tips
+        {
+            get => _tips;
+            set => SetProperty(ref _tips, value);
         }
 
         public MainWindowViewModel(TcpSuperSocketClient tcpSuperSocket,
@@ -59,9 +69,54 @@ namespace ThreeL.Client.Win.ViewModels
             _tcpSuperSocket = tcpSuperSocket;
             _udpSuperSocket = udpSuperSocket;
             _chatPage = chatPage;
+            _tcpSuperSocket.DisConnectionEvent += DisConnectionCallbackAsync;
+            _tcpSuperSocket.ConnectedEvent += ConnectedCallback;
         }
 
-        private async Task LoadAsync() 
+        private void ConnectedCallback() 
+        {
+            Tips = null;
+        }
+
+        private async Task DisConnectionCallbackAsync(CloseEventArgs args)
+        {
+            var message = args.Reason switch
+            {
+                CloseReason.ServerShutdown => "服务器已关闭",
+                CloseReason.LocalClosing => "本地关闭",
+                CloseReason.RemoteClosing => "远程关闭",
+                CloseReason.SocketError => "Socket错误",
+                CloseReason.ProtocolError => "协议错误",
+                CloseReason.ApplicationError => "业务出错",
+                CloseReason.TimeOut => "超时",
+                CloseReason.InternalError => "网络问题",
+                CloseReason.Unknown => "未知",
+                _ => "未知",
+            };
+
+            await Task.Yield();
+            foreach (var index in Enumerable.Range(1, 60))
+            {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Tips = $"连接断开，原因：{message}，正在第{index}重连...";
+                });
+                if (await ConnectServerAsync(1))
+                    break;
+            }
+
+            if (!_tcpSuperSocket.Connected)
+            {
+                _growlHelper.Warning("与服务器的连接出现严重故障，软件即将退出");
+                Application.Current.Shutdown();
+            }
+            else
+            {
+                await HandShakeAfterSocketConnectedAsync();
+            }
+        }
+
+        private async Task LoadAsync()
         {
             try
             {
@@ -69,41 +124,49 @@ namespace ThreeL.Client.Win.ViewModels
                 if (!result)
                     throw new Exception("连接服务器失败");
 
-                _tcpSuperSocket.mClient.StartReceive();
-                var packet = new Packet<LoginCommand>()
-                {
-                    Checkbit = 8240,
-                    Sequence = _sequenceIncrementer.GetNextSequence(),
-                    MessageType = MessageType.Login,
-                    Body = new LoginCommand
-                    {
-                        UserId = App.UserProfile.UserId,
-                        AccessToken = App.UserProfile.AccessToken
-                    }
-                };
-
-                //need answer
-                _packetWaiter.AddWaitPacket($"answer:{packet.Sequence}", null, false);
-                await _tcpSuperSocket.SendBytes(packet.Serialize());
-                var answer =
-                    await _packetWaiter.GetAnswerPacketAsync<Packet<LoginCommandResponse>>($"answer:{packet.Sequence}");
-                if (answer == null || !answer.Body.Result)
-                {
-                    throw new Exception("登录聊天服务器超时");
-                }
-                App.UserProfile.SocketAccessToken = answer.Body.SsToken;
+                await HandShakeAfterSocketConnectedAsync();
                 CurrentPage = _chatPage;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await _tcpSuperSocket.CloseConnectAsync();
                 _growlHelper.Warning(ex.Message);
             }
         }
 
-        private async Task<bool> ConnectServerAsync()
+        private async Task HandShakeAfterSocketConnectedAsync()
         {
-            return await _tcpSuperSocket.ConnectAsync(_socketServerOptions.Host,_socketServerOptions.Port);
+            _tcpSuperSocket.mClient.StartReceive();
+            var packet = new Packet<LoginCommand>()
+            {
+                Checkbit = 8240,
+                Sequence = _sequenceIncrementer.GetNextSequence(),
+                MessageType = MessageType.Login,
+                Body = new LoginCommand
+                {
+                    UserId = App.UserProfile.UserId,
+                    AccessToken = App.UserProfile.AccessToken
+                }
+            };
+            _packetWaiter.AddWaitPacket($"answer:{packet.Sequence}", null, false);
+            var sendResult = await _tcpSuperSocket.SendBytesAsync(packet.Serialize());
+            if (!sendResult)
+            {
+                throw new Exception("登录聊天服务器失败");
+            }
+            var answer =
+                await _packetWaiter.GetAnswerPacketAsync<Packet<LoginCommandResponse>>($"answer:{packet.Sequence}");
+            if (answer == null || !answer.Body.Result)
+            {
+                throw new Exception("登录聊天服务器超时");
+            }
+
+            App.UserProfile.SocketAccessToken = answer.Body.SsToken;
+        }
+
+        private async Task<bool> ConnectServerAsync(int retryTimes = 3)
+        {
+            return await _tcpSuperSocket.ConnectAsync(_socketServerOptions.Host, _socketServerOptions.Port, retryTimes);
         }
     }
 }

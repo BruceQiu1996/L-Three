@@ -308,7 +308,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="36"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
-                <RowDefinition Height="50"></RowDefinition>
+                <RowDefinition Height="55"></RowDefinition>
             </Grid.RowDefinitions>
             <Border Grid.Row="0" BorderBrush="#111" Margin="0 2 0 0" 
                     CornerRadius="0 0 0 0"
@@ -365,7 +365,7 @@
                 </ListBox>
             </ScrollViewer>
 
-            <Border Grid.Row="2" Margin="0 2 0 0">
+            <Border Grid.Row="2" Background="#222">
                 <StackPanel Orientation="Horizontal">
                     <TextBox  Grid.Column="0" 
                               Background="#444"
@@ -379,7 +379,7 @@
                               Text="{Binding TextMessage}"
                               TextWrapping="Wrap"
                               VerticalContentAlignment="Top"
-                              Height="45" Margin="50 0 0 5"></TextBox>
+                              Height="45" Margin="50 0 0 0"></TextBox>
                     <Button Height="30" Cursor="Hand"
                             Background="Transparent" Command="{Binding SendMessageCommandAsync}" BorderThickness="0" Margin="10 0 0 0"
                             IsDefault="True">

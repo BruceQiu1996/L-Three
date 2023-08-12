@@ -53,13 +53,20 @@ namespace ThreeL.Client.Win.ViewModels.Messages
 
         private BitmapImage GenerateIconByFileType() 
         {
-            var Source = new BitmapImage();
-            string imgUrl = $"pack://application:,,,/ThreeL.Client.Win;component/Images/{ImageName}";
-            Source.BeginInit();
-            Source.UriSource = new Uri(imgUrl, UriKind.RelativeOrAbsolute);
-            Source.EndInit();
+            var source = new BitmapImage();
+            try
+            {
+                string imgUrl = $"pack://application:,,,/ThreeL.Client.Win;component/Images/{ImageName}";
+                source.BeginInit();
+                source.UriSource = new Uri(imgUrl, UriKind.RelativeOrAbsolute);
+                source.EndInit();
 
-            return Source;
+                return source;
+            }
+            finally 
+            {
+                source.Freeze();
+            }
         }
     }
 }

@@ -60,7 +60,7 @@ namespace ThreeL.Client.Win.Handlers
 
             if (friend != null)
             {
-                var image = new FileMessageViewModel(packet.Body.FileName)
+                var file = new FileMessageViewModel(packet.Body.FileName)
                 {
                     FromSelf = App.UserProfile.UserId == packet.Body.From,
                     FileSize = packet.Body.Size,
@@ -84,7 +84,7 @@ namespace ThreeL.Client.Win.Handlers
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    friend.AddMessage(image);
+                    friend.AddMessage(file);
                 });
             }
         }

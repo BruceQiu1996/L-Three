@@ -41,6 +41,7 @@
                     Background="#222" BorderThickness="0">
                 <Grid>
                     <TextBlock Text="ThreeL" FontSize="16" VerticalAlignment="Center" Margin="10 0 0 0" Foreground="#aaa"></TextBlock>
+                    <TextBlock Text="{Binding Tips}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource PrimaryBrush}"></TextBlock>
                     <Label BorderThickness="0"
                        Cursor="Hand"
                        ToolTip="最小化"
