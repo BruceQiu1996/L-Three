@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using ThreeL.Client.Shared.Entities;
-using ThreeL.Client.Shared.Entities.Metadata;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.ViewModels;
 using ThreeL.Client.Win.ViewModels.Messages;
+using ThreeL.Infra.Core.Metadata;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Handlers;
@@ -48,7 +48,7 @@ namespace ThreeL.Client.Win.Handlers
 
             if (friend != null)
             {
-                await _saveChatRecordService.WriteLogAsync(new ChatRecord
+                await _saveChatRecordService.WriteRecordAsync(new ChatRecord
                 {
                     From = packet.Body.From,
                     To = packet.Body.To,

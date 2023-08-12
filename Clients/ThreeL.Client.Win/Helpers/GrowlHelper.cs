@@ -13,7 +13,7 @@ namespace ThreeL.Client.Win.Helpers
                 ShowDateTime = false,
                 ShowCloseButton = false,
                 StaysOpen = false,
-                WaitTime = 2000
+                WaitTime = 2
             });
         }
 
@@ -25,7 +25,7 @@ namespace ThreeL.Client.Win.Helpers
                 ShowDateTime = false,
                 ShowCloseButton = false,
                 StaysOpen = false,
-                WaitTime = 2000
+                WaitTime = 2
             });
         }
     }

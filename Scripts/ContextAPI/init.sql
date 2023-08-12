@@ -53,12 +53,24 @@ GO
 CREATE TABLE [File](
     id bigint PRIMARY key identity,
     CreateBy bigint not NULL,
-		FileName VARCHAR(500) NOT NULL,
-		[Size] bigint not NULL,
-		Code VARCHAR(500) NOT NULL,
-		Location VARCHAR(500) NOT NULL,
+	FileName VARCHAR(500) NOT NULL,
+	[Size] bigint not NULL,
+	Code VARCHAR(500) NOT NULL,
+	Location VARCHAR(500) NOT NULL,
     createTime datetime not null,
     Receiver bigint not null
+);
+GO
+CREATE TABLE ChatRecord(
+    Id bigint PRIMARY key identity,
+    [From] bigint not NULL,
+    [To] bigint not NULL,
+    MessageId VARCHAR(50) not NULL,
+    Message VARCHAR(500),
+    MessageRecordType int,
+    ImageType int,
+    SendTime datetime,
+    FileId bigint,
 );
 INSERT INTO FRIEND(Activer,Passiver,ActiverRemark,PassiverRemark,createTime) VALUES(1,2,NULL,'big b bro',GETDATE())
 

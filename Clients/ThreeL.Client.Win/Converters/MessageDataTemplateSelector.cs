@@ -1,8 +1,8 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using ThreeL.Client.Shared.Entities.Metadata;
 using ThreeL.Client.Win.ViewModels;
 using ThreeL.Client.Win.ViewModels.Messages;
+using ThreeL.Infra.Core.Metadata;
 
 namespace ThreeL.Client.Win.Converters
 {

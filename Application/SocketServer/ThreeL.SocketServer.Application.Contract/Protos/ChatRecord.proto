@@ -1,0 +1,21 @@
+syntax = "proto3";
+option csharp_namespace = "ThreeL.SocketServer.Application.Contract";
+
+import "google/protobuf/timestamp.proto";
+
+//https://learn.microsoft.com/zh-cn/dotnet/architecture/grpc-for-wcf-developers/protobuf-data-types
+
+message ChatRecordPostRequest{
+	string messageId = 1;
+	string message = 2;
+	int32 messageRecordType = 3;
+	int32 ImageType = 4;
+	google.protobuf.Timestamp sendTime = 5;
+	int64 from = 6;
+	int64 to = 7;
+	int64 fileId = 8;
+}
+
+message ChatRecordPostResponse{
+
+}

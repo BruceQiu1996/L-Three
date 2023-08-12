@@ -36,7 +36,7 @@ namespace ThreeL.Client.Win.BackgroundService
             _cancellationTokenSource.Dispose();
         }
 
-        public async Task WriteLogAsync(ChatRecord chatRecord)
+        public async Task WriteRecordAsync(ChatRecord chatRecord)
         {
             await _writeChannel.WriteAsync(chatRecord);
         }

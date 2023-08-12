@@ -28,6 +28,7 @@ namespace ThreeL.SocketServer
             {
                 service.AddSocketServerApplicationService(context.Configuration, appAssemblyInfo.ContractAssembly);
 
+                service.AddSingleton<SaveChatRecordService>();
                 service.AddSingleton<IMessageHandler, TextMessageHandler>();
                 service.AddSingleton<IMessageHandler, ImageMessageHandler>();
                 service.AddSingleton<IMessageHandler, FileMessageHandler>();

@@ -1,6 +1,6 @@
-﻿namespace ThreeL.Client.Shared.Entities.Metadata
+﻿namespace ThreeL.Infra.Core.Metadata
 {
-    public enum MessageRecordType
+    public enum MessageRecordType : byte
     {
         Text = 1,
         Image = 2,

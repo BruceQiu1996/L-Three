@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using ThreeL.Infra.Core.Metadata;
 
 namespace ThreeL.Shared.SuperSocket.Dto.Message
 {
@@ -6,7 +7,7 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
     public class ImageMessageResponse : MessageResponse
     {
         [ProtoMember(6)]
-        public byte ImageType { get; set; }
+        public ImageType ImageType { get; set; }
         [ProtoMember(7)]
         public string RemoteUrl { get; set; }
         [ProtoMember(8)]
@@ -17,5 +18,7 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
         public long To { get; set; }
         [ProtoMember(11)]
         public string FileName { get; set; }
+        [ProtoMember(12)]
+        public string FileBase64 { get; set; }
     }
 }

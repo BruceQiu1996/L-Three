@@ -1,14 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
-using ThreeL.Client.Shared.Entities.Metadata;
 using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Win.Models;
+using ThreeL.Infra.Core.Metadata;
 
 namespace ThreeL.Client.Win.MyControls
 {

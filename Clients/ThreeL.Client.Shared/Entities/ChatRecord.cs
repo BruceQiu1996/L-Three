@@ -1,4 +1,4 @@
-﻿using ThreeL.Client.Shared.Entities.Metadata;
+﻿using ThreeL.Infra.Core.Metadata;
 
 namespace ThreeL.Client.Shared.Entities
 {

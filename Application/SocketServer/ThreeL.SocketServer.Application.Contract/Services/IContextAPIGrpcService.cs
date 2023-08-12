@@ -5,5 +5,6 @@
         void SetToken(string token);
         Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request);
         Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request);
+        Task<ChatRecordPostResponse> PostChatRecordsAsync(IEnumerable<ChatRecordPostRequest> request);
     }
 }

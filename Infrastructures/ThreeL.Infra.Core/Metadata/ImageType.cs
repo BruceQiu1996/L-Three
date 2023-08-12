@@ -1,4 +1,4 @@
-﻿namespace ThreeL.Client.Shared.Entities.Metadata
+﻿namespace ThreeL.Infra.Core.Metadata
 {
     public enum ImageType : byte
     {

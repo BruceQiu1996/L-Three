@@ -9,5 +9,6 @@ namespace ThreeL.Shared.SuperSocket.Handlers
         bool Enable { get; }
         MessageType MessageType { get; }
         Task ExcuteAsync(IAppSession appSession, IPacket message);
+        Task ExceptionAsync(IAppSession appSession, IPacket message, Exception ex);
     }
 }

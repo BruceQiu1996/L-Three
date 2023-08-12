@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using ThreeL.Client.Shared.Database;
 using ThreeL.Client.Shared.Entities;
-using ThreeL.Client.Shared.Entities.Metadata;
 using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.ViewModels;
 using ThreeL.Client.Win.ViewModels.Messages;
+using ThreeL.Infra.Core.Metadata;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Handlers;
@@ -63,7 +63,7 @@ namespace ThreeL.Client.Win.Handlers
                 var image = new ImageMessageViewModel()
                 {
                     FromSelf = App.UserProfile.UserId == packet.Body.From,
-                    ImageType = (ImageType)packet.Body.ImageType,
+                    ImageType = packet.Body.ImageType,
                     Url = packet.Body.RemoteUrl,
                     SendTime = packet.Body.SendTime,
                     MessageId = packet.Body.MessageId,
@@ -75,15 +75,17 @@ namespace ThreeL.Client.Win.Handlers
 
                 if (image.ImageType == ImageType.Local)
                 {
-                    //TODO请求图片
-
-                    //image.Source = _fileHelper.ByteArrayToBitmapImage(packet.Body.ImageBytes);
-                    //imageLocation = await _fileHelper.AutoSaveImageAsync(packet.Body.ImageBytes, packet.Body.FileName);
-                    //if (string.IsNullOrEmpty(imageLocation))
-                    //    return;
+                    var result = await _fileHelper.AutoSaveImageAsync(packet.Body.FileBase64, packet.Body.FileName);
+                    if(result==default)
+                    {
+                        _growlHelper.Warning("接收图片出现异常");
+                        return;
+                    }
+                    image.Source = _fileHelper.ByteArrayToBitmapImage(result.raw);
+                    imageLocation = result.location;
                 }
 
-                await _saveChatRecordService.WriteLogAsync(new ChatRecord
+                await _saveChatRecordService.WriteRecordAsync(new ChatRecord
                 {
                     From = packet.Body.From,
                     To = packet.Body.To,
@@ -92,7 +94,8 @@ namespace ThreeL.Client.Win.Handlers
                     ResourceLocalLocation = image.ImageType == ImageType.Network ? image.Url : imageLocation,
                     MessageRecordType = MessageRecordType.Image,
                     ImageType = image.ImageType,
-                    SendTime = packet.Body.SendTime
+                    SendTime = packet.Body.SendTime,
+                    FileId = packet.Body.FileId,
                 });
 
                 Application.Current.Dispatcher.Invoke(() =>

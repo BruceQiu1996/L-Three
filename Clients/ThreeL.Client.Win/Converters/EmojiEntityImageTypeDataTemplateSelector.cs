@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using ThreeL.Client.Shared.Entities.Metadata;
 using ThreeL.Client.Win.Models;
+using ThreeL.Infra.Core.Metadata;
 
 namespace ThreeL.Client.Win.Converters
 {

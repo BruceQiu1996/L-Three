@@ -7,6 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Protos\ChatRecord.proto" />
 	  <None Remove="Protos\File.proto" />
 	  <None Remove="Protos\User.proto" />
 	</ItemGroup>
@@ -23,6 +24,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Protobuf Include="Protos\ChatRecord.proto">
+	    <GrpcServices>Server</GrpcServices>
+	  </Protobuf>
 	  <Protobuf Include="Protos\File.proto" GrpcServices="Server" />
 	  <Protobuf Include="Protos\User.proto" GrpcServices="Server" />
 	</ItemGroup>

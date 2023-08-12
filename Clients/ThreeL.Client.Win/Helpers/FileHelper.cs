@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using ThreeL.Infra.Core.File;
 
 namespace ThreeL.Client.Win.Helpers
 {
@@ -14,7 +15,7 @@ namespace ThreeL.Client.Win.Helpers
             _logger = logger;
         }
 
-        public async Task<string> AutoSaveImageAsync(byte[] data, string fileName)
+        public async Task<(byte[] raw, string location)> AutoSaveImageAsync(string base64, string fileName)
         {
             try
             {
@@ -26,14 +27,14 @@ namespace ThreeL.Client.Win.Helpers
                 }
 
                 var fileLocation = Path.Combine(location, $"{Guid.NewGuid()}{Path.GetExtension(fileName)}");
-                await File.WriteAllBytesAsync(fileLocation, data);
+                var bytes = await FileExtension.Base64StringToFileAsync(base64, fileLocation);
 
-                return fileLocation;
+                return (bytes, fileLocation);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.ToString());
-                return null;
+                return default;
             }
         }
 

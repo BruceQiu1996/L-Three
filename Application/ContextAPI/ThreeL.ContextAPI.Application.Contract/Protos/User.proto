@@ -3,6 +3,7 @@ syntax = "proto3";
 option csharp_namespace = "ThreeL.ContextAPI.Application.Contract.Protos";
 
 import "Protos/File.proto";
+import "Protos/ChatRecord.proto";
 
 message SocketServerUserLoginRequest{
 }
@@ -14,4 +15,5 @@ message SocketServerUserLoginResponse{
 service SocketServerService{
 	rpc SocketServerUserLogin(SocketServerUserLoginRequest) returns (SocketServerUserLoginResponse);
 	rpc FetchFileInfo(FileInfoRequest) returns (FileInfoResponse);
+	rpc PostChatRecord(stream ChatRecordPostRequest) returns (ChatRecordPostResponse);
 }

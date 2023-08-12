@@ -7,10 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Metadata\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\..\Infrastructures\ThreeL.Infra.Core\ThreeL.Infra.Core.csproj" />
     <ProjectReference Include="..\..\..\Shared\ThreeL.Shared.Domain\ThreeL.Shared.Domain.csproj" />
   </ItemGroup>
 

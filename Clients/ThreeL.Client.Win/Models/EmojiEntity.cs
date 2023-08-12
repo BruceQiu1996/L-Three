@@ -1,5 +1,5 @@
 ﻿using System.Windows.Media.Imaging;
-using ThreeL.Client.Shared.Entities.Metadata;
+using ThreeL.Infra.Core.Metadata;
 
 namespace ThreeL.Client.Win.Models
 {
