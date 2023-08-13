@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using CommunityToolkit.Mvvm.Input;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
-using ThreeL.Client.Shared.Entities;
+using ThreeL.Client.Shared.Dtos.ContextAPI;
 
 namespace ThreeL.Client.Win.ViewModels.Messages
 {
@@ -41,9 +43,20 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             return formattedText.WidthIncludingTrailingWhitespace;
         }
 
-        public override void FromEntity(ChatRecord chatRecord)
+        public TextMessageViewModel()
         {
-            base.FromEntity(chatRecord);
+            CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
+        }
+
+        private Task CopyAsync()
+        {
+            Clipboard.SetText(Text);
+            return Task.CompletedTask;
+        }
+
+        public override void FromDto(ChatRecordResponseDto chatRecord)
+        {
+            base.FromDto(chatRecord);
             Text = chatRecord.Message;
         }
     }

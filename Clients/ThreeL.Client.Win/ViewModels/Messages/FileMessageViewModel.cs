@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 using System.Windows.Media.Imaging;
-using ThreeL.Client.Shared.Entities;
+using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Client.Win.Helpers;
 
 namespace ThreeL.Client.Win.ViewModels.Messages
@@ -38,20 +38,26 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             Source = GenerateIconByFileType();
         }
 
+        public FileMessageViewModel()
+        {
+            
+        }
+
         public override string GetShortDesc()
         {
             return "[文件]";
         }
 
-        public override void FromEntity(ChatRecord chatRecord)
+        public override void FromDto(ChatRecordResponseDto chatRecord)
         {
-            base.FromEntity(chatRecord);
-            FileSize = chatRecord.ResourceSize == null ? 0 : chatRecord.ResourceSize.Value;
+            base.FromDto(chatRecord);
+            FileName = chatRecord.FileName;
+            FileSize = chatRecord.Size;
             FileId = chatRecord.FileId == null ? 0 : chatRecord.FileId.Value;
             Source = GenerateIconByFileType();
         }
 
-        private BitmapImage GenerateIconByFileType() 
+        private BitmapImage GenerateIconByFileType()
         {
             var source = new BitmapImage();
             try
@@ -63,7 +69,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
 
                 return source;
             }
-            finally 
+            finally
             {
                 source.Freeze();
             }

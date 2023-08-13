@@ -2,6 +2,7 @@
 using ThreeL.ContextAPI.Application.Contract.Configurations;
 using ThreeL.ContextAPI.Application.Contract.Dtos.Relation;
 using ThreeL.ContextAPI.Application.Contract.Services;
+using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
 using ThreeL.Infra.Redis;
 using ThreeL.Infra.Repository.IRepositories;
 using ThreeL.Shared.Application.Contract.Services;
@@ -38,6 +39,16 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             return friends;
         }
 
+        public async Task<bool> IsFriendAsync(long userId, long fUserId)
+        {
+            var relation = await _adoQuerierRepository
+                .QueryFirstOrDefaultAsync<FriendDto>(
+                "SELECT * FROM Friend WHERE (Friend.Activer = @Id AND Friend.Passiver = @FId) OR (Friend.Activer = @FId AND Friend.Passiver = @Id)",
+                new { Id = userId, FId = fUserId });
+
+            return relation != null;
+        }
+
         public async Task PreheatAsync()
         {
             var friends = await _adoQuerierRepository
@@ -48,6 +59,25 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
 
             var ids = friends?.Select(x => $"{x.ActiverId}-{x.PassiverId}");
             await _redisProvider.SetAddAsync(Const.FRIEND_RELATIONS, ids == null ? new string[] { } : ids.ToArray());
+        }
+
+        public async Task<FriendChatRecordResponseDto> FetchChatRecordsWithFriendAsync(long userId, long friendId, DateTime dateTime)
+        {
+            var records = await _adoQuerierRepository
+                .QueryAsync<ChatRecordResponseDto>("SELECT MessageId,Message,MessageRecordType,ImageType,SendTime,[From],[To],FileId,f.FileName,f.Size FROM (SELECT TOP 50 * FROM ChatRecord " +
+                "WHERE ChatRecord.SendTime < @Time AND ([FROM] = @UserId AND [To] = @FriendId) OR ([FROM] = @FriendId AND [To] = @UserId) ORDER BY SendTime DESC) t LEFT JOIN [File] f ON t.FileId = f.id",
+                new
+                {
+                    UserId = userId,
+                    FriendId = friendId,
+                    Time = dateTime
+                });
+
+            return new FriendChatRecordResponseDto
+            {
+                FriendId = friendId,
+                Records = records
+            };
         }
     }
 }

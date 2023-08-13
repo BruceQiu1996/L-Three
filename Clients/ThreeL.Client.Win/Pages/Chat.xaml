@@ -13,6 +13,10 @@
       d:DesignHeight="450" d:DesignWidth="800"
       Title="Friend">
     <Page.Resources>
+        <ContextMenu x:Key="textMenu">
+            <MenuItem Header="复制" Command="{Binding CopyCommandAsync}"></MenuItem>
+            <MenuItem Header="撤回" Command="{Binding WithDrawCommandAsync}"></MenuItem>
+        </ContextMenu>
         <Style TargetType="{x:Type Image}">
             <Setter Property="MaxHeight" Value="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelHeight)}" />
             <Setter Property="MaxWidth" Value="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelWidth)}" />
@@ -31,7 +35,7 @@
             </TextBlock>
         </DataTemplate>
         <DataTemplate x:Key="txtSender">
-            <Grid Name="ctx">
+            <Grid Name="ctx" ContextMenu="{StaticResource textMenu}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
                              TextWrapping="Wrap"
@@ -105,7 +109,7 @@
 
 
         <DataTemplate x:Key="txtReceiver">
-            <Grid Name="ctx1">
+            <Grid Name="ctx" ContextMenu="{StaticResource textMenu}">
                 <StackPanel Orientation="Horizontal">
                     <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
                              Background="#555"
@@ -113,7 +117,7 @@
                              AcceptsReturn="True"
                              VerticalAlignment="Top"
                              VerticalContentAlignment="Top"
-                             MaxWidth="{Binding ElementName=ctx1,Path=ActualWidth,Converter={StaticResource ValueHalfConverter},UpdateSourceTrigger=PropertyChanged}"
+                             MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter},UpdateSourceTrigger=PropertyChanged}"
                              BorderThickness="0"
                              Foreground="White"
                              HorizontalAlignment="Left"

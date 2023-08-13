@@ -18,7 +18,7 @@ namespace ThreeL.SocketServer.Application.Contract.Mappers
 
             CreateMap<ImageMessageResponse, ChatRecordPostRequest>().ForMember(x => x.SendTime,
                 y => y.MapFrom(src => Timestamp.FromDateTime(src.SendTime.ToUniversalTime())))
-                 .ForMember(x => x.Message, y => y.MapFrom(src => string.Empty))
+                 .ForMember(x => x.Message, y => y.MapFrom(src => src.RemoteUrl == null ? string.Empty : src.RemoteUrl))
                  .ForMember(x => x.ImageType, y => y.MapFrom(src => (int)src.ImageType));
 
             CreateMap<FileMessageResponse, ChatRecordPostRequest>().ForMember(x => x.SendTime,

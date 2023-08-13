@@ -95,7 +95,7 @@ namespace ThreeL.Client.Win.Handlers
                     MessageRecordType = MessageRecordType.Image,
                     ImageType = image.ImageType,
                     SendTime = packet.Body.SendTime,
-                    FileId = packet.Body.FileId,
+                    FileId = packet.Body.FileId == 0 ? null : packet.Body.FileId,
                 });
 
                 Application.Current.Dispatcher.Invoke(() =>

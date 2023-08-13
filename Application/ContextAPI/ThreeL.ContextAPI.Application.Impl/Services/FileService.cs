@@ -35,13 +35,13 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             return resp;
         }
 
-        public async Task<FileInfo> DownloadFileAsync(long userId, long fileId)
+        public async Task<FileInfo> GetDownloadFileInfoAsync(long userId, string messageId)
         {
             var record =
-               await _adoQuerierRepository.QueryFirstOrDefaultAsync<FileRecord>("SELECT TOP 1 * FROM [FILE] WHERE Id = @Id",
-               new { Id = fileId });
+               await _adoQuerierRepository.QueryFirstOrDefaultAsync<dynamic>("SELECT * FROM ChatRecord INNER JOIN [File] ON [File].id = ChatRecord.FileId WHERE MessageId = @MessageId",
+               new { MessageId = messageId });
 
-            if(record != null || (record.CreateBy == userId || record.Receiver == userId)) 
+            if(record == null || (record.From != userId && record.To != userId)) 
             {
                 throw new Exception("下载文件错误");
             }

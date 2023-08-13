@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System;
-using ThreeL.Client.Shared.Entities;
+using ThreeL.Client.Shared.Dtos.ContextAPI;
 
 namespace ThreeL.Client.Win.ViewModels
 {
@@ -12,7 +13,15 @@ namespace ThreeL.Client.Win.ViewModels
         public long From { get; set; }
         public long To { get; set; }
 
-        public virtual void FromEntity(ChatRecord chatRecord)
+        public AsyncRelayCommand CopyCommandAsync { get; set; }
+        public AsyncRelayCommand WithDrawCommandAsync { get; set; }
+
+        public MessageViewModel()
+        {
+
+        }
+
+        public virtual void FromDto(ChatRecordResponseDto chatRecord)
         {
             MessageId = chatRecord.MessageId;
             From = chatRecord.From;

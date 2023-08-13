@@ -9,7 +9,7 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
         [ProtoMember(6)]
         public ImageType ImageType { get; set; }
         [ProtoMember(7)]
-        public string RemoteUrl { get; set; }
+        public string RemoteUrl { get; set; }//just for network image
         [ProtoMember(8)]
         public long FileId { get; set; }
         [ProtoMember(9)]

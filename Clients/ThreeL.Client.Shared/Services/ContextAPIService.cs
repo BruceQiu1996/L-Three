@@ -94,7 +94,10 @@ namespace ThreeL.Client.Shared.Services
         {
             HttpClientHandler httpClientHandler = new HttpClientHandler();
             ProgressMessageHandler progressMessageHandler = new ProgressMessageHandler(httpClientHandler);
-            progressMessageHandler.HttpSendProgress += (obj, e) => progressCallBack(obj, e);
+            if (progressCallBack != null)
+            {
+                progressMessageHandler.HttpSendProgress += (obj, e) => progressCallBack(obj, e);
+            }
             using (var client = new HttpClient(progressMessageHandler))
             {
                 BuildHttpClient(client);
@@ -132,6 +135,53 @@ namespace ThreeL.Client.Shared.Services
                     }
                     excuted = true;
                     return await UploadFileAsync<T>(filename, bytes, code, receiver, progressCallBack, excuted);
+                }
+                else if (resp.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    var message = await resp.Content.ReadAsStringAsync();
+                    await ExcuteWhileBadRequestAsync?.Invoke(message);
+                }
+            }
+
+            return default;
+        }
+
+        public async Task<byte[]> DownloadFileAsync(string messageId, Action<object, HttpProgressEventArgs> progressCallBack, bool excuted = false)
+        {
+            HttpClientHandler httpClientHandler = new HttpClientHandler();
+            ProgressMessageHandler progressMessageHandler = new ProgressMessageHandler(httpClientHandler);
+            if (progressCallBack != null)
+            {
+                progressMessageHandler.HttpReceiveProgress += (obj, e) => progressCallBack(obj, e);
+            }
+            using (var client = new HttpClient(progressMessageHandler))
+            {
+                BuildHttpClient(client);
+                if (!string.IsNullOrEmpty(_token))
+                {
+                    if (client.DefaultRequestHeaders.Contains("Authorization"))
+                    {
+                        client.DefaultRequestHeaders.Remove("Authorization");
+                    }
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_token}");
+                }
+
+                var resp = await client.GetAsync(string.Format(Const.DOWNLOAD_FILE, messageId));
+                if (resp.IsSuccessStatusCode)
+                {
+                    var steam = await resp.Content.ReadAsByteArrayAsync();
+                    return steam;
+                }
+                else if (resp.StatusCode == HttpStatusCode.Unauthorized && !excuted)
+                {
+                    var result = await TryRefreshTokenAsync?.Invoke();
+                    if (!result)
+                    {
+                        await ExcuteWhileUnauthorizedAsync?.Invoke();
+                        return default;
+                    }
+                    excuted = true;
+                    return await DownloadFileAsync(messageId, progressCallBack, excuted);
                 }
                 else if (resp.StatusCode == HttpStatusCode.BadRequest)
                 {

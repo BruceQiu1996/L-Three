@@ -170,46 +170,125 @@ namespace ThreeL.Client.Win.ViewModels
             var tempFriend = FriendViewModel;
             if (!tempFriend.LoadedChatRecord)
             {
-                //加载历史100条聊天记录 //TODO与服务器聊天记录做比较
-                var redords =
-                    await SqlMapper.QueryAsync<ChatRecord>(_clientSqliteContext.dbConnection,
-                        "SELECT * FROM ChatRecord WHERE (([FROM] = @Id AND [TO] = @Cid) OR ([TO] = @Id and [FROM] = @Cid)) AND rowid IN (SELECT rowid FROM ChatRecord ORDER BY SendTime Desc LIMIT 100)",
-                        new { tempFriend.Id, Cid = App.UserProfile.UserId });
-
-                if (redords != null && redords.Count() > 0)
+                try
                 {
-                    foreach (var record in redords.OrderBy(x => x.SendTime))
+                    //加载历史100条聊天记录 //TODO与服务器聊天记录做比较
+                    var records = await FetchChatRecordsFromRemoteAsync(tempFriend.Id, DateTime.Now);
+                    if (records != null && records.Count() > 0)
                     {
-                        MessageViewModel messageViewModel = null;
-                        if (record.MessageRecordType == MessageRecordType.Text)
+                        foreach (var record in records)
                         {
-                            messageViewModel = new TextMessageViewModel();
-                            messageViewModel.FromEntity(record);
+                            tempFriend.AddMessage(record);
                         }
+                    }
 
-                        if (record.MessageRecordType == MessageRecordType.Image)
-                        {
-                            messageViewModel = new ImageMessageViewModel();
-                            messageViewModel.FromEntity(record);
-                        }
+                    tempFriend.LoadedChatRecord = true;
+                }
+                catch (Exception ex)
+                {
+                    //TODO log记录
+                }
+            }
+        }
 
-                        if (record.MessageRecordType == MessageRecordType.File)
-                        {
-                            messageViewModel = new FileMessageViewModel(record.Message);
-                            messageViewModel.FromEntity(record);
-                        }
+        /// <summary>
+        /// 从服务器拉取聊天记录
+        /// </summary>
+        /// <param name="friendId">好友id</param>
+        /// <param name="fromTime">拉取时间</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private async Task<IEnumerable<MessageViewModel>> FetchChatRecordsFromRemoteAsync(long friendId, DateTime fromTime)
+        {
+            var resp = await _contextAPIService.GetAsync<FriendChatRecordResponseDto>(string.Format(Const.FETCH_FRIEND_CHATRECORDS,
+                friendId, fromTime.ToString("yyyy-MM-dd HH:mm:ss.fff")));
+            if (resp == null)
+            {
+                _growlHelper.Warning("获取聊天记录失败");
+                throw new Exception("拉取聊天记录异常");
+            }
 
-                        tempFriend.AddMessage(messageViewModel);
+            if (resp.Records == null || resp.Records.Count() <= 0)
+            {
+                return default;
+            }
+
+            var localImageRecords = resp.Records.Where(x => x.MessageRecordType == MessageRecordType.Image
+                && x.ImageType == ImageType.Local);
+            if (localImageRecords != null && localImageRecords.Count() > 0)
+            {
+                //查找本地数据库图片位置
+                //只有图片文件需要即时下载
+                var localImageRecordsIds = localImageRecords.Select(x => x.MessageId);
+                var localImageRecordsInDb = await SqlMapper.QueryAsync<ChatRecord>(_clientSqliteContext.dbConnection,
+                                       "SELECT * FROM ChatRecord WHERE MessageId IN @Ids", new { Ids = localImageRecordsIds });
+                foreach (var record in localImageRecords)
+                {
+                    var imageMessage = localImageRecordsInDb.FirstOrDefault(x => x.MessageId == record.MessageId);
+                    if (imageMessage != null && File.Exists(imageMessage.ResourceLocalLocation))
+                    {
+                        record.Message = imageMessage.ResourceLocalLocation;
+                    }
+
+                    //向远程服务器发起请求
+                    var bytes = await _contextAPIService.DownloadFileAsync(record.MessageId, null);
+                    if (bytes == null)
+                    {
+                        //TODO给一个未知图片的信息或者过期的默认图片
+                        continue;
+                    }
+
+                    var path = await _fileHelper.AutoSaveImageByBytesAsync(bytes, record.FileName);
+                    if (string.IsNullOrEmpty(path))
+                    {
+                        //TODO给一个未知图片的信息或者过期的默认图片
+                        continue;
+                    }
+                    else
+                    {
+                        record.Message = path;
                     }
                 }
-                tempFriend.LoadedChatRecord = true;
             }
+
+            List<MessageViewModel> messages = new List<MessageViewModel>();
+            foreach (var record in resp.Records.OrderBy(x => x.SendTime))
+            {
+                MessageViewModel messageViewModel = null;
+                if (record.MessageRecordType == MessageRecordType.Text)
+                {
+                    messageViewModel = new TextMessageViewModel();
+                    messageViewModel.FromDto(record);
+                }
+
+                if (record.MessageRecordType == MessageRecordType.Image)
+                {
+                    messageViewModel = new ImageMessageViewModel();
+                    messageViewModel.FromDto(record);
+                }
+
+                if (record.MessageRecordType == MessageRecordType.File)
+                {
+                    messageViewModel = new FileMessageViewModel();
+                    messageViewModel.FromDto(record);
+                }
+
+                messages.Add(messageViewModel);
+            }
+
+            return messages;
         }
 
         private async Task SendMessageAsync()
         {
             if (string.IsNullOrEmpty(TextMessage))
                 return;
+
+            if (TextMessage.Length > 500)
+            {
+                _growlHelper.Warning("文本长度不可超过500");
+                return;
+            }
 
             var packet = new Packet<TextMessage>()
             {
@@ -224,7 +303,7 @@ namespace ThreeL.Client.Win.ViewModels
                 }
             };
 
-            var sendResult =  await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+            var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
             if (!sendResult) _growlHelper.Warning("发送消息失败，请稍后再试");
             TextMessage = string.Empty;
         }
@@ -244,7 +323,7 @@ namespace ThreeL.Client.Win.ViewModels
                         From = App.UserProfile.UserId,
                         To = FriendViewModel.Id,
                         ImageType = (byte)routedEventArgs.Emoji.ImageType,
-                        RemoteUrl = routedEventArgs.Emoji.Url //如果是bitmap需要转byte[]
+                        RemoteUrl = routedEventArgs.Emoji.Url
                     }
                 };
 

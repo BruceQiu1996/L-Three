@@ -78,7 +78,7 @@ namespace ThreeL.Client.Win.Handlers
                     Message = packet.Body.FileName,
                     MessageRecordType = MessageRecordType.File,
                     SendTime = packet.Body.SendTime,
-                    FileId = packet.Body.FileId,
+                    FileId = packet.Body.FileId == 0 ? null : packet.Body.FileId,
                     ResourceSize = packet.Body.Size
                 });
 

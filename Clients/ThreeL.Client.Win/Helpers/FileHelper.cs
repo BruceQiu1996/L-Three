@@ -38,6 +38,29 @@ namespace ThreeL.Client.Win.Helpers
             }
         }
 
+        public async Task<string> AutoSaveImageByBytesAsync(byte[] bytes, string fileName)
+        {
+            try
+            {
+                var folder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                var location = Path.Combine(folder, "ThreeL/images", DateTime.Now.ToString("yyyy-MM"));
+                if (!Directory.Exists(location))
+                {
+                    Directory.CreateDirectory(location);
+                }
+
+                var fileLocation = Path.Combine(location, $"{Guid.NewGuid()}{Path.GetExtension(fileName)}");
+                await File.WriteAllBytesAsync(fileLocation, bytes);
+
+                return fileLocation;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return default;
+            }
+        }
+
         public BitmapImage ByteArrayToBitmapImage(byte[] byteArray)
         {
             BitmapImage bmp = null;
@@ -53,7 +76,7 @@ namespace ThreeL.Client.Win.Helpers
                 _logger.LogError(ex.ToString());
                 bmp = null;
             }
-            finally 
+            finally
             {
                 bmp.Freeze();
             }

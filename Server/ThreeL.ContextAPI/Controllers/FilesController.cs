@@ -26,12 +26,12 @@ namespace ThreeL.ContextAPI.Controllers
             return Ok(resp);
         }
 
-        [HttpGet("/download/{fileId}")]
+        [HttpGet("download/{messageId}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
-        public async Task<IActionResult> DownLoad(long fileId)
+        public async Task<IActionResult> DownLoad(string messageId)
         {
             long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var info = await _fileService.DownloadFileAsync(userId, fileId);
+            var info = await _fileService.GetDownloadFileInfoAsync(userId, messageId);
             if (info == null) 
             {
                 return BadRequest("文件下载出错");

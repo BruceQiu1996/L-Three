@@ -1,8 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System.IO;
+﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using ThreeL.Client.Shared.Entities;
-using ThreeL.Client.Win.Helpers;
+using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Infra.Core.Metadata;
 
 namespace ThreeL.Client.Win.ViewModels.Messages
@@ -12,6 +11,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
         public ImageType ImageType { get; set; }
         public string Url { get; set; }
         public BitmapImage Source { get; set; }
+        public long FileId { get; set; }
 
         public override string GetShortDesc()
         {
@@ -19,30 +19,40 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             {
                 return "[图片消息]";
             }
-            else 
+            else
             {
                 return "[表情信息]";
             }
         }
 
-        public override void FromEntity(ChatRecord chatRecord)
+        public ImageMessageViewModel()
         {
-            base.FromEntity(chatRecord);
+
+        }
+
+        public override void FromDto(ChatRecordResponseDto chatRecord)
+        {
+            base.FromDto(chatRecord);
             ImageType = chatRecord.ImageType;
             if (ImageType == ImageType.Network)
             {
-                Url = chatRecord.ResourceLocalLocation;
+                Url = chatRecord.Message;
             }
-            else 
+            else
             {
-                if (File.Exists(chatRecord.ResourceLocalLocation))
+                var source = new BitmapImage();
+                try
                 {
-                    Source = App.ServiceProvider.GetRequiredService<FileHelper>().ByteArrayToBitmapImage(
-                         File.ReadAllBytes(chatRecord.ResourceLocalLocation));
+                    string imgUrl = chatRecord.Message;
+                    source.BeginInit();
+                    source.UriSource = new Uri(imgUrl, UriKind.RelativeOrAbsolute);
+                    source.EndInit();
+
+                    Source = source;
                 }
-                else 
+                finally
                 {
-                    //TODO 服务器查找
+                    source.Freeze();
                 }
             }
         }
