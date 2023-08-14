@@ -15,7 +15,6 @@ using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Application.Impl;
 using ThreeL.ContextAPI.Application.Impl.Services.Grpc;
 using ThreeL.Shared.Application.Contract.Extensions;
-using ThreeL.Shared.Application.Middlewares;
 
 namespace ThreeL.ContextAPI;
 

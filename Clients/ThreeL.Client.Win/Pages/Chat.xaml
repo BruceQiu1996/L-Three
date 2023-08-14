@@ -37,14 +37,20 @@
         <DataTemplate x:Key="txtSender">
             <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Label Height="30" Width="40" 
+                           Background="Transparent"
+                           BorderThickness="0" Cursor="Hand"
+                           Visibility="{Binding SendSuccess,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Boolean2VisibilityReConverter}}">
+                        <Path Data="{StaticResource error}" Fill="Red" Stretch="Uniform"></Path>
+                    </Label>
                     <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
+                             MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter},UpdateSourceTrigger=PropertyChanged}"
                              TextWrapping="Wrap"
                              Background="#555"
                              AcceptsReturn="True"
                              VerticalAlignment="Top"
                              IsReadOnly="True"
                              VerticalContentAlignment="Top"
-                             MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter},UpdateSourceTrigger=PropertyChanged}"
                              BorderThickness="0"
                              Foreground="White"
                              HorizontalAlignment="Right"
@@ -56,54 +62,74 @@
 
         <DataTemplate x:Key="imageSender">
             <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
-                <Image Source="{Binding Source}" 
-                       Stretch="Uniform"
-                       Style="{StaticResource chatImageStyle}"
-                       MaxHeight="200"
-                       MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
-                       HorizontalAlignment="Right">
-                    <behaviors:Interaction.Triggers>
-                        <behaviors:EventTrigger EventName="MouseLeftButtonDown">
-                            <behaviors:InvokeCommandAction Command="{Binding LeftButtonClickCommandAsync}"
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Label Height="30" Width="40" 
+                           HorizontalAlignment="Right"
+                           Background="Transparent"
+                           BorderThickness="0"
+                           Cursor="Hand"
+                           Visibility="{Binding SendSuccess,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Boolean2VisibilityReConverter}}">
+                        <Path Data="{StaticResource error}" Fill="Red" Stretch="Uniform"></Path>
+                    </Label>
+                    <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}">
+                        <Image Source="{Binding Source}"
+                               Stretch="Uniform"
+                               MaxHeight="200"
+                               HorizontalAlignment="Right">
+                            <behaviors:Interaction.Triggers>
+                                <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                    <behaviors:InvokeCommandAction Command="{Binding LeftButtonClickCommandAsync}"
                                                            ></behaviors:InvokeCommandAction>
-                        </behaviors:EventTrigger>
-                    </behaviors:Interaction.Triggers>
-                </Image>
+                                </behaviors:EventTrigger>
+                            </behaviors:Interaction.Triggers>
+                        </Image>
+                    </Border>
+                </StackPanel>
             </Grid>
         </DataTemplate>
 
         <DataTemplate x:Key="fileSender">
             <Grid Name="ctx">
-                <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Label Height="30" Width="40" 
+                           HorizontalAlignment="Right"
+                           Background="Transparent"
+                           BorderThickness="0"
+                           Cursor="Hand"
+                           Visibility="{Binding SendSuccess,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Boolean2VisibilityReConverter}}">
+                        <Path Data="{StaticResource error}" Fill="Red" Stretch="Uniform"></Path>
+                    </Label>
+                    <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
                         HorizontalAlignment="Right"
                         Cursor="Hand"
                         ToolTip="{Binding FileName}"
                         CornerRadius="5">
-                    <Grid Margin="5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="50"></ColumnDefinition>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" Margin="5">
-                            <TextBlock Text="{Binding FileName}" VerticalAlignment="Center" FontSize="16"/>
-                            <TextBlock Text="{Binding FileSizeText}" Foreground="#333" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                        </StackPanel>
-                        <Image Source="{Binding Source}" Grid.Column="1">
-                        </Image>
-                    </Grid>
-                    <Border.Style>
-                        <Style TargetType="Border">
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#ccc"/>
-                                </Trigger>
-                                <Trigger Property="IsMouseOver" Value="False">
-                                    <Setter Property="Background" Value="#aaa"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Border.Style>
-                </Border>
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                                <ColumnDefinition Width="50"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" Margin="5">
+                                <TextBlock Text="{Binding FileName}" VerticalAlignment="Center" FontSize="16"/>
+                                <TextBlock Text="{Binding FileSizeText}" Foreground="#333" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                            </StackPanel>
+                            <Image Source="{Binding Source}" Grid.Column="1">
+                            </Image>
+                        </Grid>
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#ccc"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="False">
+                                        <Setter Property="Background" Value="#aaa"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+                </StackPanel>
             </Grid>
         </DataTemplate>
 
@@ -129,19 +155,21 @@
         </DataTemplate>
         <DataTemplate x:Key="imageReceiver">
             <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
-                <Image Source="{Binding Source}" 
-                       Stretch="Uniform"
-                       Style="{StaticResource chatImageStyle}"
-                       MaxHeight="200"
-                       MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
-                       HorizontalAlignment="Left">
-                    <behaviors:Interaction.Triggers>
-                        <behaviors:EventTrigger EventName="MouseLeftButtonDown">
-                            <behaviors:InvokeCommandAction Command="{Binding LeftButtonClickCommandAsync}"
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}">
+                        <Image Source="{Binding Source}"
+                               Stretch="Uniform"
+                               MaxHeight="200"
+                               HorizontalAlignment="Left">
+                            <behaviors:Interaction.Triggers>
+                                <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                    <behaviors:InvokeCommandAction Command="{Binding LeftButtonClickCommandAsync}"
                                                            ></behaviors:InvokeCommandAction>
-                        </behaviors:EventTrigger>
-                    </behaviors:Interaction.Triggers>
-                </Image>
+                                </behaviors:EventTrigger>
+                            </behaviors:Interaction.Triggers>
+                        </Image>
+                    </Border>
+                </StackPanel>
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="fileReceiver">

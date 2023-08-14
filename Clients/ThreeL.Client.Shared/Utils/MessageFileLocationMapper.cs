@@ -14,9 +14,9 @@ namespace ThreeL.Client.Shared.Utils
             });
         }
 
-        public string FindFileLocationByMessageId(string messageId)
+        public string Pop(string messageId)
         {
-            var location = _messageFileLocationMapping[messageId];
+            _messageFileLocationMapping.TryRemove(messageId, out var location);
             if (File.Exists(location))
                 return location;
 

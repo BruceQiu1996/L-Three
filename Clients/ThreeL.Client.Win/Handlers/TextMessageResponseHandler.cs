@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using SuperSocket;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace ThreeL.Client.Win.Handlers
     {
         private readonly GrowlHelper _growlHelper;
         private readonly SaveChatRecordService _saveChatRecordService;
-        public TextMessageResponseHandler(GrowlHelper growlHelper, SaveChatRecordService saveChatRecordService) : base(MessageType.TextResp) 
+        public TextMessageResponseHandler(GrowlHelper growlHelper, SaveChatRecordService saveChatRecordService) : base(MessageType.TextResp)
         {
             _growlHelper = growlHelper;
             _saveChatRecordService = saveChatRecordService;
@@ -29,8 +30,18 @@ namespace ThreeL.Client.Win.Handlers
         public async override Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
             var packet = message as Packet<TextMessageResponse>;
+            WeakReferenceMessenger.Default.Send<dynamic, string>(new
+            {
+                packet.Body.MessageId,
+                packet.Body.To,
+            }, "message-send-finished");
             if (packet != null && !packet.Body.Result) //消息发送失败
             {
+                WeakReferenceMessenger.Default.Send<dynamic, string>(new
+                {
+                    MessageId = packet.Body.MessageId,
+                    To = packet.Body.To,
+                }, "message-send-faild");
                 _growlHelper.Warning(packet.Body.Message);
                 return;
             }
@@ -58,18 +69,21 @@ namespace ThreeL.Client.Win.Handlers
                     SendTime = packet.Body.SendTime
                 });
 
-                Application.Current.Dispatcher.Invoke(() =>
+                if (App.UserProfile.UserId != packet.Body.From)
                 {
-                    friend.AddMessage(new TextMessageViewModel()
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        FromSelf = App.UserProfile.UserId == packet.Body.From,
-                        Text = packet.Body.Text,
-                        SendTime = packet.Body.SendTime,
-                        MessageId = packet.Body.MessageId,
-                        From = packet.Body.From,
-                        To = packet.Body.To,
+                        friend.AddMessage(new TextMessageViewModel()
+                        {
+                            FromSelf = false,
+                            Text = packet.Body.Text,
+                            SendTime = packet.Body.SendTime,
+                            MessageId = packet.Body.MessageId,
+                            From = packet.Body.From,
+                            To = packet.Body.To,
+                        });
                     });
-                });
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using SuperSocket;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,8 +46,18 @@ namespace ThreeL.Client.Win.Handlers
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
             var packet = message as Packet<FileMessageResponse>;
+            WeakReferenceMessenger.Default.Send<dynamic, string>(new
+            {
+                packet.Body.MessageId,
+                packet.Body.To,
+            }, "message-send-finished");
             if (packet != null && !packet.Body.Result) //消息发送失败
             {
+                WeakReferenceMessenger.Default.Send<dynamic, string>(new 
+                {
+                    MessageId = packet.Body.MessageId,
+                    To = packet.Body.To,
+                }, "message-send-faild");
                 _growlHelper.Warning(packet.Body.Message);
                 return;
             }
@@ -65,7 +76,7 @@ namespace ThreeL.Client.Win.Handlers
             if (friend != null)
             {
                 //获取这个messageID对应的文件地址是否存在
-                var path = _messageFileLocationMapper.FindFileLocationByMessageId(packet.Body.MessageId);
+                var path = _messageFileLocationMapper.Pop(packet.Body.MessageId);
                 await _saveChatRecordService.WriteRecordAsync(new ChatRecord
                 {
                     From = packet.Body.From,

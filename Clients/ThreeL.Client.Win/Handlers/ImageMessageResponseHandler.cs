@@ -1,14 +1,15 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using SuperSocket;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Database;
 using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Shared.Services;
+using ThreeL.Client.Shared.Utils;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.ViewModels;
@@ -27,8 +28,10 @@ namespace ThreeL.Client.Win.Handlers
         private readonly FileHelper _fileHelper;
         private readonly ClientSqliteContext _clientSqliteContext;
         private readonly SaveChatRecordService _saveChatRecordService;
+        private readonly MessageFileLocationMapper _messageFileLocationMapper;
         private readonly ContextAPIService _contextAPIService;
         public ImageMessageResponseHandler(GrowlHelper growlHelper,
+                                           MessageFileLocationMapper messageFileLocationMapper,
                                            ClientSqliteContext clientSqliteContext,
                                            SaveChatRecordService saveChatRecordService,
                                            ContextAPIService contextAPIService,
@@ -39,13 +42,24 @@ namespace ThreeL.Client.Win.Handlers
             _clientSqliteContext = clientSqliteContext;
             _saveChatRecordService = saveChatRecordService;
             _contextAPIService = contextAPIService;
+            _messageFileLocationMapper = messageFileLocationMapper;
         }
 
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
             var packet = message as Packet<ImageMessageResponse>;
+            WeakReferenceMessenger.Default.Send<dynamic, string>(new
+            {
+                packet.Body.MessageId,
+                packet.Body.To,
+            }, "message-send-finished");
             if (packet != null && !packet.Body.Result) //消息发送失败
             {
+                WeakReferenceMessenger.Default.Send<dynamic, string>(new
+                {
+                    MessageId = packet.Body.MessageId,
+                    To = packet.Body.To,
+                }, "message-send-faild");
                 _growlHelper.Warning(packet.Body.Message);
                 return;
             }
@@ -73,30 +87,32 @@ namespace ThreeL.Client.Win.Handlers
                     To = packet.Body.To,
                 };
 
-                string imageLocation = string.Empty;
-
-                var bytes = image.ImageType == ImageType.Local ?
-                        await _contextAPIService.DownloadFileAsync(packet.Body.MessageId, null)
-                        :
-                        await _contextAPIService.DownloadNetworkImageAsync(packet.Body.RemoteUrl, null);
-
-                if (bytes == null)
+                string imageLocation = _messageFileLocationMapper.Pop(packet.Body.MessageId);
+                if (string.IsNullOrEmpty(imageLocation) || !File.Exists(imageLocation))
                 {
-                    _growlHelper.Warning("接收图片出现异常");
-                    return;
-                }
+                    var bytes = image.ImageType == ImageType.Local ?
+                            await _contextAPIService.DownloadFileAsync(packet.Body.MessageId, null)
+                            :
+                            await _contextAPIService.DownloadNetworkImageAsync(packet.Body.RemoteUrl, null);
 
-                if (image.ImageType == ImageType.Local)
-                {
-                    imageLocation = await _fileHelper.AutoSaveImageByBytesAsync(bytes, packet.Body.FileName);
-                    if (string.IsNullOrEmpty(imageLocation))
+                    if (bytes == null)
                     {
                         _growlHelper.Warning("接收图片出现异常");
                         return;
                     }
-                }
 
-                image.Source = _fileHelper.ByteArrayToBitmapImage(bytes);
+                    if (image.ImageType == ImageType.Local)
+                    {
+                        imageLocation = await _fileHelper.AutoSaveImageByBytesAsync(bytes, packet.Body.FileName);
+                        if (string.IsNullOrEmpty(imageLocation))
+                        {
+                            _growlHelper.Warning("接收图片出现异常");
+                            return;
+                        }
+                    }
+
+                    image.Source = _fileHelper.ByteArrayToBitmapImage(bytes);
+                }
 
                 await _saveChatRecordService.WriteRecordAsync(new ChatRecord
                 {
@@ -111,10 +127,13 @@ namespace ThreeL.Client.Win.Handlers
                     FileId = packet.Body.FileId == 0 ? null : packet.Body.FileId,
                 });
 
-                Application.Current.Dispatcher.Invoke(() =>
+                if (App.UserProfile.UserId != packet.Body.From)
                 {
-                    friend.AddMessage(image);
-                });
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        friend.AddMessage(image);
+                    });
+                }
             }
         }
     }

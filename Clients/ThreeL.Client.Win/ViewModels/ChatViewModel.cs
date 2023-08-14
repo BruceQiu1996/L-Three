@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Dapper;
 using Microsoft.Win32;
 using System;
@@ -8,9 +9,7 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http.Handlers;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
@@ -85,6 +84,7 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly SequenceIncrementer _sequenceIncrementer;
         private readonly TcpSuperSocketClient _tcpSuperSocketClient;
         private readonly SaveChatRecordService _saveChatRecordService;
+        private readonly MessageFileLocationMapper _messageFileLocationMapper;
 
         public ChatViewModel(ContextAPIService contextAPIService,
                              ClientSqliteContext clientSqliteContext,
@@ -94,7 +94,8 @@ namespace ThreeL.Client.Win.ViewModels
                              PacketWaiter packetWaiter,
                              UdpSuperSocketClient udpSuperSocketClient,
                              SequenceIncrementer sequenceIncrementer,
-                             TcpSuperSocketClient tcpSuperSocketClient)
+                             TcpSuperSocketClient tcpSuperSocketClient,
+                             MessageFileLocationMapper messageFileLocationMapper)
         {
             _contextAPIService = contextAPIService;
             _clientSqliteContext = clientSqliteContext;
@@ -111,6 +112,29 @@ namespace ThreeL.Client.Win.ViewModels
             ChooseFileSendCommandAsync = new AsyncRelayCommand(ChooseFileSendAsync);
             _sequenceIncrementer = sequenceIncrementer;
             _tcpSuperSocketClient = tcpSuperSocketClient;
+            _messageFileLocationMapper = messageFileLocationMapper;
+
+            WeakReferenceMessenger.Default.Register<ChatViewModel, dynamic, string>(this, "message-send-faild", (x, y) =>
+            {
+                var message = FriendViewModels.FirstOrDefault(x => x.Id == y.To)?
+                .Messages.FirstOrDefault(x => x.MessageId == y.MessageId);
+
+                if (message != null)
+                {
+                    message.SendSuccess = false;
+                }
+            });
+
+            WeakReferenceMessenger.Default.Register<ChatViewModel, dynamic, string>(this, "message-send-finished", (x, y) =>
+            {
+                var message = FriendViewModels.FirstOrDefault(x => x.Id == y.To)?
+                .Messages.FirstOrDefault(x => x.MessageId == y.MessageId);
+
+                if (message != null)
+                {
+                    message.Sending = false;
+                }
+            });
         }
 
         private async Task LoadAsync()
@@ -318,8 +342,13 @@ namespace ThreeL.Client.Win.ViewModels
             return messages;
         }
 
+        /// <summary>
+        /// 发送文本消息
+        /// </summary>
+        /// <returns></returns>
         private async Task SendMessageAsync()
         {
+            var tempFriend = FriendViewModel;
             if (string.IsNullOrEmpty(TextMessage))
                 return;
 
@@ -337,37 +366,76 @@ namespace ThreeL.Client.Win.ViewModels
                 {
                     SendTime = DateTime.Now,
                     From = App.UserProfile.UserId,
-                    To = FriendViewModel.Id,
+                    To = tempFriend.Id,
                     Text = textMessage
                 }
             };
 
+            var viewModel = new TextMessageViewModel()
+            {
+                FromSelf = App.UserProfile.UserId == packet.Body.From,
+                Text = packet.Body.Text,
+                SendTime = packet.Body.SendTime,
+                MessageId = packet.Body.MessageId,
+                From = packet.Body.From,
+                To = packet.Body.To,
+                Sending = true,
+            };
+
+            tempFriend.AddMessage(viewModel);
             var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
-            if (!sendResult) _growlHelper.Warning("发送消息失败，请稍后再试");
+            if (!sendResult)
+            {
+                viewModel.Sending = false;
+                viewModel.SendSuccess = false;
+                _growlHelper.Warning("发送消息失败，请稍后再试");
+            }
+
             TextMessage = string.Empty;
         }
 
+        /// <summary>
+        /// 发送表情消息
+        /// </summary>
+        /// <param name="routedEventArgs">选择的表情</param>
+        /// <returns></returns>
         private async Task AddEmojiAsync(SelectEmojiClickRoutedEventArgs routedEventArgs)
         {
             IsEmojiOpen = false;
-            if (FriendViewModel != null)
+            var tempFriend = FriendViewModel;
+            var packet = new Packet<ImageMessage>()
             {
-                var packet = new Packet<ImageMessage>()
+                Sequence = _sequenceIncrementer.GetNextSequence(),
+                MessageType = MessageType.Image,
+                Body = new ImageMessage
                 {
-                    Sequence = _sequenceIncrementer.GetNextSequence(),
-                    MessageType = MessageType.Image,
-                    Body = new ImageMessage
-                    {
-                        SendTime = DateTime.Now,
-                        From = App.UserProfile.UserId,
-                        To = FriendViewModel.Id,
-                        ImageType = (byte)routedEventArgs.Emoji.ImageType,
-                        RemoteUrl = routedEventArgs.Emoji.Url
-                    }
-                };
+                    SendTime = DateTime.Now,
+                    From = App.UserProfile.UserId,
+                    To = tempFriend.Id,
+                    ImageType = (byte)routedEventArgs.Emoji.ImageType,
+                    RemoteUrl = routedEventArgs.Emoji.Url
+                }
+            };
 
-                var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
-                if (!sendResult) _growlHelper.Warning("发送消息失败，请稍后再试");
+            var viewModel = new ImageMessageViewModel()
+            {
+                FromSelf = App.UserProfile.UserId == packet.Body.From,
+                ImageType = ImageType.Network,
+                SendTime = packet.Body.SendTime,
+                MessageId = packet.Body.MessageId,
+                From = packet.Body.From,
+                To = packet.Body.To,
+                Sending = true
+            };
+            var bytes = await _contextAPIService.DownloadNetworkImageAsync(packet.Body.RemoteUrl);
+            viewModel.Source = _fileHelper.ByteArrayToBitmapImage(bytes);
+            tempFriend.AddMessage(viewModel);
+            var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+            if (!sendResult)
+            {
+                viewModel.Sending = false;
+                viewModel.SendSuccess = false;
+                _growlHelper.Warning("发送消息失败，请稍后再试");
             }
         }
 
@@ -394,85 +462,149 @@ namespace ThreeL.Client.Win.ViewModels
                     }
                     try
                     {
-                        var data = await File.ReadAllBytesAsync(fileInfo.FullName);
-                        string code = data.ToSHA256();
-                        var resp = await _contextAPIService
-                            .GetAsync<CheckFileExistResponseDto>(string.Format(Const.FILE_EXIST, code));
-
-                        if (resp == null) throw new Exception("服务器异常");
-
-                        if (!resp.Exist)//文件存在，直接发送
-                        {
-                            var fileResp = await _contextAPIService.UploadFileAsync<UploadFileResponseDto>
-                                (fileInfo.Name, data, code, tempViewModel.Id, UploadProgressCallback, false);
-
-                            if (fileResp == null) throw new Exception("发送文件异常，请稍后再试");
-                            resp.FileId = fileResp.FileId;
-                        }
-
-                        IPacket packet = null;
-                        MessageViewModel message = null;
                         if (IsRealImage(path))
                         {
-                            packet = new Packet<ImageMessage>()
-                            {
-                                Sequence = _sequenceIncrementer.GetNextSequence(),
-                                MessageType = MessageType.Image,
-                                Body = new ImageMessage
-                                {
-                                    SendTime = DateTime.Now,
-                                    From = App.UserProfile.UserId,
-                                    To = FriendViewModel.Id,
-                                    ImageType = (byte)ImageType.Local,
-                                    FileId = resp.FileId,
-                                    FileName = fileInfo.Name
-                                }
-                            };
+                            await SendImageFileAsync(fileInfo, tempViewModel);
                         }
                         else //其他文件
                         {
-                            var fileMessage = new FileMessage
-                            {
-                                SendTime = DateTime.Now,
-                                From = App.UserProfile.UserId,
-                                To = FriendViewModel.Id,
-                                FileId = resp.FileId
-                            };
-
-                            packet = new Packet<FileMessage>()
-                            {
-                                Sequence = _sequenceIncrementer.GetNextSequence(),
-                                MessageType = MessageType.File,
-                                Body = fileMessage
-                            };
-
-                            message = new FileMessageViewModel(fileInfo.Name)
-                            {
-                                FromSelf = App.UserProfile.UserId == fileMessage.From,
-                                FileSize = fileInfo.Length,
-                                SendTime = fileMessage.SendTime,
-                                MessageId = fileMessage.MessageId,
-                                From = fileMessage.From,
-                                Location = fileInfo.FullName,
-                                To = fileMessage.To,
-                                Sending = true
-                            };
-                        }
-
-                        //发消息
-                        var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
-                        message.Sending = false;
-                        if (!sendResult)
-                        {
-                            message.Sending = false;
-                            message.SendSuccess = false;
+                            await SendFileAsync(fileInfo, tempViewModel);
                         }
                     }
                     catch (Exception ex)
                     {
-
+                        _growlHelper.Warning($"{ex.Message}");
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// 上传文件到服务器
+        /// </summary>
+        /// <param name="fileInfo">文件信息</param>
+        /// <param name="friendId">发送好友的id</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private async Task<long> UploadFileAsync(FileInfo fileInfo, long friendId)
+        {
+            var data = await File.ReadAllBytesAsync(fileInfo.FullName);
+            string code = data.ToSHA256();
+            var resp = await _contextAPIService.GetAsync<CheckFileExistResponseDto>(string.Format(Const.FILE_EXIST, code));
+            if (resp == null) throw new Exception("服务器异常");
+
+            if (!resp.Exist)//文件存在，直接发送
+            {
+                var fileResp = await _contextAPIService.UploadFileAsync<UploadFileResponseDto>
+                    (fileInfo.Name, data, code, friendId, UploadProgressCallback, false);
+
+                if (fileResp == null) throw new Exception("发送文件异常，请稍后再试");
+                resp.FileId = fileResp.FileId;
+            }
+
+            return resp.FileId;
+        }
+
+        /// <summary>
+        /// 发送图片文件给好友
+        /// </summary>
+        /// <param name="fileInfo">文件信息</param>
+        /// <param name="friend">好友</param>
+        /// <returns></returns>
+        private async Task SendImageFileAsync(FileInfo fileInfo, FriendViewModel friend)
+        {
+            var imageBody = new ImageMessage
+            {
+                SendTime = DateTime.Now,
+                From = App.UserProfile.UserId,
+                To = friend.Id,
+                ImageType = (byte)ImageType.Local,
+                FileName = fileInfo.Name
+            };
+
+            var message = new ImageMessageViewModel()
+            {
+                FromSelf = App.UserProfile.UserId == imageBody.From,
+                ImageType = ImageType.Local,
+                SendTime = imageBody.SendTime,
+                MessageId = imageBody.MessageId,
+                From = imageBody.From,
+                Location = fileInfo.FullName,
+                To = imageBody.To,
+                Sending = true
+            };
+            message.Source = _fileHelper.ByteArrayToBitmapImage(await File.ReadAllBytesAsync(fileInfo.FullName));
+            FriendViewModel.AddMessage(message);
+            var fileId = await UploadFileAsync(fileInfo, friend.Id);
+            imageBody.FileId = fileId;
+            var packet = new Packet<ImageMessage>()
+            {
+                Sequence = _sequenceIncrementer.GetNextSequence(),
+                MessageType = MessageType.Image,
+                Body = imageBody
+            };
+
+            var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+            if (!sendResult)
+            {
+                message.Sending = false;
+                message.SendSuccess = false;
+                _growlHelper.Warning("发送消息失败，请稍后再试");
+            }
+            else
+            {
+                _messageFileLocationMapper.AddOrUpdate(packet.Body.MessageId, fileInfo.FullName);
+            }
+        }
+
+        /// <summary>
+        /// 发送文件给好友
+        /// </summary>
+        /// <param name="fileInfo">文件信息</param>
+        /// <param name="friend">好友</param>
+        /// <returns></returns>
+        private async Task SendFileAsync(FileInfo fileInfo, FriendViewModel friend)
+        {
+            var fileMessage = new FileMessage
+            {
+                SendTime = DateTime.Now,
+                From = App.UserProfile.UserId,
+                To = FriendViewModel.Id,
+            };
+
+            var message = new FileMessageViewModel(fileInfo.Name)
+            {
+                FromSelf = App.UserProfile.UserId == fileMessage.From,
+                FileSize = fileInfo.Length,
+                SendTime = fileMessage.SendTime,
+                MessageId = fileMessage.MessageId,
+                From = fileMessage.From,
+                Location = fileInfo.FullName,
+                To = fileMessage.To,
+                Sending = true
+            };
+
+            FriendViewModel.AddMessage(message);
+            var fileId = await UploadFileAsync(fileInfo, friend.Id);
+            fileMessage.FileId = fileId;
+
+            var packet = new Packet<FileMessage>()
+            {
+                Sequence = _sequenceIncrementer.GetNextSequence(),
+                MessageType = MessageType.File,
+                Body = fileMessage
+            };
+
+            var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+            if (!sendResult)
+            {
+                message.Sending = false;
+                message.SendSuccess = false;
+                _growlHelper.Warning("发送消息失败，请稍后再试");
+            }
+            else
+            {
+                _messageFileLocationMapper.AddOrUpdate(packet.Body.MessageId, fileInfo.FullName);
             }
         }
 
