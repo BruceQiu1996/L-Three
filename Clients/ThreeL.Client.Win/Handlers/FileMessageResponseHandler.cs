@@ -6,6 +6,7 @@ using System.Windows;
 using ThreeL.Client.Shared.Database;
 using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Shared.Services;
+using ThreeL.Client.Shared.Utils;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.ViewModels;
@@ -25,16 +26,19 @@ namespace ThreeL.Client.Win.Handlers
         private readonly ClientSqliteContext _clientSqliteContext;
         private readonly SaveChatRecordService _saveChatRecordService;
         private readonly ContextAPIService _contextAPIService;
+        private readonly MessageFileLocationMapper _messageFileLocationMapper;
         public FileMessageResponseHandler(GrowlHelper growlHelper,
                                           ClientSqliteContext clientSqliteContext,
                                           SaveChatRecordService saveChatRecordService,
                                           ContextAPIService contextAPIService,
+                                          MessageFileLocationMapper messageFileLocationMapper,
                                           FileHelper fileHelper) : base(MessageType.FileResp)
         {
             _growlHelper = growlHelper;
             _fileHelper = fileHelper;
             _clientSqliteContext = clientSqliteContext;
             _saveChatRecordService = saveChatRecordService;
+            _messageFileLocationMapper = messageFileLocationMapper;
             _contextAPIService = contextAPIService;
         }
 
@@ -60,16 +64,8 @@ namespace ThreeL.Client.Win.Handlers
 
             if (friend != null)
             {
-                var file = new FileMessageViewModel(packet.Body.FileName)
-                {
-                    FromSelf = App.UserProfile.UserId == packet.Body.From,
-                    FileSize = packet.Body.Size,
-                    SendTime = packet.Body.SendTime,
-                    MessageId = packet.Body.MessageId,
-                    From = packet.Body.From,
-                    To = packet.Body.To,
-                };
-
+                //获取这个messageID对应的文件地址是否存在
+                var path = _messageFileLocationMapper.FindFileLocationByMessageId(packet.Body.MessageId);
                 await _saveChatRecordService.WriteRecordAsync(new ChatRecord
                 {
                     From = packet.Body.From,
@@ -77,15 +73,28 @@ namespace ThreeL.Client.Win.Handlers
                     MessageId = packet.Body.MessageId,
                     Message = packet.Body.FileName,
                     MessageRecordType = MessageRecordType.File,
+                    ResourceLocalLocation = path,
                     SendTime = packet.Body.SendTime,
                     FileId = packet.Body.FileId == 0 ? null : packet.Body.FileId,
                     ResourceSize = packet.Body.Size
                 });
 
-                Application.Current.Dispatcher.Invoke(() =>
+                if (App.UserProfile.UserId != packet.Body.From)
                 {
-                    friend.AddMessage(file);
-                });
+                    var file = new FileMessageViewModel(packet.Body.FileName)
+                    {
+                        FromSelf = App.UserProfile.UserId == packet.Body.From,
+                        FileSize = packet.Body.Size,
+                        SendTime = packet.Body.SendTime,
+                        MessageId = packet.Body.MessageId,
+                        From = packet.Body.From,
+                        To = packet.Body.To,
+                    };
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        friend.AddMessage(file);
+                    });
+                }
             }
         }
     }

@@ -18,6 +18,7 @@ namespace ThreeL.Client.Shared
             services.AddSingleton<ContextAPIService>();
             services.Configure<SocketServerOptions>(configuration.GetSection("SocketServerOptions"));
             services.AddHttpClient();
+            services.AddSingleton<MessageFileLocationMapper>();
         }
     }
 }

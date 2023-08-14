@@ -15,4 +15,5 @@ service SocketServerService{
 	rpc SocketServerUserLogin(SocketServerUserLoginRequest) returns (SocketServerUserLoginResponse);
 	rpc FetchFileInfo(FileInfoRequest) returns (FileInfoResponse);
 	rpc PostChatRecord(stream ChatRecordPostRequest) returns (ChatRecordPostResponse);
+	rpc PostChatRecordSingle(ChatRecordPostRequest) returns (ChatRecordPostResponse);
 }

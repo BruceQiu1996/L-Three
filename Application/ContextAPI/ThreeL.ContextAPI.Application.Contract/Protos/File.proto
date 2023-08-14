@@ -3,13 +3,11 @@ option csharp_namespace = "ThreeL.ContextAPI.Application.Contract.Protos";
 
 message FileInfoRequest{
 	int64 id = 1;
-	bool needContent = 2;
 }
 
 message FileInfoResponse{
 	int64 id = 1;
 	int64 size = 2;
-	string content = 3;
 	string name = 4;
 	string remoteLocation = 5;
 	bool result = 6;

@@ -68,5 +68,10 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             await stream.CompleteAsync();
             return await call.ResponseAsync;
         }
+
+        public async Task<ChatRecordPostResponse> PostChatRecordAsync(ChatRecordPostRequest request)
+        {
+            return await _serverServiceClient.PostChatRecordSingleAsync(request, _header);
+        }
     }
 }

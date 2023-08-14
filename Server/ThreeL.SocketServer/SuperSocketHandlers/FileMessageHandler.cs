@@ -93,7 +93,8 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             body.Result = true;
             var request = _mapper.Map<ChatRecordPostRequest>(body);
             request.MessageRecordType = (int)MessageRecordType.File;
-            await _saveChatRecordService.WriteRecordAsync(request);
+            //await _saveChatRecordService.WriteRecordAsync(request); 异步的可能存在客户端和服务端间隔问题
+            await _contextAPIGrpcService.PostChatRecordAsync(request);//还是先使用rpc
             //分发给发送者和接收者
             var fromSessions = _sessionManager.TryGet(resp.Body.From);
             var toSessions = _sessionManager.TryGet(resp.Body.To);

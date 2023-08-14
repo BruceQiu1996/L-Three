@@ -6,5 +6,6 @@
         Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request);
         Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request);
         Task<ChatRecordPostResponse> PostChatRecordsAsync(IEnumerable<ChatRecordPostRequest> request);
+        Task<ChatRecordPostResponse> PostChatRecordAsync(ChatRecordPostRequest request);
     }
 }

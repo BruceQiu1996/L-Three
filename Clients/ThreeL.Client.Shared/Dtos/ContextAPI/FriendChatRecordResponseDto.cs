@@ -20,5 +20,6 @@ namespace ThreeL.Client.Shared.Dtos.ContextAPI
         public long? FileId { get; set; }
         public string FileName { get; set; }
         public long Size { get; set; }
+        public byte[] Bytes { get; set; } //网络图片
     }
 }

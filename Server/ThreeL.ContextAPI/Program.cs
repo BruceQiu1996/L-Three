@@ -15,6 +15,7 @@ using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Application.Impl;
 using ThreeL.ContextAPI.Application.Impl.Services.Grpc;
 using ThreeL.Shared.Application.Contract.Extensions;
+using ThreeL.Shared.Application.Middlewares;
 
 namespace ThreeL.ContextAPI;
 
@@ -108,7 +109,7 @@ internal class Program
         host.UseRouting();
         host.UseAuthentication();
         host.UseAuthorization();
-        //host.UseMiddleware<AuthorizeStaticFilesMiddleware>("/files");
+        //host.UseMiddleware<AuthorizeStaticFilesMiddleware>("/files"); //授权静态文件访问
         host.UseStaticFiles(new StaticFileOptions()
         {
             OnPrepareResponse = ctx =>

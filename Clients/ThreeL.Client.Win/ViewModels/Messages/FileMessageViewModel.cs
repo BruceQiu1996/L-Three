@@ -12,6 +12,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
         public string FileName { get; set; }
         public long FileSize { get; set; }
         public string FileSizeText => App.ServiceProvider.GetRequiredService<FileHelper>().SizeConvertText(FileSize);
+        public string Location { get; set; }
         public long FileId { get; set; }
         public string ImageName => Path.GetExtension(FileName)?.ToLower() switch
         {

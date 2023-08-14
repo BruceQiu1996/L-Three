@@ -13,13 +13,13 @@
       d:DesignHeight="450" d:DesignWidth="800"
       Title="Friend">
     <Page.Resources>
-        <ContextMenu x:Key="textMenu">
-            <MenuItem Header="复制" Command="{Binding CopyCommandAsync}"></MenuItem>
-            <MenuItem Header="撤回" Command="{Binding WithDrawCommandAsync}"></MenuItem>
+        <ContextMenu x:Key="commonMenu" Width="100">
+            <MenuItem Header="复制" hc:IconElement.Width="0" Command="{Binding CopyCommandAsync}"></MenuItem>
+            <MenuItem Header="撤回" hc:IconElement.Width="0" Command="{Binding WithDrawCommandAsync}"></MenuItem>
         </ContextMenu>
-        <Style TargetType="{x:Type Image}">
-            <Setter Property="MaxHeight" Value="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelHeight)}" />
-            <Setter Property="MaxWidth" Value="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelWidth)}" />
+        <Style TargetType="{x:Type Image}" x:Key="chatImageStyle">
+            <Setter Property="Height" Value="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelHeight)}" />
+            <Setter Property="Width" Value="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelWidth)}" />
         </Style>
         <converts:ValueHalfConverter x:Key="ValueHalfConverter"></converts:ValueHalfConverter>
         <converts:ValueHalfConverter_2 x:Key="ValueHalfConverter_2"></converts:ValueHalfConverter_2>
@@ -35,7 +35,7 @@
             </TextBlock>
         </DataTemplate>
         <DataTemplate x:Key="txtSender">
-            <Grid Name="ctx" ContextMenu="{StaticResource textMenu}">
+            <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
                              TextWrapping="Wrap"
@@ -53,20 +53,21 @@
                 </StackPanel>
             </Grid>
         </DataTemplate>
-        <DataTemplate x:Key="imageSender">
-            <Grid Name="ctx">
-                <Image Source="{Binding Url}" 
-                       MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
-                       HorizontalAlignment="Right">
-                </Image>
-            </Grid>
-        </DataTemplate>
 
-        <DataTemplate x:Key="imageSenderLocal">
-            <Grid Name="ctx">
+        <DataTemplate x:Key="imageSender">
+            <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <Image Source="{Binding Source}" 
+                       Stretch="Uniform"
+                       Style="{StaticResource chatImageStyle}"
+                       MaxHeight="200"
                        MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
                        HorizontalAlignment="Right">
+                    <behaviors:Interaction.Triggers>
+                        <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                            <behaviors:InvokeCommandAction Command="{Binding LeftButtonClickCommandAsync}"
+                                                           ></behaviors:InvokeCommandAction>
+                        </behaviors:EventTrigger>
+                    </behaviors:Interaction.Triggers>
                 </Image>
             </Grid>
         </DataTemplate>
@@ -109,7 +110,7 @@
 
 
         <DataTemplate x:Key="txtReceiver">
-            <Grid Name="ctx" ContextMenu="{StaticResource textMenu}">
+            <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <StackPanel Orientation="Horizontal">
                     <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
                              Background="#555"
@@ -127,18 +128,19 @@
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="imageReceiver">
-            <Grid Name="ctx">
-                <Image Source="{Binding Url}" 
-                       MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
-                       HorizontalAlignment="Left">
-                </Image>
-            </Grid>
-        </DataTemplate>
-        <DataTemplate x:Key="imageReceiverLocal">
-            <Grid Name="ctx">
+            <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <Image Source="{Binding Source}" 
+                       Stretch="Uniform"
+                       Style="{StaticResource chatImageStyle}"
+                       MaxHeight="200"
                        MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
                        HorizontalAlignment="Left">
+                    <behaviors:Interaction.Triggers>
+                        <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                            <behaviors:InvokeCommandAction Command="{Binding LeftButtonClickCommandAsync}"
+                                                           ></behaviors:InvokeCommandAction>
+                        </behaviors:EventTrigger>
+                    </behaviors:Interaction.Triggers>
                 </Image>
             </Grid>
         </DataTemplate>

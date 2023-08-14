@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Google.Protobuf.WellKnownTypes;
 using SuperSocket;
 using ThreeL.Infra.Core.Metadata;
 using ThreeL.Infra.Redis;
@@ -19,14 +18,17 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
         private readonly IRedisProvider _redisProvider;
         private readonly IMessageHandlerService _messageHandlerService;
         private readonly SaveChatRecordService _saveChatRecordService;
+        private readonly IContextAPIGrpcService _contextAPIGrpcService;
         private readonly IMapper _mapper;
         public TextMessageHandler(ServerAppSessionManager<ChatSession> sessionManager,
                                   IMessageHandlerService messageHandlerService,
+                                  IContextAPIGrpcService contextAPIGrpcService,
                                   IMapper mapper,
                                   SaveChatRecordService saveChatRecordService,
                                   IRedisProvider redisProvider) : base(MessageType.Text)
         {
             _mapper = mapper;
+            _contextAPIGrpcService = contextAPIGrpcService;
             _redisProvider = redisProvider;
             _sessionManager = sessionManager;
             _messageHandlerService = messageHandlerService;
@@ -77,7 +79,8 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             body.Result = true;
             var request = _mapper.Map<ChatRecordPostRequest>(body);
             request.MessageRecordType = (int)MessageRecordType.Text;
-            await _saveChatRecordService.WriteRecordAsync(request);
+            //await _saveChatRecordService.WriteRecordAsync(request);
+            await _contextAPIGrpcService.PostChatRecordAsync(request);
             //分发给发送者和接收者
             var fromSessions = _sessionManager.TryGet(resp.Body.From);
             var toSessions = _sessionManager.TryGet(resp.Body.To);

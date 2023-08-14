@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 
 namespace ThreeL.Shared.Application.Middlewares
 {
@@ -27,7 +26,7 @@ namespace ThreeL.Shared.Application.Middlewares
                 }
                 else
                 {
-                    await context.ForbidAsync();
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 }
             }
             else

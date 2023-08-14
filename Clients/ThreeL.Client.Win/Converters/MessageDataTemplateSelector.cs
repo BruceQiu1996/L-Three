@@ -2,7 +2,6 @@
 using System.Windows.Controls;
 using ThreeL.Client.Win.ViewModels;
 using ThreeL.Client.Win.ViewModels.Messages;
-using ThreeL.Infra.Core.Metadata;
 
 namespace ThreeL.Client.Win.Converters
 {
@@ -21,12 +20,8 @@ namespace ThreeL.Client.Win.Converters
                     dt = fe.FindResource("txtSender") as DataTemplate;
                 else if (obj is TextMessageViewModel && !obj.FromSelf)
                     dt = fe.FindResource("txtReceiver") as DataTemplate;
-                else if (obj is ImageMessageViewModel && obj.FromSelf && (obj as ImageMessageViewModel).ImageType == ImageType.Local)
-                    dt = fe.FindResource("imageSenderLocal") as DataTemplate;
                 else if (obj is ImageMessageViewModel && obj.FromSelf)
                     dt = fe.FindResource("imageSender") as DataTemplate;
-                else if (obj is ImageMessageViewModel && !obj.FromSelf && (obj as ImageMessageViewModel).ImageType == ImageType.Local)
-                    dt = fe.FindResource("imageReceiverLocal") as DataTemplate;
                 else if (obj is ImageMessageViewModel && !obj.FromSelf)
                     dt = fe.FindResource("imageReceiver") as DataTemplate;
                 else if (obj is FileMessageViewModel && obj.FromSelf)

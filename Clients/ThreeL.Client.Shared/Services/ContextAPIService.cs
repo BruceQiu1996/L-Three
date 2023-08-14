@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Http.Handlers;
 using System.Net.Http.Headers;
@@ -90,7 +89,7 @@ namespace ThreeL.Client.Shared.Services
         }
 
         public async Task<T> UploadFileAsync<T>(string filename, byte[] bytes, string code, long receiver,
-                                                Action<object, HttpProgressEventArgs> progressCallBack, bool excuted = false)
+                                                Action<object, HttpProgressEventArgs> progressCallBack = null, bool excuted = false)
         {
             HttpClientHandler httpClientHandler = new HttpClientHandler();
             ProgressMessageHandler progressMessageHandler = new ProgressMessageHandler(httpClientHandler);
@@ -146,7 +145,7 @@ namespace ThreeL.Client.Shared.Services
             return default;
         }
 
-        public async Task<byte[]> DownloadFileAsync(string messageId, Action<object, HttpProgressEventArgs> progressCallBack, bool excuted = false)
+        public async Task<byte[]> DownloadFileAsync(string messageId, Action<object, HttpProgressEventArgs> progressCallBack = null, bool excuted = false)
         {
             HttpClientHandler httpClientHandler = new HttpClientHandler();
             ProgressMessageHandler progressMessageHandler = new ProgressMessageHandler(httpClientHandler);
@@ -193,6 +192,54 @@ namespace ThreeL.Client.Shared.Services
             return default;
         }
 
+        public async Task<byte[]> DownloadNetworkImageAsync(string fullPath,
+                Action<object, HttpProgressEventArgs> progressCallBack = null, bool excuted = false)
+        {
+            HttpClientHandler httpClientHandler = new HttpClientHandler();
+            ProgressMessageHandler progressMessageHandler = new ProgressMessageHandler(httpClientHandler);
+            if (progressCallBack != null)
+            {
+                progressMessageHandler.HttpReceiveProgress += (obj, e) => progressCallBack(obj, e);
+            }
+            using (var client = new HttpClient(progressMessageHandler))
+            {
+                BuildHttpClient(client, false);
+                if (!string.IsNullOrEmpty(_token))
+                {
+                    if (client.DefaultRequestHeaders.Contains("Authorization"))
+                    {
+                        client.DefaultRequestHeaders.Remove("Authorization");
+                    }
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_token}");
+                }
+
+                var resp = await client.GetAsync(fullPath);
+                if (resp.IsSuccessStatusCode)
+                {
+                    var steam = await resp.Content.ReadAsByteArrayAsync();
+                    return steam;
+                }
+                else if (resp.StatusCode == HttpStatusCode.Unauthorized && !excuted)
+                {
+                    var result = await TryRefreshTokenAsync?.Invoke();
+                    if (!result)
+                    {
+                        await ExcuteWhileUnauthorizedAsync?.Invoke();
+                        return default;
+                    }
+                    excuted = true;
+                    return await DownloadNetworkImageAsync(fullPath, progressCallBack, excuted);
+                }
+                else if (resp.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    var message = await resp.Content.ReadAsStringAsync();
+                    await ExcuteWhileBadRequestAsync?.Invoke(message);
+                }
+            }
+
+            return default;
+        }
+
         public async Task<T> RefreshTokenAsync<T>(dynamic body)
         {
             var content = new StringContent(JsonSerializer.Serialize(body, _jsonOptions));
@@ -210,9 +257,12 @@ namespace ThreeL.Client.Shared.Services
         public Func<Task> ExcuteWhileUnauthorizedAsync { get; set; } //401
         public Func<string, Task> ExcuteWhileBadRequestAsync { get; set; } //400
 
-        private void BuildHttpClient(HttpClient httpClient)
+        private void BuildHttpClient(HttpClient httpClient, bool api = true)
         {
-            httpClient.BaseAddress = new Uri($"http://{_contextAPIOptions.Host}:{_contextAPIOptions.Port}/api/");
+            if (api)
+            {
+                httpClient.BaseAddress = new Uri($"http://{_contextAPIOptions.Host}:{_contextAPIOptions.Port}/api/");
+            }
             httpClient.Timeout = TimeSpan.FromSeconds(600); //Test
             httpClient.DefaultRequestVersion = HttpVersion.Version10;
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

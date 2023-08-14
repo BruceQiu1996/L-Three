@@ -81,7 +81,6 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 var fileinfo = await _contextAPIGrpcService.FetchFileInfoAsync(new FileInfoRequest() 
                 { 
                     Id = packet.Body.FileId,
-                    NeedContent = true,
                 });
 
                 if (fileinfo == null || !fileinfo.Result)
@@ -95,13 +94,13 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
                 body.FileId = fileinfo.Id;
                 body.FileName = fileinfo.Name;
-                body.FileBase64 = fileinfo.Content;
             }
             _mapper.Map(packet.Body, body);
             body.Result = true;
             var request = _mapper.Map<ChatRecordPostRequest>(body);
             request.MessageRecordType = (int)MessageRecordType.Image;
-            await _saveChatRecordService.WriteRecordAsync(request);
+            //await _saveChatRecordService.WriteRecordAsync(request);
+            await _contextAPIGrpcService.PostChatRecordAsync(request);
             //分发给发送者和接收者
             var fromSessions = _sessionManager.TryGet(resp.Body.From);
             var toSessions = _sessionManager.TryGet(resp.Body.To);

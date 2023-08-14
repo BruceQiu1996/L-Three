@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Amazon.Runtime.Internal;
+using AutoMapper;
 using Grpc.Core;
 using ThreeL.ContextAPI.Application.Contract.Protos;
 using ThreeL.ContextAPI.Domain.Aggregates.File;
@@ -48,27 +49,13 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             if (record == null || record.CreateBy != userid)
                 return new FileInfoResponse() { Result = false };
 
-            var content = string.Empty;
-            if (request.NeedContent)
-            {
-                if (File.Exists(record.Location))
-                {
-                    content = await FileExtension.FileToBase64StringAsync(record.Location);
-                }
-                else
-                {
-                    return new FileInfoResponse() { Result = false };
-                }
-            }
-
             return new FileInfoResponse()
             {
                 Id = record.Id,
                 Name = record.FileName,
                 Size = record.Size,
                 RemoteLocation = record.Location,
-                Result = true,
-                Content = content,
+                Result = true
             };
         }
 
@@ -84,6 +71,16 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
 
             await _adoExecuterRepository.ExecuteAsync("INSERT INTO ChatRecord([FROM],[TO],MESSAGEID,MESSAGE,MessageRecordType,ImageType,SendTime,FileId)" +
                 "VALUES(@From,@To,@MessageId,@Message,@MessageRecordType,@ImageType,@SendTime,@FileId)", requests);
+
+            return new ChatRecordPostResponse();
+        }
+
+        public async override Task<ChatRecordPostResponse> PostChatRecordSingle(ChatRecordPostRequest request, ServerCallContext context)
+        {
+            var record = _mapper.Map<ChatRecord>(request);
+            if (record.FileId == 0) record.FileId = null;
+            await _adoExecuterRepository.ExecuteAsync("INSERT INTO ChatRecord([FROM],[TO],MESSAGEID,MESSAGE,MessageRecordType,ImageType,SendTime,FileId)" +
+                "VALUES(@From,@To,@MessageId,@Message,@MessageRecordType,@ImageType,@SendTime,@FileId)", record);
 
             return new ChatRecordPostResponse();
         }

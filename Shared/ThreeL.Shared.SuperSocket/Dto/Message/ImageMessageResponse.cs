@@ -18,7 +18,5 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
         public long To { get; set; }
         [ProtoMember(11)]
         public string FileName { get; set; }
-        [ProtoMember(12)]
-        public string FileBase64 { get; set; }
     }
 }

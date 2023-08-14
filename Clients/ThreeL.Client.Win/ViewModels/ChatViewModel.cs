@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Handlers;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
@@ -17,6 +18,7 @@ using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Shared.Utils;
+using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.MyControls;
 using ThreeL.Client.Win.ViewModels.Messages;
@@ -82,9 +84,11 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly PacketWaiter _packetWaiter;
         private readonly SequenceIncrementer _sequenceIncrementer;
         private readonly TcpSuperSocketClient _tcpSuperSocketClient;
+        private readonly SaveChatRecordService _saveChatRecordService;
 
         public ChatViewModel(ContextAPIService contextAPIService,
                              ClientSqliteContext clientSqliteContext,
+                             SaveChatRecordService saveChatRecordService,
                              GrowlHelper growlHelper,
                              FileHelper fileHelper,
                              PacketWaiter packetWaiter,
@@ -94,6 +98,7 @@ namespace ThreeL.Client.Win.ViewModels
         {
             _contextAPIService = contextAPIService;
             _clientSqliteContext = clientSqliteContext;
+            _saveChatRecordService = saveChatRecordService;
             _growlHelper = growlHelper;
             _packetWaiter = packetWaiter;
             _fileHelper = fileHelper;
@@ -229,25 +234,59 @@ namespace ThreeL.Client.Win.ViewModels
                     {
                         record.Message = imageMessage.ResourceLocalLocation;
                     }
-
-                    //向远程服务器发起请求
-                    var bytes = await _contextAPIService.DownloadFileAsync(record.MessageId, null);
-                    if (bytes == null)
-                    {
-                        //TODO给一个未知图片的信息或者过期的默认图片
-                        continue;
-                    }
-
-                    var path = await _fileHelper.AutoSaveImageByBytesAsync(bytes, record.FileName);
-                    if (string.IsNullOrEmpty(path))
-                    {
-                        //TODO给一个未知图片的信息或者过期的默认图片
-                        continue;
-                    }
                     else
                     {
-                        record.Message = path;
+                        //向远程服务器发起请求
+                        var bytes = await _contextAPIService.DownloadFileAsync(record.MessageId, null);
+                        if (bytes == null)
+                        {
+                            //TODO给一个未知图片的信息或者过期的默认图片
+                            continue;
+                        }
+
+                        var path = await _fileHelper.AutoSaveImageByBytesAsync(bytes, record.FileName);
+                        if (string.IsNullOrEmpty(path))
+                        {
+                            //TODO给一个未知图片的信息或者过期的默认图片
+                            continue;
+                        }
+                        else
+                        {
+                            if (imageMessage == null)
+                            {
+                                await _saveChatRecordService.WriteRecordAsync(new ChatRecord
+                                {
+                                    From = record.From,
+                                    To = record.To,
+                                    MessageId = record.MessageId,
+                                    Message = record.FileName,
+                                    ResourceLocalLocation = path,
+                                    MessageRecordType = MessageRecordType.Image,
+                                    ImageType = ImageType.Local,
+                                    SendTime = record.SendTime,
+                                    FileId = record.FileId
+                                });
+                            }
+                            else
+                            {
+                                await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection,
+                                           "UPDATE ChatRecord SET ResourceLocalLocation = @Location WHERE MessageId = @Id",
+                                           new { Id = record.MessageId, Location = path });
+                            }
+
+                            record.Message = path;
+                        }
                     }
+                }
+            }
+
+            var netImageRecords = resp.Records.Where(x => x.MessageRecordType == MessageRecordType.Image
+                && x.ImageType == ImageType.Network);
+            if (netImageRecords != null && netImageRecords.Count() > 0)
+            {
+                foreach (var record in netImageRecords)
+                {
+                    record.Bytes = await _contextAPIService.DownloadNetworkImageAsync(record.Message);
                 }
             }
 
@@ -371,9 +410,11 @@ namespace ThreeL.Client.Win.ViewModels
                             resp.FileId = fileResp.FileId;
                         }
 
+                        IPacket packet = null;
+                        MessageViewModel message = null;
                         if (IsRealImage(path))
                         {
-                            var packet = new Packet<ImageMessage>()
+                            packet = new Packet<ImageMessage>()
                             {
                                 Sequence = _sequenceIncrementer.GetNextSequence(),
                                 MessageType = MessageType.Image,
@@ -387,27 +428,44 @@ namespace ThreeL.Client.Win.ViewModels
                                     FileName = fileInfo.Name
                                 }
                             };
-
-                            var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
-                            if (!sendResult) _growlHelper.Warning("发送消息失败，请稍后再试");
                         }
                         else //其他文件
                         {
-                            var packet = new Packet<FileMessage>()
+                            var fileMessage = new FileMessage
+                            {
+                                SendTime = DateTime.Now,
+                                From = App.UserProfile.UserId,
+                                To = FriendViewModel.Id,
+                                FileId = resp.FileId
+                            };
+
+                            packet = new Packet<FileMessage>()
                             {
                                 Sequence = _sequenceIncrementer.GetNextSequence(),
                                 MessageType = MessageType.File,
-                                Body = new FileMessage
-                                {
-                                    SendTime = DateTime.Now,
-                                    From = App.UserProfile.UserId,
-                                    To = FriendViewModel.Id,
-                                    FileId = resp.FileId
-                                }
+                                Body = fileMessage
                             };
 
-                            var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
-                            if (!sendResult) _growlHelper.Warning("发送消息失败，请稍后再试");
+                            message = new FileMessageViewModel(fileInfo.Name)
+                            {
+                                FromSelf = App.UserProfile.UserId == fileMessage.From,
+                                FileSize = fileInfo.Length,
+                                SendTime = fileMessage.SendTime,
+                                MessageId = fileMessage.MessageId,
+                                From = fileMessage.From,
+                                Location = fileInfo.FullName,
+                                To = fileMessage.To,
+                                Sending = true
+                            };
+                        }
+
+                        //发消息
+                        var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+                        message.Sending = false;
+                        if (!sendResult)
+                        {
+                            message.Sending = false;
+                            message.SendSuccess = false;
                         }
                     }
                     catch (Exception ex)

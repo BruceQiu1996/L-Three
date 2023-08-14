@@ -1,4 +1,8 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.Input;
+using HandyControl.Controls;
+using System;
+using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
@@ -9,8 +13,8 @@ namespace ThreeL.Client.Win.ViewModels.Messages
     public class ImageMessageViewModel : MessageViewModel
     {
         public ImageType ImageType { get; set; }
-        public string Url { get; set; }
-        public BitmapImage Source { get; set; }
+        public BitmapSource Source { get; set; }
+        public string Location { get; set; }
         public long FileId { get; set; }
 
         public override string GetShortDesc()
@@ -27,7 +31,8 @@ namespace ThreeL.Client.Win.ViewModels.Messages
 
         public ImageMessageViewModel()
         {
-
+            CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
+            LeftButtonClickCommandAsync = new AsyncRelayCommand(LeftButtonClickAsync);
         }
 
         public override void FromDto(ChatRecordResponseDto chatRecord)
@@ -36,16 +41,32 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             ImageType = chatRecord.ImageType;
             if (ImageType == ImageType.Network)
             {
-                Url = chatRecord.Message;
+                var source = new BitmapImage();
+                try
+                {
+                    using (MemoryStream ms = new MemoryStream(chatRecord.Bytes))
+                    {
+                        source.BeginInit();
+                        source.StreamSource = ms;
+                        source.CacheOption = BitmapCacheOption.OnLoad;
+                        source.EndInit();
+
+                        Source = source;
+                    }
+                }
+                finally 
+                {
+                    source.Freeze();
+                }
             }
             else
             {
                 var source = new BitmapImage();
                 try
                 {
-                    string imgUrl = chatRecord.Message;
+                    Location = chatRecord.Message;
                     source.BeginInit();
-                    source.UriSource = new Uri(imgUrl, UriKind.RelativeOrAbsolute);
+                    source.UriSource = new Uri(Location, UriKind.RelativeOrAbsolute);
                     source.EndInit();
 
                     Source = source;
@@ -55,6 +76,25 @@ namespace ThreeL.Client.Win.ViewModels.Messages
                     source.Freeze();
                 }
             }
+        }
+
+        private Task LeftButtonClickAsync()
+        {
+            if (string.IsNullOrEmpty(Location) || !File.Exists(Location))
+            {
+                return Task.CompletedTask;
+            }
+            var imageBrowser = new ImageBrowser(new Uri(Location, UriKind.RelativeOrAbsolute));
+            imageBrowser.ResizeMode = System.Windows.ResizeMode.CanResize;
+            imageBrowser.Show();
+            return Task.CompletedTask;
+        }
+
+        private Task CopyAsync()
+        {
+            SetFileDrop(Location);
+
+            return Task.CompletedTask;
         }
     }
 }
