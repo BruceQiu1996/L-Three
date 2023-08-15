@@ -56,6 +56,7 @@ namespace ThreeL.Client.Win.ViewModels
                 });
 
             Messages?.Add(message);
+            message.SendTimeText = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(message.SendTime);
             LastMessage = message;
             LastMessageShortDesc = message.GetShortDesc();
         }

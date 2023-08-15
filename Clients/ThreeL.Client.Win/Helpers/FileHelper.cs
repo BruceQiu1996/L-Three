@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.Helpers
 {
@@ -15,18 +16,27 @@ namespace ThreeL.Client.Win.Helpers
             _logger = logger;
         }
 
-        public async Task<string> AutoSaveImageByBytesAsync(byte[] bytes, string fileName)
+        public async Task<string> AutoSaveFileByBytesAsync(byte[] bytes, string fileName, MessageType message)
         {
             try
             {
-                var folder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                var location = Path.Combine(folder, "ThreeL/images", DateTime.Now.ToString("yyyy-MM"));
+                var folder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);//TODO根据设置，获取用户选择的文件存放目录
+                var location = string.Empty;
+                if (message == MessageType.Text)
+                {
+                    location = Path.Combine(folder, "ThreeL/images", DateTime.Now.ToString("yyyy-MM"));
+                }
+                else if (message == MessageType.File)
+                {
+                    location = Path.Combine(folder, "ThreeL/files", DateTime.Now.ToString("yyyy-MM"));
+                }
+
                 if (!Directory.Exists(location))
                 {
                     Directory.CreateDirectory(location);
                 }
 
-                var fileLocation = Path.Combine(location, $"{Guid.NewGuid()}{Path.GetExtension(fileName)}");
+                var fileLocation = Path.Combine(location, $"{Guid.NewGuid()}{Path.GetExtension(fileName)}");//TODO名字+1
                 await File.WriteAllBytesAsync(fileLocation, bytes);
 
                 return fileLocation;

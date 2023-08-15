@@ -103,7 +103,7 @@ namespace ThreeL.Client.Win.Handlers
 
                     if (image.ImageType == ImageType.Local)
                     {
-                        imageLocation = await _fileHelper.AutoSaveImageByBytesAsync(bytes, packet.Body.FileName);
+                        imageLocation = await _fileHelper.AutoSaveFileByBytesAsync(bytes, packet.Body.FileName, MessageType.Image);
                         if (string.IsNullOrEmpty(imageLocation))
                         {
                             _growlHelper.Warning("接收图片出现异常");

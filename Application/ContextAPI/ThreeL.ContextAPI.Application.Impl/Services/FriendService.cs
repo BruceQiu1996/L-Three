@@ -64,7 +64,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
         public async Task<FriendChatRecordResponseDto> FetchChatRecordsWithFriendAsync(long userId, long friendId, DateTime dateTime)
         {
             var records = await _adoQuerierRepository
-                .QueryAsync<ChatRecordResponseDto>("SELECT MessageId,Message,MessageRecordType,ImageType,SendTime,[From],[To],FileId,f.FileName,f.Size FROM (SELECT TOP 50 * FROM ChatRecord " +
+                .QueryAsync<ChatRecordResponseDto>("SELECT MessageId,Message,MessageRecordType,ImageType,SendTime,[From],[To],FileId,f.FileName,f.Size FROM (SELECT TOP 30 * FROM ChatRecord " +
                 "WHERE ChatRecord.SendTime < @Time AND ([FROM] = @UserId AND [To] = @FriendId) OR ([FROM] = @FriendId AND [To] = @UserId) ORDER BY SendTime DESC) t LEFT JOIN [File] f ON t.FileId = f.id",
                 new
                 {

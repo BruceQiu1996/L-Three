@@ -2,6 +2,9 @@
 using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Collections.Specialized;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
 
@@ -27,9 +30,13 @@ namespace ThreeL.Client.Win.ViewModels
             get => _sending;
             set => SetProperty(ref _sending, value);
         }
+        public string SendTimeText { get; set; }
+        public bool CanCopy { get; protected set; } = true;
+        public bool CanOpenLocation { get; protected set; } = true;
         public AsyncRelayCommand CopyCommandAsync { get; set; }
         public AsyncRelayCommand WithDrawCommandAsync { get; set; }
         public AsyncRelayCommand LeftButtonClickCommandAsync { get; set; }
+        public AsyncRelayCommand OpenLocationCommandAsync { get; set; }
 
         public MessageViewModel()
         {
@@ -65,6 +72,12 @@ namespace ThreeL.Client.Win.ViewModels
                 strcoll.Add(file);
             }
             Clipboard.SetFileDropList(strcoll);
+        }
+
+        protected void ExplorerFile(string filePath)
+        {
+            FileInfo fileInfo = new FileInfo(filePath);
+            Process.Start("Explorer", "/select," + fileInfo.Directory.FullName + "\\" + fileInfo.Name);
         }
     }
 }

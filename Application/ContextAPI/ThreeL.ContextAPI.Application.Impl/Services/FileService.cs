@@ -29,8 +29,17 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var record =
                 await _adoQuerierRepository.QueryFirstOrDefaultAsync<FileRecord>("SELECT TOP 1 * FROM [FILE] WHERE CODE = @Code AND CREATEBY = @UserId",
                 new { Code = code, UserId = userId });
-            resp.Exist = record != null;
-            resp.FileId = record == null ? 0 : record.Id;
+
+            if (record != null && File.Exists(record.Location)) //云存储则需要用其他判断文件存在的方式,一般是接口调用
+            {
+                resp.Exist = true;
+                resp.FileId = record.Id;
+                //滑动更新文件的创建时间
+                await _adoExecuterRepository.ExecuteAsync("UPDATE [FILE] SET CreateTime = GETDATE() WHERE Id = @Id", new { record.Id });
+            }
+
+            resp.Exist = false;
+            resp.FileId = 0;
 
             return resp;
         }
@@ -41,12 +50,12 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                await _adoQuerierRepository.QueryFirstOrDefaultAsync<dynamic>("SELECT * FROM ChatRecord INNER JOIN [File] ON [File].id = ChatRecord.FileId WHERE MessageId = @MessageId",
                new { MessageId = messageId });
 
-            if(record == null || (record.From != userId && record.To != userId)) 
+            if (record == null || (record.From != userId && record.To != userId))
             {
                 throw new Exception("下载文件错误");
             }
 
-            if (!File.Exists(record.Location)) 
+            if (!File.Exists(record.Location))
             {
                 throw new Exception("文件不存在");
             }

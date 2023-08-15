@@ -13,9 +13,19 @@
       d:DesignHeight="450" d:DesignWidth="800"
       Title="Friend">
     <Page.Resources>
-        <ContextMenu x:Key="commonMenu" Width="100">
-            <MenuItem Header="复制" hc:IconElement.Width="0" Command="{Binding CopyCommandAsync}"></MenuItem>
-            <MenuItem Header="撤回" hc:IconElement.Width="0" Command="{Binding WithDrawCommandAsync}"></MenuItem>
+        <ContextMenu x:Key="commonMenu" Width="150">
+            <MenuItem Header="复制" 
+                      Height="30"
+                      Padding="5"
+                      Visibility="{Binding CanCopy,Converter={StaticResource Boolean2VisibilityConverter}}" hc:IconElement.Width="0" Command="{Binding CopyCommandAsync}"></MenuItem>
+            <MenuItem Header="撤回" 
+                      Height="30"
+                      Padding="5"
+                      hc:IconElement.Width="0" Command="{Binding CopyCommandAsync}"></MenuItem>
+            <MenuItem Header="打开文件位置" 
+                      Padding="5"
+                      Height="30"
+                      Visibility="{Binding CanOpenLocation,Converter={StaticResource Boolean2VisibilityConverter}}" hc:IconElement.Width="0" Command="{Binding OpenLocationCommandAsync}"></MenuItem>
         </ContextMenu>
         <Style TargetType="{x:Type Image}" x:Key="chatImageStyle">
             <Setter Property="Height" Value="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelHeight)}" />
@@ -89,7 +99,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="fileSender">
-            <Grid Name="ctx">
+            <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Label Height="30" Width="40" 
                            HorizontalAlignment="Right"
@@ -173,7 +183,7 @@
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="fileReceiver">
-            <Grid Name="ctx">
+            <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
                         HorizontalAlignment="Left"
                         Cursor="Hand"
@@ -228,7 +238,7 @@
     </behaviors:Interaction.Triggers>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="180"></ColumnDefinition>
+            <ColumnDefinition Width="220"></ColumnDefinition>
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
@@ -298,6 +308,12 @@
                                                            FontSize="13" Foreground="#aaa"
                                                            VerticalAlignment="Center" Margin="2 0 0 2"
                                                            Text="{Binding LastMessageShortDesc}"></TextBlock>
+                                                
+                                                <TextBlock Grid.Column="1" Grid.Row="0"
+                                                           FontSize="13" Foreground="#aaa"
+                                                           HorizontalAlignment="Right"
+                                                           VerticalAlignment="Center" Margin="2 5 8 0"
+                                                           Text="{Binding LastMessage.SendTimeText}"></TextBlock>
                                             </Grid>
                                         </Border>
                                     </ControlTemplate>
@@ -322,14 +338,19 @@
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
                     <Border Background="{DynamicResource PrimaryBrush}" 
                             Height="44" Width="44" CornerRadius="22"
+                            Margin="10 0  0 0"
                             VerticalAlignment="Center">
                         <TextBlock Text="{Binding UserProfile.ShowName}" 
                                    VerticalAlignment="Center" FontSize="30" HorizontalAlignment="Center"  Foreground="White"></TextBlock>
                     </Border>
-                    <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="10 0" VerticalAlignment="Center" Cursor="Hand">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="10 0 0 0" VerticalAlignment="Center" Cursor="Hand">
                         <TextBlock Text="{Binding UserProfile.UserName}" FontSize="16" HorizontalAlignment="Left"  Foreground="#aaa"/>
                         <TextBlock Text="{Binding UserProfile.Role}" FontSize="12" HorizontalAlignment="Left"  Foreground="#aaa"/>
                     </StackPanel>
+                    <Label Height="40" Background="Transparent" Cursor="Hand" Margin="20 0 0 0" BorderThickness="0" VerticalAlignment="Center"
+                           HorizontalAlignment="Right" ToolTip="好友管理">
+                        <Path Data="{StaticResource friend}" Stretch="Uniform" Fill="#aaa"></Path>
+                    </Label>
                     <Label Height="40" Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center"
                            HorizontalAlignment="Right" ToolTip="设置">
                         <Path Data="{StaticResource setting}" Stretch="Uniform" Fill="#aaa"></Path>

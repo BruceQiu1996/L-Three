@@ -268,7 +268,7 @@ namespace ThreeL.Client.Win.ViewModels
                             continue;
                         }
 
-                        var path = await _fileHelper.AutoSaveImageByBytesAsync(bytes, record.FileName);
+                        var path = await _fileHelper.AutoSaveFileByBytesAsync(bytes, record.FileName,MessageType.Image);
                         if (string.IsNullOrEmpty(path))
                         {
                             //TODO给一个未知图片的信息或者过期的默认图片

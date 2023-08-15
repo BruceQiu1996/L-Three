@@ -13,7 +13,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
 
         public override string GetShortDesc()
         {
-            if (MeasureTextWidth(Text, 13, "微软雅黑") <= 105)
+            if (MeasureTextWidth(Text, 13, "微软雅黑") <= 135)
                 return Text;
 
             string temp = Text.Substring(0, 6);
@@ -21,7 +21,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             {
                 string str = Text.Substring(0, index);
                 var len = MeasureTextWidth(str, 13, "微软雅黑");
-                if (len > 105)
+                if (len > 135)
                     break;
 
                 temp = str;
@@ -45,6 +45,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
 
         public TextMessageViewModel()
         {
+            CanOpenLocation = false;
             CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
         }
 

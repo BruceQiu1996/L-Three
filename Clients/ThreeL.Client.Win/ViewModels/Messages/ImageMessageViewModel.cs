@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using HandyControl.Controls;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -33,6 +32,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
         {
             CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
             LeftButtonClickCommandAsync = new AsyncRelayCommand(LeftButtonClickAsync);
+            OpenLocationCommandAsync = new AsyncRelayCommand(OpenLocationAsync);
         }
 
         public override void FromDto(ChatRecordResponseDto chatRecord)
@@ -93,6 +93,13 @@ namespace ThreeL.Client.Win.ViewModels.Messages
         private Task CopyAsync()
         {
             SetFileDrop(Location);
+
+            return Task.CompletedTask;
+        }
+
+        private Task OpenLocationAsync() 
+        {
+            ExplorerFile(Location);
 
             return Task.CompletedTask;
         }

@@ -88,7 +88,7 @@ internal class Program
 
         builder.WebHost.UseKestrel((context, options) =>
         {
-            options.Limits.MaxRequestBodySize = context.Configuration.GetSection("FileStorage:MaxSize")!.Get<long>(); //最大50M上传
+            options.Limits.MaxRequestBodySize = context.Configuration.GetSection("FileStorage:MaxSize")!.Get<long>() + 10 * 1024 * 1024; //最大60M上传
             options.Listen(IPAddress.Any, context.Configuration.GetSection("Ports:API")!.Get<int>(), listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
