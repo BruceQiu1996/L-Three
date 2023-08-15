@@ -14,14 +14,7 @@ namespace ThreeL.Client.Win.Converters
             DataTemplate dt = null;
             if (obj != null && fe != null)
             {
-                if (obj.ImageType == ImageType.Network)
-                {
-                    dt = fe.FindResource("network") as DataTemplate;
-                }
-                else 
-                {
-                    dt = fe.FindResource("local") as DataTemplate;
-                }    
+                dt = fe.FindResource("network") as DataTemplate;
             }
 
             return dt;

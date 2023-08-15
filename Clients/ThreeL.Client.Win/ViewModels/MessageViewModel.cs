@@ -1,18 +1,22 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
+using ThreeL.Client.Win.Helpers;
+using ThreeL.Shared.SuperSocket.Dto.Message;
 
 namespace ThreeL.Client.Win.ViewModels
 {
     public class MessageViewModel : ObservableObject
     {
-        public string MessageId { get; set; }
+        public string MessageId { get; set; } = Guid.NewGuid().ToString();
         public DateTime SendTime { get; set; }
         public bool FromSelf { get; set; }
         public long From { get; set; }
@@ -37,12 +41,19 @@ namespace ThreeL.Client.Win.ViewModels
         public AsyncRelayCommand WithDrawCommandAsync { get; set; }
         public AsyncRelayCommand LeftButtonClickCommandAsync { get; set; }
         public AsyncRelayCommand OpenLocationCommandAsync { get; set; }
+        public AsyncRelayCommand ReSendWhenFaildCommandAsync { get; set; }
+        public AsyncRelayCommand WithdrawCommandAsync { get; set; }
 
         public MessageViewModel()
         {
-
+            ReSendWhenFaildCommandAsync = new AsyncRelayCommand(ReSendWhenFaildAsync);
+            WithdrawCommandAsync = new AsyncRelayCommand(WithdrawAsync);
         }
 
+        /// <summary>
+        /// 从Dto转为vm
+        /// </summary>
+        /// <param name="chatRecord"></param>
         public virtual void FromDto(ChatRecordResponseDto chatRecord)
         {
             MessageId = chatRecord.MessageId;
@@ -52,9 +63,49 @@ namespace ThreeL.Client.Win.ViewModels
             FromSelf = App.UserProfile == null ? true : App.UserProfile.UserId == From ? true : false;
         }
 
+        /// <summary>
+        /// 从vm转为message
+        /// </summary>
+        /// <param name="fromToMessage"></param>
+        public virtual void ToMessage(FromToMessage fromToMessage)
+        {
+            fromToMessage.MessageId = MessageId;
+            fromToMessage.From = From;
+            fromToMessage.To = To;
+            fromToMessage.SendTime = SendTime;
+        }
+
         public virtual string GetShortDesc()
         {
             return "[消息]";
+        }
+
+        public virtual Task ReSendWhenFaildAsync()
+        {
+            //发送中或者发送成功的消息无法重试
+            if (Sending || SendSuccess)
+            { return Task.CompletedTask; }
+
+            WeakReferenceMessenger.Default.Send(this, "message-resend");
+
+            return Task.CompletedTask;
+        }
+
+        public virtual Task WithdrawAsync()
+        {
+            //发送中或者发送失败的消息无法撤回
+            if (Sending || !SendSuccess)
+            { return Task.CompletedTask; }
+
+            if (SendTime.AddMinutes(2) < DateTime.Now)
+            {
+                App.ServiceProvider.GetRequiredService<GrowlHelper>().Warning("超过两分钟的消息无法撤回");
+                return Task.CompletedTask;
+            }
+
+            WeakReferenceMessenger.Default.Send(this, "message-withdraw");
+
+            return Task.CompletedTask;
         }
 
         protected void SetFileDrop(string filePath)

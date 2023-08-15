@@ -76,7 +76,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                     return;
                 }
             }
-            if (packet.Body.ImageType == 1) //本地图片文件
+            if (packet.Body.ImageType == ImageType.Local) //本地图片文件
             {
                 var fileinfo = await _contextAPIGrpcService.FetchFileInfoAsync(new FileInfoRequest() 
                 { 

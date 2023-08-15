@@ -1,8 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Dapper;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Database;
@@ -12,6 +14,8 @@ using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Infra.Core.Metadata;
+using ThreeL.Shared.SuperSocket.Dto;
+using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.ViewModels.Messages
@@ -174,6 +178,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             }
         }
 
+        
         public override void FromDto(ChatRecordResponseDto chatRecord)
         {
             base.FromDto(chatRecord);
@@ -181,6 +186,14 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             FileSize = chatRecord.Size;
             FileId = chatRecord.FileId == null ? 0 : chatRecord.FileId.Value;
             Source = GenerateIconByFileType();
+        }
+
+
+        public override void ToMessage(FromToMessage fromToMessage)
+        {
+            base.ToMessage(fromToMessage);
+            var message = fromToMessage as FileMessage;
+            message.FileId = FileId;
         }
 
         private BitmapImage GenerateIconByFileType()

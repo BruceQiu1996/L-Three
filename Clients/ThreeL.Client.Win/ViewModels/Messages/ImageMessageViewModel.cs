@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Infra.Core.Metadata;
+using ThreeL.Shared.SuperSocket.Dto.Message;
 
 namespace ThreeL.Client.Win.ViewModels.Messages
 {
@@ -15,6 +16,8 @@ namespace ThreeL.Client.Win.ViewModels.Messages
         public BitmapSource Source { get; set; }
         public string Location { get; set; }
         public long FileId { get; set; }
+        public string FileName { get; set; }
+        public string RemoteUrl { get; set; }
 
         public override string GetShortDesc()
         {
@@ -61,6 +64,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             }
             else
             {
+                FileName = chatRecord.FileName;
                 var source = new BitmapImage();
                 try
                 {
@@ -76,6 +80,16 @@ namespace ThreeL.Client.Win.ViewModels.Messages
                     source.Freeze();
                 }
             }
+        }
+
+        public override void ToMessage(FromToMessage fromToMessage)
+        {
+            base.ToMessage(fromToMessage);
+            var message = fromToMessage as ImageMessage;
+            message.ImageType = ImageType;
+            message.FileName = FileName;
+            message.FileId = FileId;
+            message.RemoteUrl = RemoteUrl;
         }
 
         private Task LeftButtonClickAsync()

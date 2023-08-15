@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using SuperSocket;
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -85,6 +84,7 @@ namespace ThreeL.Client.Win.Handlers
                     MessageId = packet.Body.MessageId,
                     From = packet.Body.From,
                     To = packet.Body.To,
+                    RemoteUrl = packet.Body.RemoteUrl,
                 };
 
                 string imageLocation = _messageFileLocationMapper.Pop(packet.Body.MessageId);
@@ -111,6 +111,7 @@ namespace ThreeL.Client.Win.Handlers
                         }
                     }
 
+                    image.Location = imageLocation;
                     image.Source = _fileHelper.ByteArrayToBitmapImage(bytes);
                 }
 

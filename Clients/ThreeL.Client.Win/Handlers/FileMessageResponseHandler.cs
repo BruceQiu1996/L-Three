@@ -59,6 +59,7 @@ namespace ThreeL.Client.Win.Handlers
                     To = packet.Body.To,
                 }, "message-send-faild");
                 _growlHelper.Warning(packet.Body.Message);
+
                 return;
             }
             FriendViewModel friend = null;

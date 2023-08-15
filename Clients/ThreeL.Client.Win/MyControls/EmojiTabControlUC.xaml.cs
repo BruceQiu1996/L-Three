@@ -104,7 +104,6 @@ namespace ThreeL.Client.Win.MyControls
                             GroupName = group.GroupName,
                             EmojiEntities = group.Emojis.Select(x => new EmojiEntity()
                             {
-                                ImageType = ImageType.Network,
                                 Url = $"http://{x}"
                             }).ToList()
                         });

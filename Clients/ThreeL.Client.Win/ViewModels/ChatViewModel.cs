@@ -106,8 +106,8 @@ namespace ThreeL.Client.Win.ViewModels
             _udpSuperSocketClient = udpSuperSocketClient;
             LoadCommandAsync = new AsyncRelayCommand(LoadAsync);
             SelectFriendCommandAsync = new AsyncRelayCommand(SelectFriendAsync);
-            SendMessageCommandAsync = new AsyncRelayCommand(SendMessageAsync);
-            AddEmojiCommandAsync = new AsyncRelayCommand<SelectEmojiClickRoutedEventArgs>(AddEmojiAsync);
+            SendMessageCommandAsync = new AsyncRelayCommand(SendTextMessageAsync);
+            AddEmojiCommandAsync = new AsyncRelayCommand<SelectEmojiClickRoutedEventArgs>(SendEmojiAsync);
             OpenEmojiCommand = new RelayCommand(OpenEmoji);
             ChooseFileSendCommandAsync = new AsyncRelayCommand(ChooseFileSendAsync);
             _sequenceIncrementer = sequenceIncrementer;
@@ -268,7 +268,7 @@ namespace ThreeL.Client.Win.ViewModels
                             continue;
                         }
 
-                        var path = await _fileHelper.AutoSaveFileByBytesAsync(bytes, record.FileName,MessageType.Image);
+                        var path = await _fileHelper.AutoSaveFileByBytesAsync(bytes, record.FileName, MessageType.Image);
                         if (string.IsNullOrEmpty(path))
                         {
                             //TODO给一个未知图片的信息或者过期的默认图片
@@ -346,7 +346,7 @@ namespace ThreeL.Client.Win.ViewModels
         /// 发送文本消息
         /// </summary>
         /// <returns></returns>
-        private async Task SendMessageAsync()
+        private async Task SendTextMessageAsync()
         {
             var tempFriend = FriendViewModel;
             if (string.IsNullOrEmpty(TextMessage))
@@ -358,31 +358,31 @@ namespace ThreeL.Client.Win.ViewModels
                 return;
             }
 
-            var packet = new Packet<TextMessage>()
-            {
-                Sequence = _sequenceIncrementer.GetNextSequence(),
-                MessageType = MessageType.Text,
-                Body = new TextMessage
-                {
-                    SendTime = DateTime.Now,
-                    From = App.UserProfile.UserId,
-                    To = tempFriend.Id,
-                    Text = textMessage
-                }
-            };
-
             var viewModel = new TextMessageViewModel()
             {
-                FromSelf = App.UserProfile.UserId == packet.Body.From,
-                Text = packet.Body.Text,
-                SendTime = packet.Body.SendTime,
-                MessageId = packet.Body.MessageId,
-                From = packet.Body.From,
-                To = packet.Body.To,
+                FromSelf = true,
+                Text = textMessage,
+                SendTime = DateTime.Now,
+                From = App.UserProfile.UserId,
+                To = tempFriend.Id,
                 Sending = true,
             };
 
             tempFriend.AddMessage(viewModel);
+            await SendTextMessageByVm(viewModel);
+        }
+
+        private async Task SendTextMessageByVm(TextMessageViewModel viewModel)
+        {
+            var body = new TextMessage();
+            viewModel.ToMessage(body);
+            var packet = new Packet<TextMessage>()
+            {
+                Sequence = _sequenceIncrementer.GetNextSequence(),
+                MessageType = MessageType.Text,
+                Body = body
+            };
+
             var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
             if (!sendResult)
             {
@@ -399,37 +399,39 @@ namespace ThreeL.Client.Win.ViewModels
         /// </summary>
         /// <param name="routedEventArgs">选择的表情</param>
         /// <returns></returns>
-        private async Task AddEmojiAsync(SelectEmojiClickRoutedEventArgs routedEventArgs)
+        private async Task SendEmojiAsync(SelectEmojiClickRoutedEventArgs routedEventArgs)
         {
             IsEmojiOpen = false;
             var tempFriend = FriendViewModel;
+
+            var viewModel = new ImageMessageViewModel()
+            {
+                FromSelf = true,
+                ImageType = ImageType.Network,
+                SendTime = DateTime.Now,
+                From = App.UserProfile.UserId,
+                To = tempFriend.Id,
+                Sending = true,
+                RemoteUrl = routedEventArgs.Emoji.Url
+            };
+
+            var bytes = await _contextAPIService.DownloadNetworkImageAsync(viewModel.RemoteUrl);
+            viewModel.Source = _fileHelper.ByteArrayToBitmapImage(bytes);
+            tempFriend.AddMessage(viewModel);
+            await SendEmojiByVmAsync(viewModel);
+        }
+
+        private async Task SendEmojiByVmAsync(ImageMessageViewModel viewModel)
+        {
+            var body = new ImageMessage();
+            viewModel.ToMessage(body);
             var packet = new Packet<ImageMessage>()
             {
                 Sequence = _sequenceIncrementer.GetNextSequence(),
                 MessageType = MessageType.Image,
-                Body = new ImageMessage
-                {
-                    SendTime = DateTime.Now,
-                    From = App.UserProfile.UserId,
-                    To = tempFriend.Id,
-                    ImageType = (byte)routedEventArgs.Emoji.ImageType,
-                    RemoteUrl = routedEventArgs.Emoji.Url
-                }
+                Body = body
             };
 
-            var viewModel = new ImageMessageViewModel()
-            {
-                FromSelf = App.UserProfile.UserId == packet.Body.From,
-                ImageType = ImageType.Network,
-                SendTime = packet.Body.SendTime,
-                MessageId = packet.Body.MessageId,
-                From = packet.Body.From,
-                To = packet.Body.To,
-                Sending = true
-            };
-            var bytes = await _contextAPIService.DownloadNetworkImageAsync(packet.Body.RemoteUrl);
-            viewModel.Source = _fileHelper.ByteArrayToBitmapImage(bytes);
-            tempFriend.AddMessage(viewModel);
             var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
             if (!sendResult)
             {
@@ -513,47 +515,46 @@ namespace ThreeL.Client.Win.ViewModels
         /// <returns></returns>
         private async Task SendImageFileAsync(FileInfo fileInfo, FriendViewModel friend)
         {
-            var imageBody = new ImageMessage
+            var tempFriendViewModel = FriendViewModel;
+            var viewModel = new ImageMessageViewModel()
             {
+                FromSelf = true,
+                ImageType = ImageType.Local,
                 SendTime = DateTime.Now,
                 From = App.UserProfile.UserId,
-                To = friend.Id,
-                ImageType = (byte)ImageType.Local,
-                FileName = fileInfo.Name
-            };
-
-            var message = new ImageMessageViewModel()
-            {
-                FromSelf = App.UserProfile.UserId == imageBody.From,
-                ImageType = ImageType.Local,
-                SendTime = imageBody.SendTime,
-                MessageId = imageBody.MessageId,
-                From = imageBody.From,
                 Location = fileInfo.FullName,
-                To = imageBody.To,
+                To = friend.Id,
                 Sending = true
             };
-            message.Source = _fileHelper.ByteArrayToBitmapImage(await File.ReadAllBytesAsync(fileInfo.FullName));
-            FriendViewModel.AddMessage(message);
+
+            viewModel.Source = _fileHelper.ByteArrayToBitmapImage(await File.ReadAllBytesAsync(fileInfo.FullName));
+            tempFriendViewModel.AddMessage(viewModel);
             var fileId = await UploadFileAsync(fileInfo, friend.Id);
-            imageBody.FileId = fileId;
+            viewModel.FileId = fileId;
+            await SendImageByVmAsync(viewModel);
+        }
+
+        private async Task SendImageByVmAsync(ImageMessageViewModel viewModel)
+        {
+            var body = new ImageMessage();
+            viewModel.ToMessage(body);
             var packet = new Packet<ImageMessage>()
             {
                 Sequence = _sequenceIncrementer.GetNextSequence(),
                 MessageType = MessageType.Image,
-                Body = imageBody
+                Body = body
             };
 
             var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
             if (!sendResult)
             {
-                message.Sending = false;
-                message.SendSuccess = false;
+                viewModel.Sending = false;
+                viewModel.SendSuccess = false;
                 _growlHelper.Warning("发送消息失败，请稍后再试");
             }
             else
             {
-                _messageFileLocationMapper.AddOrUpdate(packet.Body.MessageId, fileInfo.FullName);
+                _messageFileLocationMapper.AddOrUpdate(packet.Body.MessageId, viewModel.Location);
             }
         }
 
@@ -565,46 +566,45 @@ namespace ThreeL.Client.Win.ViewModels
         /// <returns></returns>
         private async Task SendFileAsync(FileInfo fileInfo, FriendViewModel friend)
         {
-            var fileMessage = new FileMessage
+            var tempFriendViewModel = FriendViewModel;
+            var viewModel = new FileMessageViewModel(fileInfo.Name)
             {
+                FromSelf = true,
+                FileSize = fileInfo.Length,
                 SendTime = DateTime.Now,
                 From = App.UserProfile.UserId,
-                To = FriendViewModel.Id,
-            };
-
-            var message = new FileMessageViewModel(fileInfo.Name)
-            {
-                FromSelf = App.UserProfile.UserId == fileMessage.From,
-                FileSize = fileInfo.Length,
-                SendTime = fileMessage.SendTime,
-                MessageId = fileMessage.MessageId,
-                From = fileMessage.From,
                 Location = fileInfo.FullName,
-                To = fileMessage.To,
+                To = friend.Id,
                 Sending = true
             };
 
-            FriendViewModel.AddMessage(message);
+            tempFriendViewModel.AddMessage(viewModel);
             var fileId = await UploadFileAsync(fileInfo, friend.Id);
-            fileMessage.FileId = fileId;
+            viewModel.FileId = fileId;
+            await SendFileByVmAsync(viewModel);
+        }
 
+        private async Task SendFileByVmAsync(FileMessageViewModel viewModel)
+        {
+            var body = new FileMessage();
+            viewModel.ToMessage(body);
             var packet = new Packet<FileMessage>()
             {
                 Sequence = _sequenceIncrementer.GetNextSequence(),
                 MessageType = MessageType.File,
-                Body = fileMessage
+                Body = body
             };
 
             var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
             if (!sendResult)
             {
-                message.Sending = false;
-                message.SendSuccess = false;
+                viewModel.Sending = false;
+                viewModel.SendSuccess = false;
                 _growlHelper.Warning("发送消息失败，请稍后再试");
             }
             else
             {
-                _messageFileLocationMapper.AddOrUpdate(packet.Body.MessageId, fileInfo.FullName);
+                _messageFileLocationMapper.AddOrUpdate(packet.Body.MessageId, viewModel.Location);
             }
         }
 

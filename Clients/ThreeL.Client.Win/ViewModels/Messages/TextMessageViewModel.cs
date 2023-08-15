@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
+using ThreeL.Shared.SuperSocket.Dto.Message;
 
 namespace ThreeL.Client.Win.ViewModels.Messages
 {
@@ -47,6 +48,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
         {
             CanOpenLocation = false;
             CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
+            ReSendCommandAsync = new AsyncRelayCommand(ReSendAsync);
         }
 
         private Task CopyAsync()
@@ -59,6 +61,18 @@ namespace ThreeL.Client.Win.ViewModels.Messages
         {
             base.FromDto(chatRecord);
             Text = chatRecord.Message;
+        }
+
+        public override void ToMessage(FromToMessage fromToMessage)
+        {
+            base.ToMessage(fromToMessage);
+            var message = fromToMessage as TextMessage;
+            message.Text = Text;
+        }
+
+        public async Task ReSendAsync() 
+        {
+            
         }
     }
 }
