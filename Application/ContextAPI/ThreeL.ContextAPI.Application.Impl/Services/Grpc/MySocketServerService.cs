@@ -121,7 +121,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
                         From = userid
                     });
                 await _adoExecuterRepository
-                    .ExecuteAsync("UPDATE ChatRecord SET MessageRecordType = @MessageType where Id = @Id", new
+                    .ExecuteAsync("UPDATE ChatRecord SET Withdrawed = 1 where Id = @Id", new
                     {
                         MessageType = MessageRecordType.Withdraw,
                         message.Id

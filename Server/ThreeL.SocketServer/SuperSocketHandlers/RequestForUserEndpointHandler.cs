@@ -26,6 +26,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                     Result = false,
                 }
             };
+            //TODO 非对称加密
             var packet = message as Packet<RequestForUserEndpointCommand>;
             if (packet.Body.SsToken != session.SsToken)
             {

@@ -20,5 +20,19 @@ namespace ThreeL.ContextAPI.Application.Contract.Dtos.Relation
         public long? FileId { get; set; }
         public string FileName { get; set; }
         public long Size { get; set; }
+        public bool Withdrawed { get; set; }
+
+        public ChatRecordResponseDto ClearDataByWithdrawed()
+        {
+            if (Withdrawed)
+            {
+                Message = null;
+                FileId = null;
+                FileName = null;
+                Size = 0;
+            }
+
+            return this;
+        }
     }
 }

@@ -38,27 +38,28 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             return Task.CompletedTask;
         }
 
-        public async Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request)
+        public async Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request, string token)
         {
-            return await _serverServiceClient.SocketServerUserLoginAsync(request, _header);
-        }
-
-        public async Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request)
-        {
-            return await _serverServiceClient.FetchFileInfoAsync(request, _header);
-        }
-
-        public void SetToken(string token)
-        {
-            _header = new Metadata
+            return await _serverServiceClient.SocketServerUserLoginAsync(request, new Metadata()
             {
                 { "Authorization", $"Bearer {token}" }
-            };
+            });
         }
 
-        public async Task<ChatRecordPostResponse> PostChatRecordsAsync(IEnumerable<ChatRecordPostRequest> requests)
+        public async Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request, string token)
         {
-            var call = _serverServiceClient.PostChatRecord(_header);
+            return await _serverServiceClient.FetchFileInfoAsync(request, new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
+        }
+
+        public async Task<ChatRecordPostResponse> PostChatRecordsAsync(IEnumerable<ChatRecordPostRequest> requests, string token)
+        {
+            var call = _serverServiceClient.PostChatRecord(new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
             var stream = call.RequestStream;
             foreach (var request in requests)
             {
@@ -69,14 +70,20 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             return await call.ResponseAsync;
         }
 
-        public async Task<ChatRecordPostResponse> PostChatRecordAsync(ChatRecordPostRequest request)
+        public async Task<ChatRecordPostResponse> PostChatRecordAsync(ChatRecordPostRequest request, string token)
         {
-            return await _serverServiceClient.PostChatRecordSingleAsync(request, _header);
+            return await _serverServiceClient.PostChatRecordSingleAsync(request, new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
         }
 
-        public async Task<ChatRecordWithdrawResponse> WithdrawChatRecordAsync(ChatRecordWithdrawRequest request)
+        public async Task<ChatRecordWithdrawResponse> WithdrawChatRecordAsync(ChatRecordWithdrawRequest request, string token)
         {
-            return await _serverServiceClient.WithdrawChatRecordAsync(request, _header);
+            return await _serverServiceClient.WithdrawChatRecordAsync(request, new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
         }
     }
 }

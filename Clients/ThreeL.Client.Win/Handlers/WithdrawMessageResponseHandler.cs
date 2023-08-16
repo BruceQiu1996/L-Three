@@ -9,7 +9,6 @@ using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Shared.Utils;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
-using ThreeL.Infra.Core.Metadata;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Metadata;
@@ -44,7 +43,7 @@ namespace ThreeL.Client.Win.Handlers
                 return;
 
             WeakReferenceMessenger.Default.Send<WithdrawMessageResponse, string>(packet.Body, "message-withdraw-result");
-            var record = await SqlMapper.QueryFirstOrDefaultAsync<ChatRecord>(_clientSqliteContext.dbConnection, "SELECT Top 1 * FROM ChatRecord WHERE MessageId = @MessageId AND [From] = @From", new
+            var record = await SqlMapper.QueryFirstOrDefaultAsync<ChatRecord>(_clientSqliteContext.dbConnection, "SELECT Top 1 * FROM ChatRecord WHERE MessageId = @MessageId", new
             {
                 packet.Body.WithdrawMessageId,
                 packet.Body.From
@@ -52,9 +51,8 @@ namespace ThreeL.Client.Win.Handlers
 
             if (record != null)
             {
-                await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, "UPDATE ChatRecord SET ResourceLocalLocation = null,FileId = null,MessageRecordType = @MessageType where MessageId = @MessageId", new
+                await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, "DELETE ChatRecord where MessageId = @MessageId", new
                 {
-                    MessageType = MessageRecordType.Withdraw,
                     record.MessageId
                 });
 
@@ -63,7 +61,6 @@ namespace ThreeL.Client.Win.Handlers
                     File.Delete(record.ResourceLocalLocation);
                 }
             }
-
         }
     }
 }

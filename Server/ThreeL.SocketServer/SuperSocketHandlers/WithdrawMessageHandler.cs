@@ -24,7 +24,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                                   SaveChatRecordService saveChatRecordService,
                                   IContextAPIGrpcService contextAPIGrpcService,
                                   IMapper mapper,
-                                  IMessageHandlerService messageHandlerService) : base(MessageType.File)
+                                  IMessageHandlerService messageHandlerService) : base(MessageType.Withdraw)
         {
             _mapper = mapper;
             _redisProvider = redisProvider;
@@ -44,13 +44,12 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 MessageType = MessageType.WithdrawResp,
             };
 
-            var body = new WithdrawMessageResponse()
-            {
-                WithdrawMessageId = packet.Body.WithdrawMessageId,
-            };
+            var body = _mapper.Map<WithdrawMessageResponse>(packet.Body);
             resp.Body = body;
             var result = await _contextAPIGrpcService.WithdrawChatRecordAsync(new ChatRecordWithdrawRequest() 
-            { MessageId = packet.Body.MessageId });
+            { 
+                MessageId = packet.Body.WithdrawMessageId 
+            }, (appSession as ChatSession).AccessToken);
 
             if (result == null || !result.Result)
             {

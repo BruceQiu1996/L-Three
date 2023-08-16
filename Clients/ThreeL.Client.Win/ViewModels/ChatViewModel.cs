@@ -10,7 +10,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Handlers;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
@@ -133,33 +132,33 @@ namespace ThreeL.Client.Win.ViewModels
 
             WeakReferenceMessenger.Default.Register<ChatViewModel, FromToMessageResponse, string>(this, "message-send-finished",
                 (x, y) =>
-            {
-                var message = FriendViewModels.FirstOrDefault(x => x.Id == y.To)?
-                .Messages.FirstOrDefault(x => x.MessageId == y.MessageId);
-
-                if (message != null)
                 {
-                    message.Sending = false;
-                }
-            });
+                    var message = FriendViewModels.FirstOrDefault(x => x.Id == y.To)?
+                    .Messages.FirstOrDefault(x => x.MessageId == y.MessageId);
+
+                    if (message != null)
+                    {
+                        message.Sending = false;
+                    }
+                });
 
             WeakReferenceMessenger.Default.Register<ChatViewModel, WithdrawMessageResponse, string>(this, "message-withdraw-result",
                 (x, y) =>
                 {
-                    
+                    WithdrawMessage(y);
                 });
 
             WeakReferenceMessenger.Default.Register<ChatViewModel, MessageViewModel, string>(this, "message-resend",
                 async (x, y) =>
-            {
-                await ResendMessageAsync(y);
-            });
+                {
+                    await ResendMessageAsync(y);
+                });
 
             WeakReferenceMessenger.Default.Register<ChatViewModel, MessageViewModel, string>(this, "message-withdraw",
                 async (x, y) =>
-            {
-                await WithdrawMessageAsync(y);
-            });
+                {
+                    await WithdrawMessageAsync(y);
+                });
         }
 
         private async Task LoadAsync()
@@ -268,7 +267,7 @@ namespace ThreeL.Client.Win.ViewModels
             }
 
             var localImageRecords = resp.Records.Where(x => x.MessageRecordType == MessageRecordType.Image
-                && x.ImageType == ImageType.Local);
+                && x.ImageType == ImageType.Local && !x.Withdrawed);
             if (localImageRecords != null && localImageRecords.Count() > 0)
             {
                 //查找本地数据库图片位置
@@ -330,7 +329,7 @@ namespace ThreeL.Client.Win.ViewModels
             }
 
             var netImageRecords = resp.Records.Where(x => x.MessageRecordType == MessageRecordType.Image
-                && x.ImageType == ImageType.Network);
+                && x.ImageType == ImageType.Network && !x.Withdrawed);
             if (netImageRecords != null && netImageRecords.Count() > 0)
             {
                 foreach (var record in netImageRecords)
@@ -342,6 +341,17 @@ namespace ThreeL.Client.Win.ViewModels
             List<MessageViewModel> messages = new List<MessageViewModel>();
             foreach (var record in resp.Records.OrderBy(x => x.SendTime))
             {
+                if (record.Withdrawed) 
+                {
+                    MessageViewModel temp = new MessageViewModel(MessageType.Text);
+                    temp.MessageId = record.MessageId;
+                    temp.Withdrawed = true;
+                    temp.From = record.From;
+                    temp.To = record.To;
+                    temp.SendTime = record.SendTime;
+                    messages.Add(temp);
+                    continue;
+                }
                 MessageViewModel messageViewModel = null;
                 if (record.MessageRecordType == MessageRecordType.Text)
                 {
@@ -688,7 +698,7 @@ namespace ThreeL.Client.Win.ViewModels
             var packet = new Packet<WithdrawMessage>()
             {
                 Sequence = _sequenceIncrementer.GetNextSequence(),
-                MessageType = MessageType.File,
+                MessageType = MessageType.Withdraw,
                 Body = new WithdrawMessage()
                 {
                     From = viewModel.From,
@@ -703,6 +713,18 @@ namespace ThreeL.Client.Win.ViewModels
                 viewModel.Sending = false;
                 viewModel.SendSuccess = false;
                 _growlHelper.Warning("撤回消息失败，请稍后再试");
+            }
+        }
+
+        private void WithdrawMessage(WithdrawMessageResponse response)
+        {
+            var friend = App.UserProfile.UserId == response.From ? response.To : response.From;
+            var message = FriendViewModels.FirstOrDefault(x => x.Id == friend)?.Messages
+                .FirstOrDefault(x => x.MessageId == response.WithdrawMessageId);
+            if (message != null)
+            {
+                message.Withdrawed = true;
+                message.WithdrawMessage = App.UserProfile.UserId == message.From ? "你撤回了一条消息" : "对方撤回了一条消息";
             }
         }
 

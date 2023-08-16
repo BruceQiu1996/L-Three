@@ -45,7 +45,22 @@
                 </behaviors:Interaction.Triggers>
             </TextBlock>
         </DataTemplate>
-        <DataTemplate x:Key="txtSender">
+        <DataTemplate x:Key="withdraw">
+            <TextBox Text="{Binding WithdrawMessage,UpdateSourceTrigger=PropertyChanged}"
+                     IsReadOnly="True"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     VerticalAlignment="Top"
+                     VerticalContentAlignment="Top"
+                     BorderThickness="0"
+                     Foreground="#ddd"
+                     Opacity="0.8"
+                     Background="#555"
+                     HorizontalAlignment="Center"
+                     FontSize="14">
+            </TextBox>
+        </DataTemplate>
+        <DataTemplate x:Key="txtSender_normol">
             <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Label Height="30" Width="40" 
@@ -76,7 +91,22 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="imageSender">
+        <DataTemplate x:Key="txtSender">
+            <ContentControl Content="{Binding }">
+                <ContentControl.Style>
+                    <Style TargetType="{x:Type ContentControl}">
+                        <Setter Property="ContentTemplate" Value="{StaticResource txtSender_normol}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Withdrawed,UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                <Setter Property="ContentTemplate" Value="{StaticResource withdraw}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ContentControl.Style>
+            </ContentControl>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="imageSender_normol">
             <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Label Height="30" Width="40" 
@@ -109,7 +139,22 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="fileSender">
+        <DataTemplate x:Key="imageSender">
+            <ContentControl Content="{Binding }">
+                <ContentControl.Style>
+                    <Style TargetType="{x:Type ContentControl}">
+                        <Setter Property="ContentTemplate" Value="{StaticResource imageSender_normol}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Withdrawed,UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                <Setter Property="ContentTemplate" Value="{StaticResource withdraw}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ContentControl.Style>
+            </ContentControl>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="fileSender_normol">
             <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Label Height="30" Width="40" 
@@ -159,18 +204,32 @@
             </Grid>
         </DataTemplate>
 
+        <DataTemplate x:Key="fileSender">
+            <ContentControl Content="{Binding }">
+                <ContentControl.Style>
+                    <Style TargetType="{x:Type ContentControl}">
+                        <Setter Property="ContentTemplate" Value="{StaticResource fileSender_normol}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Withdrawed,UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                <Setter Property="ContentTemplate" Value="{StaticResource withdraw}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ContentControl.Style>
+            </ContentControl>
+        </DataTemplate>
 
-
-        <DataTemplate x:Key="txtReceiver">
+        <DataTemplate x:Key="txtReceiver_normol">
             <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
-                <StackPanel Orientation="Horizontal">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
-                             Background="#555"
+                             MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter},UpdateSourceTrigger=PropertyChanged}"
                              TextWrapping="Wrap"
+                             Background="#555"
                              AcceptsReturn="True"
                              VerticalAlignment="Top"
+                             IsReadOnly="True"
                              VerticalContentAlignment="Top"
-                             MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter},UpdateSourceTrigger=PropertyChanged}"
                              BorderThickness="0"
                              Foreground="White"
                              HorizontalAlignment="Left"
@@ -179,7 +238,23 @@
                 </StackPanel>
             </Grid>
         </DataTemplate>
-        <DataTemplate x:Key="imageReceiver">
+
+        <DataTemplate x:Key="txtReceiver">
+            <ContentControl Content="{Binding }">
+                <ContentControl.Style>
+                    <Style TargetType="{x:Type ContentControl}">
+                        <Setter Property="ContentTemplate" Value="{StaticResource txtReceiver_normol}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Withdrawed,UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                <Setter Property="ContentTemplate" Value="{StaticResource withdraw}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ContentControl.Style>
+            </ContentControl>
+        </DataTemplate>
+
+        <DataTemplate x:Key="imageReceiver_normol">
             <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}">
@@ -198,7 +273,23 @@
                 </StackPanel>
             </Grid>
         </DataTemplate>
-        <DataTemplate x:Key="fileReceiver">
+
+        <DataTemplate x:Key="imageReceiver">
+            <ContentControl Content="{Binding }">
+                <ContentControl.Style>
+                    <Style TargetType="{x:Type ContentControl}">
+                        <Setter Property="ContentTemplate" Value="{StaticResource imageReceiver_normol}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Withdrawed,UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                <Setter Property="ContentTemplate" Value="{StaticResource withdraw}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ContentControl.Style>
+            </ContentControl>
+        </DataTemplate>
+
+        <DataTemplate x:Key="fileReceiver_normol">
             <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
                         HorizontalAlignment="Left"
@@ -232,6 +323,22 @@
                 </Border>
             </Grid>
         </DataTemplate>
+
+        <DataTemplate x:Key="fileReceiver">
+            <ContentControl Content="{Binding }">
+                <ContentControl.Style>
+                    <Style TargetType="{x:Type ContentControl}">
+                        <Setter Property="ContentTemplate" Value="{StaticResource fileReceiver_normol}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Withdrawed,UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                <Setter Property="ContentTemplate" Value="{StaticResource withdraw}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ContentControl.Style>
+            </ContentControl>
+        </DataTemplate>
+
         <DataTemplate x:Key="time">
             <TextBox Text="{Binding DateTime}"
                      IsReadOnly="True"
@@ -240,7 +347,8 @@
                      VerticalAlignment="Top"
                      VerticalContentAlignment="Top"
                      BorderThickness="0"
-                     Foreground="White"
+                     Foreground="#ddd"
+                     Opacity="0.8"
                      Background="#555"
                      HorizontalAlignment="Center"
                      FontSize="14">
@@ -323,7 +431,7 @@
                                                 <TextBlock Grid.Column="1" Grid.Row="1"
                                                            FontSize="13" Foreground="#aaa"
                                                            VerticalAlignment="Center" Margin="2 0 0 2"
-                                                           Text="{Binding LastMessageShortDesc}"></TextBlock>
+                                                           Text="{Binding LastMessage.ShortDesc,UpdateSourceTrigger=PropertyChanged}"></TextBlock>
                                                 
                                                 <TextBlock Grid.Column="1" Grid.Row="0"
                                                            FontSize="13" Foreground="#aaa"

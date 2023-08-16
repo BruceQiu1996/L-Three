@@ -1,10 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using Dapper;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Database;
@@ -14,7 +12,6 @@ using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Infra.Core.Metadata;
-using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Metadata;
 
@@ -46,7 +43,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
 
         public BitmapImage Source { get; set; }
 
-        public FileMessageViewModel(string fileName)
+        public FileMessageViewModel(string fileName) : base(MessageType.File)
         {
             FileName = fileName;
             Source = GenerateIconByFileType();
@@ -54,7 +51,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             OpenLocationCommandAsync = new AsyncRelayCommand(OpenLocationAsync);
         }
 
-        public FileMessageViewModel()
+        public FileMessageViewModel() : base(MessageType.File)
         {
             CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
             OpenLocationCommandAsync = new AsyncRelayCommand(OpenLocationAsync);
@@ -93,7 +90,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             }
         }
 
-        private async Task OpenLocationAsync() 
+        private async Task OpenLocationAsync()
         {
             if (!string.IsNullOrEmpty(Location) && File.Exists(Location))
             {
@@ -178,7 +175,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             }
         }
 
-        
+
         public override void FromDto(ChatRecordResponseDto chatRecord)
         {
             base.FromDto(chatRecord);

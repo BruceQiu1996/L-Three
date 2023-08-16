@@ -2,11 +2,10 @@
 {
     public interface IContextAPIGrpcService
     {
-        void SetToken(string token);
-        Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request);
-        Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request);
-        Task<ChatRecordPostResponse> PostChatRecordsAsync(IEnumerable<ChatRecordPostRequest> request);
-        Task<ChatRecordPostResponse> PostChatRecordAsync(ChatRecordPostRequest request);
-        Task<ChatRecordWithdrawResponse> WithdrawChatRecordAsync(ChatRecordWithdrawRequest request)
+        Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request, string token);
+        Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request, string token);
+        Task<ChatRecordPostResponse> PostChatRecordsAsync(IEnumerable<ChatRecordPostRequest> request, string token);
+        Task<ChatRecordPostResponse> PostChatRecordAsync(ChatRecordPostRequest request, string token);
+        Task<ChatRecordWithdrawResponse> WithdrawChatRecordAsync(ChatRecordWithdrawRequest request, string token);
     }
 }

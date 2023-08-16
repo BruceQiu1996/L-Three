@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using ThreeL.Client.Win.ViewModels;
-using ThreeL.Client.Win.ViewModels.Messages;
+using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.Converters
 {
@@ -14,19 +14,19 @@ namespace ThreeL.Client.Win.Converters
             DataTemplate dt = null;
             if (obj != null && fe != null)
             {
-                if (obj is TimeMessageViewModel)
+                if (obj.MessageType == MessageType.Time)
                     dt = fe.FindResource("time") as DataTemplate;
-                else if (obj is TextMessageViewModel && obj.FromSelf)
+                else if (obj.MessageType == MessageType.Text && obj.FromSelf)
                     dt = fe.FindResource("txtSender") as DataTemplate;
-                else if (obj is TextMessageViewModel && !obj.FromSelf)
+                else if (obj.MessageType == MessageType.Text && !obj.FromSelf)
                     dt = fe.FindResource("txtReceiver") as DataTemplate;
-                else if (obj is ImageMessageViewModel && obj.FromSelf)
+                else if (obj.MessageType == MessageType.Image && obj.FromSelf)
                     dt = fe.FindResource("imageSender") as DataTemplate;
-                else if (obj is ImageMessageViewModel && !obj.FromSelf)
+                else if (obj.MessageType == MessageType.Image && !obj.FromSelf)
                     dt = fe.FindResource("imageReceiver") as DataTemplate;
-                else if (obj is FileMessageViewModel && obj.FromSelf)
+                else if (obj.MessageType == MessageType.File && obj.FromSelf)
                     dt = fe.FindResource("fileSender") as DataTemplate;
-                else if (obj is FileMessageViewModel && !obj.FromSelf)
+                else if (obj.MessageType == MessageType.File && !obj.FromSelf)
                     dt = fe.FindResource("fileReceiver") as DataTemplate;
             }
 

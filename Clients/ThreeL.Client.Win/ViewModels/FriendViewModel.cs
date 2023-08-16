@@ -59,7 +59,8 @@ namespace ThreeL.Client.Win.ViewModels
             Messages.Add(message);
             message.SendTimeText = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(message.SendTime);
             LastMessage = message;
-            LastMessageShortDesc = message.GetShortDesc();
+            LastMessage.ShortDesc = LastMessage.Withdrawed ? "[消息已被撤回]" : LastMessage.GetShortDesc();
+            LastMessage.WithdrawMessage = App.UserProfile.UserId == message.From ? "你撤回了一条消息" : "对方撤回了一条消息";
         }
 
         public FriendViewModel()

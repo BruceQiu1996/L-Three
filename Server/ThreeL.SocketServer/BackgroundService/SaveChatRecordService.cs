@@ -59,7 +59,7 @@ namespace ThreeL.SocketServer.BackgroundService
                         entities.Add(await _readChannel.ReadAsync());
                     }
 
-                    await _contextAPIGrpcService.PostChatRecordsAsync(entities);
+                    //await _contextAPIGrpcService.PostChatRecordsAsync(entities); TODO等用上再传入access token
                     if (cancellationToken.IsCancellationRequested) break;
                 }
             }

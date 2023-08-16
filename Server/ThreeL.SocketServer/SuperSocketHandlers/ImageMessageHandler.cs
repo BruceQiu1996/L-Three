@@ -81,7 +81,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 var fileinfo = await _contextAPIGrpcService.FetchFileInfoAsync(new FileInfoRequest() 
                 { 
                     Id = packet.Body.FileId,
-                });
+                }, (appSession as ChatSession).AccessToken);
 
                 if (fileinfo == null || !fileinfo.Result)
                 {
@@ -100,7 +100,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             var request = _mapper.Map<ChatRecordPostRequest>(body);
             request.MessageRecordType = (int)MessageRecordType.Image;
             //await _saveChatRecordService.WriteRecordAsync(request);
-            var result = await _contextAPIGrpcService.PostChatRecordAsync(request);//还是先使用rpc
+            var result = await _contextAPIGrpcService.PostChatRecordAsync(request, (appSession as ChatSession).AccessToken);//还是先使用rpc
             if (result.Result)
             {
                 //分发给发送者和接收者

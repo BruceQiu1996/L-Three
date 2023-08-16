@@ -32,6 +32,7 @@ namespace ThreeL.SocketServer
                 service.AddSingleton<IMessageHandler, TextMessageHandler>();
                 service.AddSingleton<IMessageHandler, ImageMessageHandler>();
                 service.AddSingleton<IMessageHandler, FileMessageHandler>();
+                service.AddSingleton<IMessageHandler, WithdrawMessageHandler>();
                 service.AddSingleton<IMessageHandler, LoginCommandHandler>();
                 service.AddSingleton<IMessageHandler, RequestForUserEndpointHandler>();
                 service.AddSuperSocket();

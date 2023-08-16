@@ -11,12 +11,14 @@ using System.Windows;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Shared.SuperSocket.Dto.Message;
+using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.ViewModels
 {
     public class MessageViewModel : ObservableObject
     {
         public string MessageId { get; set; } = Guid.NewGuid().ToString();
+        public MessageType MessageType { get; set; }
         public DateTime SendTime { get; set; }
         public bool FromSelf => App.UserProfile == null ? true : App.UserProfile.UserId == From ? true : false;
         public long From { get; set; }
@@ -28,7 +30,7 @@ namespace ThreeL.Client.Win.ViewModels
             set
             {
                 SetProperty(ref _sendSuccess, value);
-                CanWithdraw = !Sending && SendSuccess && FromSelf;
+                CanWithdraw = !Withdrawed && !Sending && SendSuccess && FromSelf;
             }
         }
 
@@ -45,8 +47,35 @@ namespace ThreeL.Client.Win.ViewModels
         private bool _canWithdraw;
         public bool CanWithdraw
         {
-            get => !Sending && SendSuccess && FromSelf;
+            get => !Withdrawed && !Sending && SendSuccess && FromSelf;
             set => SetProperty(ref _canWithdraw, value);
+        }
+
+        private bool _withdrawed;
+        public bool Withdrawed
+        {
+            get => _withdrawed;
+            set
+            {
+                SetProperty(ref _withdrawed, value);
+                CanWithdraw = !Withdrawed && !Sending && SendSuccess && FromSelf;
+                if (value) 
+                {
+                    ShortDesc = "[消息已被撤回]";
+                }
+            }
+        }
+
+        public string WithdrawMessage { get; set; }
+
+        private string _shortDesc;
+        public string ShortDesc
+        {
+            get => _shortDesc;
+            set
+            {
+                SetProperty(ref _shortDesc, value);
+            }
         }
 
         public AsyncRelayCommand CopyCommandAsync { get; set; }
@@ -56,8 +85,9 @@ namespace ThreeL.Client.Win.ViewModels
         public AsyncRelayCommand ReSendWhenFaildCommandAsync { get; set; }
         public AsyncRelayCommand WithdrawCommandAsync { get; set; }
 
-        public MessageViewModel()
+        public MessageViewModel(MessageType messageType)
         {
+            MessageType = messageType;
             ReSendWhenFaildCommandAsync = new AsyncRelayCommand(ReSendWhenFaildAsync);
             WithdrawCommandAsync = new AsyncRelayCommand(WithdrawAsync);
         }
@@ -108,11 +138,11 @@ namespace ThreeL.Client.Win.ViewModels
             if (Sending || !SendSuccess)
             { return Task.CompletedTask; }
 
-            if (SendTime.AddMinutes(2) < DateTime.Now)
-            {
-                App.ServiceProvider.GetRequiredService<GrowlHelper>().Warning("超过两分钟的消息无法撤回");
-                return Task.CompletedTask;
-            }
+            //if (SendTime.AddMinutes(2) < DateTime.Now)
+            //{
+            //    App.ServiceProvider.GetRequiredService<GrowlHelper>().Warning("超过两分钟的消息无法撤回");
+            //    return Task.CompletedTask;
+            //}
 
             WeakReferenceMessenger.Default.Send(this, "message-withdraw");
 

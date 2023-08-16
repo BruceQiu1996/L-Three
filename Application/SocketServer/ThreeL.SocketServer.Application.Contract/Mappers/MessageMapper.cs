@@ -11,6 +11,7 @@ namespace ThreeL.SocketServer.Application.Contract.Mappers
             CreateMap<TextMessage, TextMessageResponse>();
             CreateMap<ImageMessage, ImageMessageResponse>();
             CreateMap<FileMessage, FileMessageResponse>();
+            CreateMap<WithdrawMessage, WithdrawMessageResponse>();
             //转换各resp到proto类型
             CreateMap<TextMessageResponse, ChatRecordPostRequest>().ForMember(x => x.SendTime,
                 y => y.MapFrom(src => Timestamp.FromDateTime(src.SendTime.ToUniversalTime())))

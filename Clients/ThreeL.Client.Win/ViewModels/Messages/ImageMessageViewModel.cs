@@ -7,6 +7,7 @@ using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Infra.Core.Metadata;
 using ThreeL.Shared.SuperSocket.Dto.Message;
+using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.ViewModels.Messages
 {
@@ -31,7 +32,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             }
         }
 
-        public ImageMessageViewModel()
+        public ImageMessageViewModel() : base (MessageType.Image)
         {
             CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
             LeftButtonClickCommandAsync = new AsyncRelayCommand(LeftButtonClickAsync);

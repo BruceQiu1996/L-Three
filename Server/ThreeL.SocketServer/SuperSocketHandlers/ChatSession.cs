@@ -8,11 +8,12 @@ public class ChatSession : AppSession
 {
     public long UserId { get; set; }
     public string SsToken { get; set; }
+    public string AccessToken { get; set; }
     private ServerAppSessionManager<ChatSession> _sessionManager => Program.ServiceProvider.GetRequiredService<ServerAppSessionManager<ChatSession>>();
 
     protected override ValueTask OnSessionClosedAsync(CloseEventArgs e)
     {
-        _sessionManager.TryRemoveBySessionId(UserId,SessionID);
+        _sessionManager.TryRemoveBySessionId(UserId, SessionID);
         return base.OnSessionClosedAsync(e);
     }
 }

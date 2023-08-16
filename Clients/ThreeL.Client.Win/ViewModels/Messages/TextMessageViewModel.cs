@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Media;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Shared.SuperSocket.Dto.Message;
+using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.ViewModels.Messages
 {
@@ -44,7 +45,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             return formattedText.WidthIncludingTrailingWhitespace;
         }
 
-        public TextMessageViewModel()
+        public TextMessageViewModel() : base(MessageType.Text)
         {
             CanOpenLocation = false;
             CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
