@@ -34,6 +34,8 @@ namespace ThreeL.Shared.SuperSocket.Filters
                     MessageType.ImageResp => new Packet<ImageMessageResponse>(),
                     MessageType.File => new Packet<FileMessage>(),
                     MessageType.FileResp => new Packet<FileMessageResponse>(),
+                    MessageType.Withdraw => new Packet<WithdrawMessage>(),
+                    MessageType.WithdrawResp => new Packet<WithdrawMessageResponse>(),
                     MessageType.Login => new Packet<LoginCommand>(),
                     MessageType.LoginResponse => new Packet<LoginCommandResponse>(),
                     MessageType.RequestForUserEndpoint => new Packet<RequestForUserEndpointCommand>(),

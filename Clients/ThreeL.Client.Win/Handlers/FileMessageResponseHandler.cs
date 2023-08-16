@@ -15,12 +15,11 @@ using ThreeL.Client.Win.ViewModels.Messages;
 using ThreeL.Infra.Core.Metadata;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Message;
-using ThreeL.Shared.SuperSocket.Handlers;
 using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.Handlers
 {
-    public class FileMessageResponseHandler : AbstractMessageHandler
+    public class FileMessageResponseHandler : ClientMessageHandler
     {
         private readonly GrowlHelper _growlHelper;
         private readonly FileHelper _fileHelper;
@@ -46,22 +45,9 @@ namespace ThreeL.Client.Win.Handlers
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
             var packet = message as Packet<FileMessageResponse>;
-            WeakReferenceMessenger.Default.Send<dynamic, string>(new
-            {
-                packet.Body.MessageId,
-                packet.Body.To,
-            }, "message-send-finished");
-            if (packet != null && !packet.Body.Result) //消息发送失败
-            {
-                WeakReferenceMessenger.Default.Send<dynamic, string>(new 
-                {
-                    MessageId = packet.Body.MessageId,
-                    To = packet.Body.To,
-                }, "message-send-faild");
-                _growlHelper.Warning(packet.Body.Message);
-
+            HandleFromToMessageResponseFromServer(packet.Body);
+            if (!packet.Body.Result)
                 return;
-            }
             FriendViewModel friend = null;
             if (App.UserProfile.UserId == packet.Body.From)
             {
@@ -95,7 +81,6 @@ namespace ThreeL.Client.Win.Handlers
                 {
                     var file = new FileMessageViewModel(packet.Body.FileName)
                     {
-                        FromSelf = App.UserProfile.UserId == packet.Body.From,
                         FileSize = packet.Body.Size,
                         SendTime = packet.Body.SendTime,
                         MessageId = packet.Body.MessageId,

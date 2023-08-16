@@ -22,7 +22,7 @@ namespace ThreeL.Client.Win.Helpers
             {
                 var folder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);//TODO根据设置，获取用户选择的文件存放目录
                 var location = string.Empty;
-                if (message == MessageType.Text)
+                if (message == MessageType.Image)
                 {
                     location = Path.Combine(folder, "ThreeL/images", DateTime.Now.ToString("yyyy-MM"));
                 }
@@ -36,7 +36,8 @@ namespace ThreeL.Client.Win.Helpers
                     Directory.CreateDirectory(location);
                 }
 
-                var fileLocation = Path.Combine(location, $"{Guid.NewGuid()}{Path.GetExtension(fileName)}");//TODO名字+1
+                var newfilename = GenerateFileName(location, fileName);
+                var fileLocation = Path.Combine(location, newfilename);
                 await File.WriteAllBytesAsync(fileLocation, bytes);
 
                 return fileLocation;
@@ -46,6 +47,20 @@ namespace ThreeL.Client.Win.Helpers
                 _logger.LogError(ex.ToString());
                 return default;
             }
+        }
+
+        private string GenerateFileName(string folderName, string fileName)
+        {
+            var justName = Path.GetFileNameWithoutExtension(fileName);
+            var extension = Path.GetExtension(fileName);
+            var result = fileName;
+            int index = 0;
+            while (File.Exists(Path.Combine(folderName, result)))
+            {
+                result = $"{justName}({++index}){extension}";
+            }
+
+            return result;
         }
 
         public BitmapImage ByteArrayToBitmapImage(byte[] byteArray)

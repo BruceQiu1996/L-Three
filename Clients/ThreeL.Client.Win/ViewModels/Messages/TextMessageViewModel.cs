@@ -48,7 +48,6 @@ namespace ThreeL.Client.Win.ViewModels.Messages
         {
             CanOpenLocation = false;
             CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
-            ReSendCommandAsync = new AsyncRelayCommand(ReSendAsync);
         }
 
         private Task CopyAsync()
@@ -68,11 +67,6 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             base.ToMessage(fromToMessage);
             var message = fromToMessage as TextMessage;
             message.Text = Text;
-        }
-
-        public async Task ReSendAsync() 
-        {
-            
         }
     }
 }

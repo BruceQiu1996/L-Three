@@ -3,9 +3,9 @@
 namespace ThreeL.Shared.SuperSocket.Dto.Message
 {
     [ProtoContract]
-    public class TextMessageResponse : FromToMessageResponse
+    public class WithdrawMessageResponse : FromToMessageResponse
     {
         [ProtoMember(8)]
-        public string Text { get; set; }
+        public string WithdrawMessageId { get; set; }
     }
 }

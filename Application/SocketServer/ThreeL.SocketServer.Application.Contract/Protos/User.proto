@@ -16,4 +16,5 @@ service SocketServerService{
 	rpc FetchFileInfo(FileInfoRequest) returns (FileInfoResponse);
 	rpc PostChatRecord(stream ChatRecordPostRequest) returns (ChatRecordPostResponse);
 	rpc PostChatRecordSingle(ChatRecordPostRequest) returns (ChatRecordPostResponse);
+	rpc WithdrawChatRecord(ChatRecordWithdrawRequest) returns (ChatRecordWithdrawResponse);
 }

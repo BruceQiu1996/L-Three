@@ -21,7 +21,8 @@
             <MenuItem Header="撤回" 
                       Height="30"
                       Padding="5"
-                      hc:IconElement.Width="0" Command="{Binding CopyCommandAsync}"></MenuItem>
+                      Visibility="{Binding CanWithdraw,Converter={StaticResource Boolean2VisibilityConverter}}"
+                      hc:IconElement.Width="0" Command="{Binding WithdrawCommandAsync}"></MenuItem>
             <MenuItem Header="打开文件位置" 
                       Padding="5"
                       Height="30"
@@ -51,6 +52,11 @@
                            Background="Transparent"
                            BorderThickness="0" Cursor="Hand"
                            Visibility="{Binding SendSuccess,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Boolean2VisibilityReConverter}}">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                <behaviors:InvokeCommandAction Command="{Binding ReSendWhenFaildCommandAsync}"></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
                         <Path Data="{StaticResource error}" Fill="Red" Stretch="Uniform"></Path>
                     </Label>
                     <TextBox Text="{Binding Text,UpdateSourceTrigger=PropertyChanged}"
@@ -79,6 +85,11 @@
                            BorderThickness="0"
                            Cursor="Hand"
                            Visibility="{Binding SendSuccess,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Boolean2VisibilityReConverter}}">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                <behaviors:InvokeCommandAction Command="{Binding ReSendWhenFaildCommandAsync}"></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
                         <Path Data="{StaticResource error}" Fill="Red" Stretch="Uniform"></Path>
                     </Label>
                     <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}">
@@ -107,6 +118,11 @@
                            BorderThickness="0"
                            Cursor="Hand"
                            Visibility="{Binding SendSuccess,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Boolean2VisibilityReConverter}}">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                <behaviors:InvokeCommandAction Command="{Binding ReSendWhenFaildCommandAsync}"></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
                         <Path Data="{StaticResource error}" Fill="Red" Stretch="Uniform"></Path>
                     </Label>
                     <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"

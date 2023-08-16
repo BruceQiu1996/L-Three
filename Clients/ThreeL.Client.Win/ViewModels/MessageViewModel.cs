@@ -18,14 +18,18 @@ namespace ThreeL.Client.Win.ViewModels
     {
         public string MessageId { get; set; } = Guid.NewGuid().ToString();
         public DateTime SendTime { get; set; }
-        public bool FromSelf { get; set; }
+        public bool FromSelf => App.UserProfile == null ? true : App.UserProfile.UserId == From ? true : false;
         public long From { get; set; }
         public long To { get; set; }
         private bool _sendSuccess = true;
         public bool SendSuccess
         {
             get => _sendSuccess;
-            set => SetProperty(ref _sendSuccess, value);
+            set
+            {
+                SetProperty(ref _sendSuccess, value);
+                CanWithdraw = !Sending && SendSuccess && FromSelf;
+            }
         }
 
         private bool _sending = false;
@@ -37,6 +41,14 @@ namespace ThreeL.Client.Win.ViewModels
         public string SendTimeText { get; set; }
         public bool CanCopy { get; protected set; } = true;
         public bool CanOpenLocation { get; protected set; } = true;
+
+        private bool _canWithdraw;
+        public bool CanWithdraw
+        {
+            get => !Sending && SendSuccess && FromSelf;
+            set => SetProperty(ref _canWithdraw, value);
+        }
+
         public AsyncRelayCommand CopyCommandAsync { get; set; }
         public AsyncRelayCommand WithDrawCommandAsync { get; set; }
         public AsyncRelayCommand LeftButtonClickCommandAsync { get; set; }
@@ -60,7 +72,6 @@ namespace ThreeL.Client.Win.ViewModels
             From = chatRecord.From;
             To = chatRecord.To;
             SendTime = chatRecord.SendTime;
-            FromSelf = App.UserProfile == null ? true : App.UserProfile.UserId == From ? true : false;
         }
 
         /// <summary>
@@ -127,6 +138,7 @@ namespace ThreeL.Client.Win.ViewModels
 
         protected void ExplorerFile(string filePath)
         {
+            if (string.IsNullOrEmpty(filePath)) return;
             FileInfo fileInfo = new FileInfo(filePath);
             Process.Start("Explorer", "/select," + fileInfo.Directory.FullName + "\\" + fileInfo.Name);
         }

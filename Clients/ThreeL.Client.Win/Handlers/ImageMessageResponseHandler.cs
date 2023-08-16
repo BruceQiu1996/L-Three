@@ -21,7 +21,7 @@ using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.Handlers
 {
-    public class ImageMessageResponseHandler : AbstractMessageHandler
+    public class ImageMessageResponseHandler : ClientMessageHandler
     {
         private readonly GrowlHelper _growlHelper;
         private readonly FileHelper _fileHelper;
@@ -47,21 +47,9 @@ namespace ThreeL.Client.Win.Handlers
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
             var packet = message as Packet<ImageMessageResponse>;
-            WeakReferenceMessenger.Default.Send<dynamic, string>(new
-            {
-                packet.Body.MessageId,
-                packet.Body.To,
-            }, "message-send-finished");
-            if (packet != null && !packet.Body.Result) //消息发送失败
-            {
-                WeakReferenceMessenger.Default.Send<dynamic, string>(new
-                {
-                    MessageId = packet.Body.MessageId,
-                    To = packet.Body.To,
-                }, "message-send-faild");
-                _growlHelper.Warning(packet.Body.Message);
+            HandleFromToMessageResponseFromServer(packet.Body);
+            if (!packet.Body.Result)
                 return;
-            }
             FriendViewModel friend = null;
             if (App.UserProfile.UserId == packet.Body.From)
             {
@@ -78,7 +66,6 @@ namespace ThreeL.Client.Win.Handlers
             {
                 var image = new ImageMessageViewModel()
                 {
-                    FromSelf = App.UserProfile.UserId == packet.Body.From,
                     ImageType = packet.Body.ImageType,
                     SendTime = packet.Body.SendTime,
                     MessageId = packet.Body.MessageId,

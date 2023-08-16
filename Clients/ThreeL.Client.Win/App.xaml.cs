@@ -52,6 +52,7 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<IMessageHandler, ImageMessageResponseHandler>();
                 service.AddSingleton<IMessageHandler, FileMessageResponseHandler>();
                 service.AddSingleton<IMessageHandler, LoginCommandResponseHandler>();
+                service.AddSingleton<IMessageHandler, WithdrawMessageResponseHandler>();
                 service.AddSingleton<IMessageHandler, RequestForUserEndpointResponseHandler>();
 
             }).ConfigureLogging((hostCtx, loggingBuilder) =>

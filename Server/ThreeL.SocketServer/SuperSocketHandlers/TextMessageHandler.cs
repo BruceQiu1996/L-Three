@@ -80,11 +80,22 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             var request = _mapper.Map<ChatRecordPostRequest>(body);
             request.MessageRecordType = (int)MessageRecordType.Text;
             //await _saveChatRecordService.WriteRecordAsync(request);
-            await _contextAPIGrpcService.PostChatRecordAsync(request);
-            //分发给发送者和接收者
-            var fromSessions = _sessionManager.TryGet(resp.Body.From);
-            var toSessions = _sessionManager.TryGet(resp.Body.To);
-            await SendMessageBothAsync<Packet<TextMessageResponse>>(fromSessions, toSessions, resp.Body.From, resp.Body.To, resp);
+            var result = await _contextAPIGrpcService.PostChatRecordAsync(request);//还是先使用rpc
+            if (result.Result)
+            {
+                //分发给发送者和接收者
+                var fromSessions = _sessionManager.TryGet(resp.Body.From);
+                var toSessions = _sessionManager.TryGet(resp.Body.To);
+                await SendMessageBothAsync<Packet<ImageMessageResponse>>(fromSessions, toSessions, resp.Body.From, resp.Body.To, resp);
+            }
+            else
+            {
+                body.Result = false;
+                body.Message = "发送文件失败";
+                await appSession.SendAsync(resp.Serialize());
+
+                return;
+            }
         }
     }
 }

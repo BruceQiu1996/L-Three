@@ -38,7 +38,20 @@ namespace ThreeL.Shared.SuperSocket.Handlers
             }
         }
 
+        /// <summary>
+        /// 执行逻辑
+        /// </summary>
+        /// <param name="appSession">client:null，server:client session</param>
+        /// <param name="message">数据包</param>
+        /// <returns></returns>
         public abstract Task ExcuteAsync(IAppSession appSession, IPacket message);
+        /// <summary>
+        /// 执行异常逻辑
+        /// </summary>
+        /// <param name="appSession">client:null，server:client session</param>
+        /// <param name="message">数据包</param>
+        /// <param name="ex">异常</param>
+        /// <returns></returns>
         public virtual Task ExceptionAsync(IAppSession appSession, IPacket message, Exception ex) 
         {
             return Task.CompletedTask;

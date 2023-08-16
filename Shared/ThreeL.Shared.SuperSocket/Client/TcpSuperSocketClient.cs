@@ -14,6 +14,7 @@ namespace ThreeL.Shared.SuperSocket.Client
         private readonly PackageFilter _packageFilter;
         private readonly MessageHandlerDispatcher _messageHandlerDispatcher;
         public Func<CloseEventArgs, Task> DisConnectionEvent { get; set; }
+        Semaphore _semaphore = new Semaphore(1, 1);
         public Action ConnectedEvent { get; set; }
 
         public TcpSuperSocketClient(PackageFilter packageFilter,
@@ -42,21 +43,32 @@ namespace ThreeL.Shared.SuperSocket.Client
 
         public async Task<bool> ConnectAsync(string remoteIP, int remotePort, int retryTimes = 3)
         {
-            bool isConnect = true;
-            int i = 0;
-            while (!await mClient.ConnectAsync(new IPEndPoint(IPAddress.Parse(remoteIP), remotePort)) && i < retryTimes)
-            {
-                isConnect = false;
-                i++;
-                await Task.Delay(1000);
-            }
-
-            Connected = isConnect;
+            _semaphore.WaitOne();
             if (Connected)
+                return true;
+
+            try
             {
-                ConnectedEvent?.Invoke();
+                bool isConnect = true;
+                int i = 0;
+                while (!await mClient.ConnectAsync(new IPEndPoint(IPAddress.Parse(remoteIP), remotePort)) && i < retryTimes)
+                {
+                    isConnect = false;
+                    i++;
+                    await Task.Delay(1000);
+                }
+
+                Connected = isConnect;
+                if (Connected)
+                {
+                    ConnectedEvent?.Invoke();
+                }
+                return isConnect;
             }
-            return isConnect;
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         public async Task<bool> CloseConnectAsync()

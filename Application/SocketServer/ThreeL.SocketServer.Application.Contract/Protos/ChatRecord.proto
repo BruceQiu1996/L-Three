@@ -17,5 +17,13 @@ message ChatRecordPostRequest{
 }
 
 message ChatRecordPostResponse{
+	bool result = 1;
+}
 
+message ChatRecordWithdrawRequest{
+	string messageId = 1;
+}
+
+message ChatRecordWithdrawResponse{
+	bool result = 1;
 }

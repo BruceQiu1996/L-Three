@@ -7,5 +7,6 @@
         Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request);
         Task<ChatRecordPostResponse> PostChatRecordsAsync(IEnumerable<ChatRecordPostRequest> request);
         Task<ChatRecordPostResponse> PostChatRecordAsync(ChatRecordPostRequest request);
+        Task<ChatRecordWithdrawResponse> WithdrawChatRecordAsync(ChatRecordWithdrawRequest request)
     }
 }

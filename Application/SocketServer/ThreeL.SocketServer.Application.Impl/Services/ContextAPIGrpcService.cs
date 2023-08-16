@@ -73,5 +73,10 @@ namespace ThreeL.SocketServer.Application.Impl.Services
         {
             return await _serverServiceClient.PostChatRecordSingleAsync(request, _header);
         }
+
+        public async Task<ChatRecordWithdrawResponse> WithdrawChatRecordAsync(ChatRecordWithdrawRequest request)
+        {
+            return await _serverServiceClient.WithdrawChatRecordAsync(request, _header);
+        }
     }
 }

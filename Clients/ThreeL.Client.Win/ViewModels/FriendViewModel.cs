@@ -43,6 +43,7 @@ namespace ThreeL.Client.Win.ViewModels
 
         public void AddMessage(MessageViewModel message)
         {
+            Messages.Remove(message);
             if (LastMessage == null)
                 Messages.Add(new TimeMessageViewModel()
                 {
@@ -55,7 +56,7 @@ namespace ThreeL.Client.Win.ViewModels
                     DateTime = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(message.SendTime)
                 });
 
-            Messages?.Add(message);
+            Messages.Add(message);
             message.SendTimeText = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(message.SendTime);
             LastMessage = message;
             LastMessageShortDesc = message.GetShortDesc();

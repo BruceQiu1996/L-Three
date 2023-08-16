@@ -10,6 +10,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Handlers;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
@@ -114,18 +115,24 @@ namespace ThreeL.Client.Win.ViewModels
             _tcpSuperSocketClient = tcpSuperSocketClient;
             _messageFileLocationMapper = messageFileLocationMapper;
 
-            WeakReferenceMessenger.Default.Register<ChatViewModel, dynamic, string>(this, "message-send-faild", (x, y) =>
+            WeakReferenceMessenger.Default.Register<ChatViewModel, FromToMessageResponse, string>(this, "message-send-result",
+                (x, y) =>
             {
                 var message = FriendViewModels.FirstOrDefault(x => x.Id == y.To)?
                 .Messages.FirstOrDefault(x => x.MessageId == y.MessageId);
 
                 if (message != null)
                 {
-                    message.SendSuccess = false;
+                    message.SendSuccess = y.Result;
+                    if (!message.SendSuccess && y.From == App.UserProfile.UserId)
+                    {
+                        _growlHelper.Warning($"消息发送失败:[{y.Message}]");
+                    }
                 }
             });
 
-            WeakReferenceMessenger.Default.Register<ChatViewModel, dynamic, string>(this, "message-send-finished", (x, y) =>
+            WeakReferenceMessenger.Default.Register<ChatViewModel, FromToMessageResponse, string>(this, "message-send-finished",
+                (x, y) =>
             {
                 var message = FriendViewModels.FirstOrDefault(x => x.Id == y.To)?
                 .Messages.FirstOrDefault(x => x.MessageId == y.MessageId);
@@ -134,6 +141,24 @@ namespace ThreeL.Client.Win.ViewModels
                 {
                     message.Sending = false;
                 }
+            });
+
+            WeakReferenceMessenger.Default.Register<ChatViewModel, WithdrawMessageResponse, string>(this, "message-withdraw-result",
+                (x, y) =>
+                {
+                    
+                });
+
+            WeakReferenceMessenger.Default.Register<ChatViewModel, MessageViewModel, string>(this, "message-resend",
+                async (x, y) =>
+            {
+                await ResendMessageAsync(y);
+            });
+
+            WeakReferenceMessenger.Default.Register<ChatViewModel, MessageViewModel, string>(this, "message-withdraw",
+                async (x, y) =>
+            {
+                await WithdrawMessageAsync(y);
             });
         }
 
@@ -360,7 +385,6 @@ namespace ThreeL.Client.Win.ViewModels
 
             var viewModel = new TextMessageViewModel()
             {
-                FromSelf = true,
                 Text = textMessage,
                 SendTime = DateTime.Now,
                 From = App.UserProfile.UserId,
@@ -368,12 +392,12 @@ namespace ThreeL.Client.Win.ViewModels
                 Sending = true,
             };
 
-            tempFriend.AddMessage(viewModel);
-            await SendTextMessageByVm(viewModel);
+            await SendTextMessageByVmAsync(viewModel, tempFriend);
         }
 
-        private async Task SendTextMessageByVm(TextMessageViewModel viewModel)
+        private async Task SendTextMessageByVmAsync(TextMessageViewModel viewModel, FriendViewModel friend)
         {
+            friend.AddMessage(viewModel);
             var body = new TextMessage();
             viewModel.ToMessage(body);
             var packet = new Packet<TextMessage>()
@@ -403,10 +427,8 @@ namespace ThreeL.Client.Win.ViewModels
         {
             IsEmojiOpen = false;
             var tempFriend = FriendViewModel;
-
             var viewModel = new ImageMessageViewModel()
             {
-                FromSelf = true,
                 ImageType = ImageType.Network,
                 SendTime = DateTime.Now,
                 From = App.UserProfile.UserId,
@@ -417,12 +439,12 @@ namespace ThreeL.Client.Win.ViewModels
 
             var bytes = await _contextAPIService.DownloadNetworkImageAsync(viewModel.RemoteUrl);
             viewModel.Source = _fileHelper.ByteArrayToBitmapImage(bytes);
-            tempFriend.AddMessage(viewModel);
-            await SendEmojiByVmAsync(viewModel);
+            await SendEmojiByVmAsync(viewModel, tempFriend);
         }
 
-        private async Task SendEmojiByVmAsync(ImageMessageViewModel viewModel)
+        private async Task SendEmojiByVmAsync(ImageMessageViewModel viewModel, FriendViewModel friend)
         {
+            friend.AddMessage(viewModel);
             var body = new ImageMessage();
             viewModel.ToMessage(body);
             var packet = new Packet<ImageMessage>()
@@ -515,10 +537,8 @@ namespace ThreeL.Client.Win.ViewModels
         /// <returns></returns>
         private async Task SendImageFileAsync(FileInfo fileInfo, FriendViewModel friend)
         {
-            var tempFriendViewModel = FriendViewModel;
             var viewModel = new ImageMessageViewModel()
             {
-                FromSelf = true,
                 ImageType = ImageType.Local,
                 SendTime = DateTime.Now,
                 From = App.UserProfile.UserId,
@@ -528,14 +548,16 @@ namespace ThreeL.Client.Win.ViewModels
             };
 
             viewModel.Source = _fileHelper.ByteArrayToBitmapImage(await File.ReadAllBytesAsync(fileInfo.FullName));
-            tempFriendViewModel.AddMessage(viewModel);
-            var fileId = await UploadFileAsync(fileInfo, friend.Id);
-            viewModel.FileId = fileId;
-            await SendImageByVmAsync(viewModel);
+            await SendImageByVmAsync(viewModel, friend, fileInfo);
         }
 
-        private async Task SendImageByVmAsync(ImageMessageViewModel viewModel)
+        private async Task SendImageByVmAsync(ImageMessageViewModel viewModel, FriendViewModel friend, FileInfo fileInfo)
         {
+            friend.AddMessage(viewModel);
+            if (viewModel.FileId == default)
+            {
+                viewModel.FileId = await UploadFileAsync(fileInfo, friend.Id);
+            }
             var body = new ImageMessage();
             viewModel.ToMessage(body);
             var packet = new Packet<ImageMessage>()
@@ -566,10 +588,8 @@ namespace ThreeL.Client.Win.ViewModels
         /// <returns></returns>
         private async Task SendFileAsync(FileInfo fileInfo, FriendViewModel friend)
         {
-            var tempFriendViewModel = FriendViewModel;
             var viewModel = new FileMessageViewModel(fileInfo.Name)
             {
-                FromSelf = true,
                 FileSize = fileInfo.Length,
                 SendTime = DateTime.Now,
                 From = App.UserProfile.UserId,
@@ -578,14 +598,17 @@ namespace ThreeL.Client.Win.ViewModels
                 Sending = true
             };
 
-            tempFriendViewModel.AddMessage(viewModel);
-            var fileId = await UploadFileAsync(fileInfo, friend.Id);
-            viewModel.FileId = fileId;
-            await SendFileByVmAsync(viewModel);
+            await SendFileByVmAsync(viewModel, friend, fileInfo);
         }
 
-        private async Task SendFileByVmAsync(FileMessageViewModel viewModel)
+        private async Task SendFileByVmAsync(FileMessageViewModel viewModel, FriendViewModel friend, FileInfo fileInfo)
         {
+            friend.AddMessage(viewModel);
+            if (viewModel.FileId == default)
+            {
+                var fileId = await UploadFileAsync(fileInfo, viewModel.To);
+                viewModel.FileId = fileId;
+            }
             var body = new FileMessage();
             viewModel.ToMessage(body);
             var packet = new Packet<FileMessage>()
@@ -611,6 +634,76 @@ namespace ThreeL.Client.Win.ViewModels
         private void UploadProgressCallback(object obj, HttpProgressEventArgs args)
         {
             Console.WriteLine(args.ProgressPercentage);
+        }
+
+        /// <summary>
+        /// 重发发送失败的消息
+        /// </summary>
+        /// <param name="viewModel">重新发送的消息模型</param>
+        /// <returns></returns>
+        private async Task ResendMessageAsync(MessageViewModel viewModel)
+        {
+            var friend = FriendViewModels.FirstOrDefault(x => x.Id == viewModel.To);
+            if (friend == null)
+            {
+                return;
+            }
+            viewModel.SendTime = DateTime.Now;
+            if (viewModel is TextMessageViewModel)
+            {
+                await SendTextMessageByVmAsync(viewModel as TextMessageViewModel, friend);
+            }
+            else if (viewModel is ImageMessageViewModel)
+            {
+                var image = viewModel as ImageMessageViewModel;
+                if (image.ImageType == ImageType.Local)
+                {
+                    await SendImageByVmAsync(image, friend, image.FileId == default ? new FileInfo(image.Location) : null);
+                }
+                else
+                {
+                    await SendEmojiByVmAsync(image, friend);
+                }
+            }
+            else if (viewModel is FileMessageViewModel)
+            {
+                var file = viewModel as FileMessageViewModel;
+                if (file.FileId == default && !File.Exists(file.Location))
+                    return;
+
+                await SendFileByVmAsync(file, friend, file.FileId == default ? new FileInfo(file.Location) : null);
+            }
+        }
+
+        /// <summary>
+        /// 撤回消息
+        /// </summary>
+        /// <param name="viewModel">重新发送的消息模型</param>
+        /// <returns></returns>
+        private async Task WithdrawMessageAsync(MessageViewModel viewModel)
+        {
+            if (!viewModel.FromSelf)
+                return;
+
+            var packet = new Packet<WithdrawMessage>()
+            {
+                Sequence = _sequenceIncrementer.GetNextSequence(),
+                MessageType = MessageType.File,
+                Body = new WithdrawMessage()
+                {
+                    From = viewModel.From,
+                    To = viewModel.To,
+                    WithdrawMessageId = viewModel.MessageId
+                }
+            };
+
+            var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+            if (!sendResult)
+            {
+                viewModel.Sending = false;
+                viewModel.SendSuccess = false;
+                _growlHelper.Warning("撤回消息失败，请稍后再试");
+            }
         }
 
         public bool IsRealImage(string path)
