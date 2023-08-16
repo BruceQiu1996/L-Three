@@ -71,6 +71,7 @@ CREATE TABLE ChatRecord(
     ImageType int,
     SendTime datetime,
     FileId bigint,
+    Withdrawed bit NOT NULL,
 );
 INSERT INTO FRIEND(Activer,Passiver,ActiverRemark,PassiverRemark,createTime) VALUES(1,2,NULL,'big b bro',GETDATE())
 
