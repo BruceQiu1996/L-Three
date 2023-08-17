@@ -81,7 +81,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             var body = new WithdrawMessageResponse();
             resp.Body = body;
             body.Result = false;
-            body.Message = "服务器异常";
+            body.Message = ex.Message;
             body.WithdrawMessageId = packet.Body.WithdrawMessageId;
             await appSession.SendAsync(resp.Serialize());
         }

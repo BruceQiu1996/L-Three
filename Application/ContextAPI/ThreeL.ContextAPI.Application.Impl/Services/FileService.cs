@@ -9,7 +9,7 @@ using ThreeL.Infra.Repository.IRepositories;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services
 {
-    public class FileService : IFileService, IAppService
+    public class FileService : IFileService
     {
         private readonly FileStorageOptions _storageOptions;
         private readonly IAdoQuerierRepository<ContextAPIDbContext> _adoQuerierRepository;

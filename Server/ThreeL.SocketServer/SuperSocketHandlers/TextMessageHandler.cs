@@ -46,9 +46,10 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             };
 
             var body = new TextMessageResponse();
+            _mapper.Map(packet.Body, body);
             resp.Body = body;
             body.Result = false;
-            body.Message = "服务器异常";
+            body.Message = ex.Message;
             await appSession.SendAsync(resp.Serialize());
         }
 

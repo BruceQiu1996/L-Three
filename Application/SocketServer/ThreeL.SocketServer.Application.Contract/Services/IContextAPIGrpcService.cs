@@ -1,6 +1,8 @@
-﻿namespace ThreeL.SocketServer.Application.Contract.Services
+﻿using ThreeL.ContextAPI.Application.Contract.Services;
+
+namespace ThreeL.SocketServer.Application.Contract.Services
 {
-    public interface IContextAPIGrpcService
+    public interface IContextAPIGrpcService : IAppService
     {
         Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request, string token);
         Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request, string token);

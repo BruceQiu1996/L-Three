@@ -18,7 +18,7 @@ using ThreeL.Shared.Application.Contract.Helpers;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services
 {
-    public class UserService : IAppService, IUserService
+    public class UserService : IUserService
     {
         private const string RefreshTokenIdClaimType = "refresh_token_id";
         private readonly IAdoQuerierRepository<ContextAPIDbContext> _adoQuerierRepository;
@@ -63,7 +63,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
         public async Task<UserLoginResponseDto> LoginAsync(UserLoginDto userLoginDto)
         {
             var user = await _adoQuerierRepository.QueryFirstOrDefaultAsync<User>("SELECT * FROM [User] WHERE userName = @UserName AND isDeleted = 0",
-                new { userLoginDto.UserName, userLoginDto.Password }); ;
+                new { userLoginDto.UserName }); ;
 
             if (user == null)
                 return default;
@@ -92,6 +92,23 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             }
         }
 
+        public async Task<bool> LoginByCodeAsync(UserLoginDto userLoginDto)
+        {
+            var user = await _adoQuerierRepository.QueryFirstOrDefaultAsync<User>("SELECT * FROM [User] WHERE userName = @UserName AND isDeleted = 0",
+                new { userLoginDto.UserName }); ;
+
+            if (user == null)
+                return false;
+
+            await _adoExecuterRepository.ExecuteAsync($"update [user] set lastLoginTime = @Time where id=@Id", new
+            {
+                Time = DateTime.Now,
+                user.Id
+            });
+
+            return true;
+        }
+
         private async Task<(string accessToken, string refreshToken)> CreateTokenAsync(User user, string origin)
         {
             var settings = await _redisProvider.HGetAllAsync<JwtSetting>(Const.REDIS_JWT_SECRET_KEY);
@@ -99,7 +116,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 .FirstOrDefault(x => x.Key.StartsWith(_systemOptions.Name)
                 && x.Value.Issuer == _jwtOptions.Issuer).Value;
 
-            var refreshToken = await CreateRefreshTokenAsync(user.UserName);
+            var refreshToken = await CreateRefreshTokenAsync(user.Id);
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, user.Id.ToString()),
@@ -112,9 +129,9 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var signingCredentials = new SigningCredentials(secretKey, algorithm);
             var jwtSecurityToken = new JwtSecurityToken(
                 _jwtOptions.Issuer,             //Issuer
-                origin,          //Audience TODO 客户端携带客户端类型头
-                claims,                          //Claims,
-                DateTime.Now,                    //notBefore
+                origin,                         //Audience TODO 客户端携带客户端类型头
+                claims, 
+                null,
                 DateTime.Now.AddSeconds(_jwtOptions.TokenExpireSeconds),    //expires
                 signingCredentials               //Credentials
             );
@@ -122,14 +139,14 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             return (new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken), refreshToken.refreshToken);
         }
 
-        private async Task<(string refreshTokenId, string refreshToken)> CreateRefreshTokenAsync(string userName)
+        private async Task<(string refreshTokenId, string refreshToken)> CreateRefreshTokenAsync(long userId)
         {
             var tokenId = Guid.NewGuid().ToString("N");
             var rnBytes = new byte[32];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(rnBytes);
             var token = Convert.ToBase64String(rnBytes);
-            await _redisProvider.StringSetAsync($"refresh-token:{userName}-{tokenId}", token, TimeSpan.FromSeconds(_jwtOptions.RefreshTokenExpireSeconds));
+            await _redisProvider.StringSetAsync($"refresh-token:{userId}-{tokenId}", token, TimeSpan.FromSeconds(_jwtOptions.RefreshTokenExpireSeconds));
 
             return (tokenId, token);
         }
@@ -143,16 +160,16 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var principal = handler.ValidateToken(token.AccessToken, validationParameters, out _);
 
             var identity = principal.Identities.First();
-            var userName = identity.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+            var userId = identity.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
             var refreshTokenId = identity.Claims.FirstOrDefault(c => c.Type == RefreshTokenIdClaimType)?.Value;
-            var refreshToken = await _redisProvider.StringGetAsync($"refresh-token:{userName}-{refreshTokenId}");
+            var refreshToken = await _redisProvider.StringGetAsync($"refresh-token:{userId}-{refreshTokenId}");
             if (refreshToken != token.RefreshToken)
             {
                 return null;
             }
 
-            await _redisProvider.KeyDelAsync($"refresh-token:{userName}-{refreshTokenId}");
-            var user = await _adoQuerierRepository.QueryFirstOrDefaultAsync<User>($"SELECT * FROM [User] WHERE userName = @UserName AND isDeleted = 0", new { UserName = userName });
+            await _redisProvider.KeyDelAsync($"refresh-token:{userId}-{refreshTokenId}");
+            var user = await _adoQuerierRepository.QueryFirstOrDefaultAsync<User>($"SELECT * FROM [User] WHERE Id = @UserId AND isDeleted = 0", new { UserId = userId });
             if (user == null)
             {
                 return null;

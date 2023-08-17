@@ -32,7 +32,7 @@ public class LoginCommandHandler : AbstractMessageHandler
             _sessionManager.TryAddOrUpdate(session.UserId, session);
         }
 
-        await appSession.SendAsync(new Packet<LoginCommandResponse>()
+        var respPacket = new Packet<LoginCommandResponse>()
         {
             MessageType = MessageType.LoginResponse,
             Sequence = packet.Sequence,
@@ -41,6 +41,24 @@ public class LoginCommandHandler : AbstractMessageHandler
                 Result = resp.Result,
                 SsToken = resp.Result ? session.SsToken : null,
             }
-        }.Serialize());
+        };
+        await appSession.SendAsync(respPacket.Serialize());
+    }
+
+    public async override Task ExceptionAsync(IAppSession appSession, IPacket message, Exception ex)
+    {
+        var packet = message as Packet<LoginCommand>;
+        var resp = new Packet<LoginCommandResponse>()
+        {
+            Sequence = packet.Sequence,
+            Checkbit = packet.Checkbit,
+            MessageType = MessageType.LoginResponse,
+        };
+
+        var body = new LoginCommandResponse();
+        resp.Body = body;
+        body.Result = false;
+        body.Message = ex.Message;
+        await appSession.SendAsync(resp.Serialize());
     }
 }

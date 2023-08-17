@@ -2,14 +2,13 @@
 using ThreeL.ContextAPI.Application.Contract.Configurations;
 using ThreeL.ContextAPI.Application.Contract.Dtos.Relation;
 using ThreeL.ContextAPI.Application.Contract.Services;
-using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
 using ThreeL.Infra.Redis;
 using ThreeL.Infra.Repository.IRepositories;
 using ThreeL.Shared.Application.Contract.Services;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services
 {
-    public class FriendService : IFriendService, IAppService, IPreheatService
+    public class FriendService : IFriendService, IPreheatService
     {
         private readonly IAdoQuerierRepository<ContextAPIDbContext> _adoQuerierRepository;
         private readonly IAdoExecuterRepository<ContextAPIDbContext> _adoExecuterRepository;

@@ -5,7 +5,7 @@ using ThreeL.SocketServer.Application.Contract.Services;
 
 namespace ThreeL.SocketServer.Application.Impl.Services
 {
-    public class MessageHandlerService : IMessageHandlerService, IAppService
+    public class MessageHandlerService : IMessageHandlerService
     {
         private readonly IRedisProvider _redisProvider;
         public MessageHandlerService(IRedisProvider redisProvider)

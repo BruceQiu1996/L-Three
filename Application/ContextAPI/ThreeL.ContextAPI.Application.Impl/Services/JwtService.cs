@@ -16,7 +16,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
     /// <summary>
     /// 管理jwt secret key
     /// </summary>
-    public class JwtService : IJwtService, IAppService, IPreheatService
+    public class JwtService : IJwtService, IPreheatService
     {
         private readonly IOptions<JwtOptions> _jwtOptions;
         private readonly IOptions<SystemOptions> _systemOptions;

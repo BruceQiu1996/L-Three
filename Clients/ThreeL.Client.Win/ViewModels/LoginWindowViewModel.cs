@@ -11,6 +11,7 @@ using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Win.Helpers;
+using ThreeL.Shared.SuperSocket.Client;
 
 namespace ThreeL.Client.Win.ViewModels
 {
@@ -19,18 +20,24 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly ContextAPIService _contextAPIService;
         private readonly ClientSqliteContext _clientSqliteContext;
         private readonly GrowlHelper _growlHelper;
+        private readonly CustomerSettings _customerSettings;
+        private readonly TcpSuperSocketClient _tcpSuperSocketClient;
         public LoginWindowViewModel(ContextAPIService contextAPIService,
                                     GrowlHelper growlHelper,
+                                    CustomerSettings customerSettings,
+                                    TcpSuperSocketClient tcpSuperSocketClient,
                                     ClientSqliteContext clientSqliteContext)
         {
-            UserName = "Bruce";
             _growlHelper = growlHelper;
+            _customerSettings = customerSettings;
             _contextAPIService = contextAPIService;
             _clientSqliteContext = clientSqliteContext;
+            _tcpSuperSocketClient = tcpSuperSocketClient;
             _contextAPIService.TryRefreshTokenAsync = RefreshTokenAsync;
             _contextAPIService.ExcuteWhileUnauthorizedAsync = ExcuteWhileUnauthorizedAsync;
             _contextAPIService.ExcuteWhileBadRequestAsync = ExcuteWhileBadRequestAsync;
             LoginCommandAsync = new AsyncRelayCommand<PasswordBox>(LoginAsync);
+            LoadedCommandAsync = new AsyncRelayCommand(LoadedAsync);
         }
 
         public string _userName;
@@ -40,11 +47,16 @@ namespace ThreeL.Client.Win.ViewModels
             set { SetProperty(ref _userName, value); }
         }
 
+        public AsyncRelayCommand LoadedCommandAsync { get; set; }
         public AsyncRelayCommand<PasswordBox> LoginCommandAsync { get; set; }
+
+        private async Task LoadedAsync()
+        {
+
+        }
 
         private async Task LoginAsync(PasswordBox password)
         {
-            password.Password = "123456";
             var data = await _contextAPIService.PostAsync<UserLoginResponseDto>(Const.LOGIN, new UserLoginDto
             {
                 UserName = UserName,
@@ -59,21 +71,21 @@ namespace ThreeL.Client.Win.ViewModels
                     (_clientSqliteContext.dbConnection, $"select * from userprofile where userId = {data.UserId}");
                 if (user == null)
                 {
-                    await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, 
+                    await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection,
                         $"insert into userprofile (UserId,UserName,Role,AccessToken,RefreshToken) values (@UserId,@UserName,@Role,@AccessToken,@RefreshToken)", data);
                 }
                 else
                 {
-                    await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, 
+                    await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection,
                         $"update userprofile set UserName = @UserName,Role =@Role,AccessToken = @AccessToken, RefreshToken = @RefreshToken where UserId = @UserId", data);
                 }
 
-                await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection, 
+                await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection,
                     $"update userprofile set LastLoginTime = @LastLoginTime where UserId = @UserId", new
-                {
-                    LastLoginTime = DateTime.Now,
-                    data.UserId
-                });
+                    {
+                        LastLoginTime = DateTime.Now,
+                        data.UserId
+                    });
 
                 App.UserProfile = new UserProfile()
                 {
@@ -84,38 +96,62 @@ namespace ThreeL.Client.Win.ViewModels
                     Role = data.Role,
                 };
                 App.ServiceProvider.GetRequiredService<MainWindow>().Show();
-                App.ServiceProvider.GetRequiredService<Login>().Close();
+                App.ServiceProvider.GetRequiredService<Login>().Hide();
             }
         }
 
+        /// <summary>
+        /// token失效后，通过refreshtoken重新获取token
+        /// </summary>
+        /// <returns></returns>
         private async Task<bool> RefreshTokenAsync()
         {
-            if (string.IsNullOrEmpty(App.UserProfile?.RefreshToken) || string.IsNullOrEmpty(App.UserProfile?.AccessToken)) 
+            if (string.IsNullOrEmpty(App.UserProfile?.RefreshToken) || string.IsNullOrEmpty(App.UserProfile?.AccessToken))
             {
                 return false;
             }
 
-            var token = await _contextAPIService.RefreshTokenAsync<UserRefreshTokenDto>(new UserRefreshTokenDto
-            {
-                Origin = "win",
-                AccessToken = App.UserProfile.AccessToken,
-                RefreshToken =App.UserProfile.RefreshToken 
-            });
+            var token = await _contextAPIService
+                .RefreshTokenAsync<UserRefreshTokenDto>(new UserRefreshTokenDto
+                {
+                    Origin = "win",
+                    AccessToken = App.UserProfile.AccessToken,
+                    RefreshToken = App.UserProfile.RefreshToken
+                });
 
-            if (token == null) 
+            if (token == null)
             {
                 return false;
             }
 
             App.UserProfile.RefreshToken = token.RefreshToken;
             App.UserProfile.AccessToken = token.AccessToken;
-
+            _contextAPIService.SetToken(App.UserProfile.AccessToken);
+            //更新数据库accessToken&refreshToken
+            await SqlMapper.ExecuteAsync(_clientSqliteContext.dbConnection,
+                               $"update userprofile set AccessToken = @AccessToken, RefreshToken = @RefreshToken where UserId = @UserId", new
+                               {
+                                   token.AccessToken,
+                                   token.RefreshToken,
+                                   App.UserProfile.UserId
+                               });
             return true;
         }
 
+        /// <summary>
+        /// 通过refreshtokn和accesstoken后仍旧过期的话
+        /// </summary>
+        /// <returns></returns>
         private async Task ExcuteWhileUnauthorizedAsync()
         {
+            _growlHelper.Warning("登录凭证失效");
+            App.UserProfile.Clear();
             //退出到登陆界面，并且断开所有socket连接
+            App.ServiceProvider.GetRequiredService<MainWindow>().Hide();
+            //关闭tcp连接
+            await _tcpSuperSocketClient.CloseConnectAsync();
+            //停下udp监听 TODO
+            App.ServiceProvider.GetRequiredService<Login>().Show();
         }
 
         private Task ExcuteWhileBadRequestAsync(string message)

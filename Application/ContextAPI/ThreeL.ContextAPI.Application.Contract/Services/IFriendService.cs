@@ -1,9 +1,8 @@
-﻿using System;
-using ThreeL.ContextAPI.Application.Contract.Dtos.Relation;
+﻿using ThreeL.ContextAPI.Application.Contract.Dtos.Relation;
 
 namespace ThreeL.ContextAPI.Application.Contract.Services
 {
-    public interface IFriendService
+    public interface IFriendService : IAppService
     {
         Task<IEnumerable<FriendDto>> GetFriendsAsync(long userId);
         Task<bool> IsFriendAsync(long userId, long fUserId);

@@ -36,6 +36,17 @@ namespace ThreeL.ContextAPI.Controllers
             return Ok(resp);
         }
 
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        [HttpPost("login/code")]
+        public async Task<ActionResult> LoginByCode(UserLoginDto creationDto)
+        {
+            var result = await _userService.LoginByCodeAsync(creationDto);
+            if (!result)
+                return NotFound();
+
+            return Ok();
+        }
+
         [AllowAnonymous]
         [HttpPost("refresh/token")]
         public async Task<ActionResult> RefreshToken(UserRefreshTokenDto tokenDto)

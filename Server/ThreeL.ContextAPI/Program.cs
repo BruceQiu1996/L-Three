@@ -15,6 +15,7 @@ using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Application.Impl;
 using ThreeL.ContextAPI.Application.Impl.Services.Grpc;
 using ThreeL.Shared.Application.Contract.Extensions;
+using ThreeL.Shared.Application.Middlewares;
 
 namespace ThreeL.ContextAPI;
 
@@ -33,7 +34,7 @@ internal class Program
         builder.Host.ConfigureServices((hostContext, services) =>
         {
             services.AddGrpc();
-            services.AddContextAPIApplicationService(hostContext.Configuration, appAssemblyInfo.ContractAssembly);
+            services.AddContextAPIApplicationService(hostContext.Configuration, appAssemblyInfo.ContractAssembly, appAssemblyInfo.ImplementAssembly);
             services.AddMemoryCache();
             services.AddControllers();
             services.AddEndpointsApiExplorer();
@@ -108,7 +109,7 @@ internal class Program
         host.UseRouting();
         host.UseAuthentication();
         host.UseAuthorization();
-        //host.UseMiddleware<AuthorizeStaticFilesMiddleware>("/files"); //授权静态文件访问
+        //host.UseMiddleware<AuthorizeStaticFilesMiddleware>("/files"); //授权静态文件访问,如果使用，则表情获取那需要自己控制下载
         host.UseStaticFiles(new StaticFileOptions()
         {
             OnPrepareResponse = ctx =>

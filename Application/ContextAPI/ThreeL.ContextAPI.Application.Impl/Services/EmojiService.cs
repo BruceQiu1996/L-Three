@@ -5,7 +5,7 @@ using ThreeL.Infra.Repository.IRepositories;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services
 {
-    public class EmojiService : IEmojiService, IAppService
+    public class EmojiService : IEmojiService
     {
         private readonly IAdoQuerierRepository<ContextAPIDbContext> _adoQuerierRepository;
         public EmojiService(IAdoQuerierRepository<ContextAPIDbContext> adoQuerierRepository)

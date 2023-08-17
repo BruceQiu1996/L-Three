@@ -1,19 +1,18 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Extensions.Options;
-using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.Shared.Application.Contract.Services;
 using ThreeL.SocketServer.Application.Contract;
 using ThreeL.SocketServer.Application.Contract.Configurations;
+using ThreeL.SocketServer.Application.Contract.Interceptors;
 using ThreeL.SocketServer.Application.Contract.Services;
 
 namespace ThreeL.SocketServer.Application.Impl.Services
 {
-    public class ContextAPIGrpcService : IContextAPIGrpcService, IAppService, IPreheatService
+    public class ContextAPIGrpcService : IContextAPIGrpcService, IPreheatService
     {
         private SocketServerService.SocketServerServiceClient _serverServiceClient;
         private readonly ContextAPIOptions _contextAPIOptions;
-        private Metadata _header = new();
 
         public ContextAPIGrpcService(IOptions<ContextAPIOptions> options)
         {
@@ -38,6 +37,7 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             return Task.CompletedTask;
         }
 
+        [GrpcException]
         public async Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request, string token)
         {
             return await _serverServiceClient.SocketServerUserLoginAsync(request, new Metadata()
@@ -46,6 +46,7 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             });
         }
 
+        [GrpcException]
         public async Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request, string token)
         {
             return await _serverServiceClient.FetchFileInfoAsync(request, new Metadata()
@@ -54,6 +55,7 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             });
         }
 
+        [GrpcException]
         public async Task<ChatRecordPostResponse> PostChatRecordsAsync(IEnumerable<ChatRecordPostRequest> requests, string token)
         {
             var call = _serverServiceClient.PostChatRecord(new Metadata()
@@ -70,6 +72,7 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             return await call.ResponseAsync;
         }
 
+        [GrpcException]
         public async Task<ChatRecordPostResponse> PostChatRecordAsync(ChatRecordPostRequest request, string token)
         {
             return await _serverServiceClient.PostChatRecordSingleAsync(request, new Metadata()
@@ -78,6 +81,7 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             });
         }
 
+        [GrpcException]
         public async Task<ChatRecordWithdrawResponse> WithdrawChatRecordAsync(ChatRecordWithdrawRequest request, string token)
         {
             return await _serverServiceClient.WithdrawChatRecordAsync(request, new Metadata()

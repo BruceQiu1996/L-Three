@@ -1,6 +1,7 @@
 ﻿using Autofac.Extras.DynamicProxy;
 using AutoMapper;
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using ThreeL.ContextAPI.Application.Contract.Protos;
 using ThreeL.ContextAPI.Domain.Aggregates.File;
 using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
@@ -26,6 +27,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             _adoExecuterRepository = adoExecuterRepository;
         }
 
+        [Authorize]
         public async override Task<SocketServerUserLoginResponse> SocketServerUserLogin(SocketServerUserLoginRequest request, ServerCallContext context)
         {
             var userIdentity = context.GetHttpContext().User.Identity?.Name;
@@ -38,6 +40,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             return new SocketServerUserLoginResponse() { Result = (user != null) };
         }
 
+        [Authorize]
         public async override Task<FileInfoResponse> FetchFileInfo(FileInfoRequest request, ServerCallContext context)
         {
             var userIdentity = context.GetHttpContext().User.Identity?.Name;
@@ -62,6 +65,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             };
         }
 
+        [Authorize]
         [DapperUnitOfWork]
         public async override Task<ChatRecordPostResponse> PostChatRecord(IAsyncStreamReader<ChatRecordPostRequest> requestStream, ServerCallContext context)
         {
@@ -87,6 +91,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
         }
 
+        [Authorize]
         [DapperUnitOfWork]
         public async override Task<ChatRecordPostResponse> PostChatRecordSingle(ChatRecordPostRequest request, ServerCallContext context)
         {
@@ -106,6 +111,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
         }
 
+        [Authorize]
         [DapperUnitOfWork]
         public async override Task<ChatRecordWithdrawResponse> WithdrawChatRecord(ChatRecordWithdrawRequest request, ServerCallContext context)
         {
