@@ -1,4 +1,5 @@
 ﻿using Autofac.Extensions.DependencyInjection;
+using HandyControl.Controls;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,6 +12,7 @@ using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Handlers;
 using ThreeL.Client.Win.Helpers;
+using ThreeL.Client.Win.MyControls;
 using ThreeL.Client.Win.Pages;
 using ThreeL.Client.Win.ViewModels;
 using ThreeL.Shared.SuperSocket.Extensions;
@@ -41,6 +43,7 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<LoginWindowViewModel>();
                 service.AddSingleton<Chat>();
                 service.AddSingleton<ChatViewModel>();
+                service.AddSingleton<MyScreenShotWindow>();
                 service.AddSingleton<GrowlHelper>();
                 service.AddSingleton<FileHelper>();
                 service.AddSingleton<DateTimeHelper>();
@@ -68,7 +71,8 @@ namespace ThreeL.Client.Win
 
             var host = builder.Build();
             ServiceProvider = host.Services;
-            host.Services.GetRequiredService<Login>().Show();
+            host.Services.GetRequiredService<Login>().Show(); //TODO 测试
+
             await host.RunAsync();
         }
     }

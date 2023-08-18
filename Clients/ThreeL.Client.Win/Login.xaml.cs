@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Windows;
+using ThreeL.Client.Win.MyControls;
 using ThreeL.Client.Win.ViewModels;
 
 namespace ThreeL.Client.Win
@@ -29,6 +31,13 @@ namespace ThreeL.Client.Win
         private void Label_MouseLeftButtonDown_1(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             Application.Current.Shutdown();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            new HandyControl.Controls.Screenshot().Start();
+            
+            App.ServiceProvider.GetRequiredService<MyScreenShotWindow>().Show();
         }
     }
 }

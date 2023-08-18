@@ -106,7 +106,14 @@
                           FontSize="15"
                           IsChecked="{Binding IsRemember}"
                           HorizontalAlignment="Right"/>-->
-
+                <Button Content="截图" 
+                        Cursor="Hand"
+                        IsDefault="True"
+                        CommandParameter="{Binding ElementName=pwd}"
+                        Click="Button_Click"
+                        FontSize="15" Height="35"
+                        Style="{StaticResource ButtonPrimary}" Width="320" Margin="20 40 20 0"></Button>
+                
                 <Button Content="登录" 
                         Cursor="Hand"
                         IsDefault="True"
