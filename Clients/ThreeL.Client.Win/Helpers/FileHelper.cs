@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -103,6 +104,15 @@ namespace ThreeL.Client.Win.Helpers
             {
                 return $"{size / (1024 * 1024)}MB";
             }
+        }
+
+        public void OpenFile(string fileName) 
+        {
+            ProcessStartInfo processStartInfo = new ProcessStartInfo(fileName);
+            Process process = new Process();
+            process.StartInfo = processStartInfo;
+            process.StartInfo.UseShellExecute = true;
+            process.Start();
         }
     }
 }

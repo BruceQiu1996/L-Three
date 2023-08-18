@@ -1,81 +1,85 @@
 ﻿using Castle.DynamicProxy;
 using Grpc.Core;
+using ThreeL.Infra.Core.CSharp;
 
 namespace ThreeL.SocketServer.Application.Contract.Interceptors
 {
-    public class GrpcExceptionAsyncInterceptor : IAsyncInterceptor
+    /// <summary>
+    /// grpc通信异常
+    /// </summary>
+    public class GrpcExceptionAsyncInterceptor : AsyncInterceptorBase
     {
-        //异步方法
-        public void InterceptAsynchronous(IInvocation invocation)
+        protected async override Task InterceptAsync(IInvocation invocation, IInvocationProceedInfo proceedInfo,
+            Func<IInvocation, IInvocationProceedInfo, Task> proceed)
         {
-            try
+            var attribute = invocation.GetAttribute<GrpcExceptionAttribute>();
+            if (attribute == null)
             {
-                invocation.Proceed();
-                var task = (Task)invocation.ReturnValue;
-                invocation.ReturnValue = task;
+                await proceed(invocation, proceedInfo);
             }
-            catch (RpcException ex)
+            else
             {
-                if (ex.StatusCode == StatusCode.Unauthenticated)
+                try
                 {
-                    throw new Exception("登录凭证过期,请重新登陆");
+                    await proceed(invocation, proceedInfo);
                 }
+                catch (RpcException ex)
+                {
+                    if (ex.StatusCode == StatusCode.Unauthenticated)
+                    {
+                        throw new Exception("登录凭证过期,请重新登录");
+                    }
 
-                throw new Exception("服务器通信异常");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("服务器通信异常");
+                    if (ex.StatusCode == StatusCode.PermissionDenied) 
+                    {
+                        throw new Exception("权限验证异常");
+                    }
+
+                    throw new Exception("服务器通信异常");
+                }
+                catch
+                {
+                    throw new Exception("服务器通信异常");
+                }
             }
         }
 
-
-        //异步方法带返回值
-        public void InterceptAsynchronous<TResult>(IInvocation invocation)
+        protected async override Task<TResult> InterceptAsync<TResult>(IInvocation invocation, IInvocationProceedInfo proceedInfo,
+            Func<IInvocation, IInvocationProceedInfo, Task<TResult>> proceed)
         {
-            try
+            var attribute = invocation.GetAttribute<GrpcExceptionAttribute>();
+            TResult result = default(TResult);
+            if (attribute == null)
             {
-
-                invocation.Proceed();
-                var task = (Task<TResult>)invocation.ReturnValue;
-                invocation.ReturnValue = task;
+                result = await proceed(invocation, proceedInfo);
             }
-            catch (RpcException ex)
+            else
             {
-                if (ex.StatusCode == StatusCode.Unauthenticated)
+                try
                 {
-                    throw new Exception("登录凭证过期,请重新登陆");
+                    result = await proceed(invocation, proceedInfo);
                 }
-
-                throw new Exception("服务器通信异常");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("服务器通信异常");
-            }
-        }
-
-        //同步方法
-        public void InterceptSynchronous(IInvocation invocation)
-        {
-            try
-            {
-
-                invocation.Proceed();
-            }
-            catch (RpcException ex)
-            {
-                if (ex.StatusCode == StatusCode.Unauthenticated)
+                catch (RpcException ex)
                 {
-                    throw new Exception("登录凭证过期,请重新登陆");
-                }
+                    if (ex.StatusCode == StatusCode.Unauthenticated)
+                    {
+                        throw new Exception("登录凭证过期,请重新登录");
+                    }
 
-                throw new Exception("服务器通信异常");
+                    if (ex.StatusCode == StatusCode.PermissionDenied)
+                    {
+                        throw new Exception("权限验证异常");
+                    }
+
+                    throw new Exception("服务器通信异常");
+                }
+                catch
+                {
+                    throw new Exception("服务器通信异常");
+                }
             }
-            catch (Exception ex)
-            {
-                throw new Exception("服务器通信异常");
-            }
+
+            return result;
         }
     }
 }

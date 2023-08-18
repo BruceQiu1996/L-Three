@@ -11,11 +11,9 @@ namespace ThreeL.ContextAPI.Application.Contract.Extensions
 {
     public static class ServiceExtensions
     {
-        public static void AddContextAPIApplicationService(this IServiceCollection services, IConfiguration configuration, Assembly contractAssembly, Assembly implAssembly)
+        public static void AddContextAPIApplicationService(this IServiceCollection services, IConfiguration configuration, Assembly contractAssembly)
         {
-            services.AddScoped<DapperUowInterceptor>();
-            services.AddScoped<DapperUowAsyncInterceptor>();
-            services.AddApplicationService(configuration, contractAssembly, implAssembly, new List<Type> { typeof(DapperUowInterceptor) });
+            services.AddApplicationService(configuration, contractAssembly);
             services.Configure<DbConnectionOptions>(configuration.GetSection("ContextAPIDbConnection"));
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
             services.Configure<FileStorageOptions>(configuration.GetSection("FileStorage"));
@@ -23,7 +21,8 @@ namespace ThreeL.ContextAPI.Application.Contract.Extensions
 
         public static void AddContextAPIApplicationContainer(this ContainerBuilder container, Assembly implAssembly)
         {
-            container.AddApplicationContainer(implAssembly, new List<Type> { typeof(DapperUowInterceptor) });
+            container.RegisterType<DapperUowAsyncInterceptor>();
+            container.AddApplicationContainer(implAssembly, new List<Type> { typeof(AsyncInterceptorAdaper<DapperUowAsyncInterceptor>) });
         }
     }
 }

@@ -1,0 +1,23 @@
+﻿using Grpc.Core;
+using ThreeL.ContextAPI.Application.Contract.Protos;
+using ThreeL.Shared.Application.Contract.Attributes;
+
+namespace ThreeL.ContextAPI.Application.Contract.Services
+{
+    public interface IGrpcService : IAppService
+    {
+        [DapperUnitOfWork]
+        Task<SocketServerUserLoginResponse> SocketServerUserLogin(SocketServerUserLoginRequest request, ServerCallContext context);
+
+        Task<FileInfoResponse> FetchFileInfo(FileInfoRequest request, ServerCallContext context);
+
+        [DapperUnitOfWork]
+        Task<ChatRecordPostResponse> PostChatRecord(IAsyncStreamReader<ChatRecordPostRequest> requestStream, ServerCallContext context);
+
+        [DapperUnitOfWork]
+        Task<ChatRecordPostResponse> PostChatRecordSingle(ChatRecordPostRequest request, ServerCallContext context);
+
+        [DapperUnitOfWork]
+        Task<ChatRecordWithdrawResponse> WithdrawChatRecord(ChatRecordWithdrawRequest request, ServerCallContext context);
+    }
+}

@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http.Handlers;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
@@ -39,6 +40,7 @@ namespace ThreeL.Client.Win.ViewModels
         public AsyncRelayCommand<SelectEmojiClickRoutedEventArgs> AddEmojiCommandAsync { get; set; }
         public AsyncRelayCommand SendMessageCommandAsync { get; set; }
         public AsyncRelayCommand ChooseFileSendCommandAsync { get; set; }
+        public AsyncRelayCommand<KeyEventArgs> SendTextboxKeyDownCommandAsync { get; set; }
 
         private ObservableCollection<FriendViewModel> friendViewModels;
         public ObservableCollection<FriendViewModel> FriendViewModels
@@ -110,6 +112,7 @@ namespace ThreeL.Client.Win.ViewModels
             AddEmojiCommandAsync = new AsyncRelayCommand<SelectEmojiClickRoutedEventArgs>(SendEmojiAsync);
             OpenEmojiCommand = new RelayCommand(OpenEmoji);
             ChooseFileSendCommandAsync = new AsyncRelayCommand(ChooseFileSendAsync);
+            SendTextboxKeyDownCommandAsync = new AsyncRelayCommand<KeyEventArgs>(SendTextboxKeyDownAsync);
             _sequenceIncrementer = sequenceIncrementer;
             _tcpSuperSocketClient = tcpSuperSocketClient;
             _messageFileLocationMapper = messageFileLocationMapper;
@@ -244,6 +247,14 @@ namespace ThreeL.Client.Win.ViewModels
             }
         }
 
+        private async Task SendTextboxKeyDownAsync(KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                await SendTextMessageAsync();
+            }
+        }
+
         /// <summary>
         /// 从服务器拉取聊天记录
         /// </summary>
@@ -341,7 +352,7 @@ namespace ThreeL.Client.Win.ViewModels
             List<MessageViewModel> messages = new List<MessageViewModel>();
             foreach (var record in resp.Records.OrderBy(x => x.SendTime))
             {
-                if (record.Withdrawed) 
+                if (record.Withdrawed)
                 {
                     MessageViewModel temp = new MessageViewModel(MessageType.Text);
                     temp.MessageId = record.MessageId;

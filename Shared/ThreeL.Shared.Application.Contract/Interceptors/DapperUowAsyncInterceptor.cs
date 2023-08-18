@@ -1,114 +1,72 @@
 ﻿using Castle.DynamicProxy;
 using System.Data;
-using System.Reflection;
 using System.Transactions;
+using ThreeL.Infra.Core.CSharp;
 using ThreeL.Infra.Dapper;
 using ThreeL.Shared.Application.Contract.Attributes;
 
 namespace ThreeL.Shared.Application.Contract.Interceptors
 {
-    public class DapperUowAsyncInterceptor : IAsyncInterceptor
+    /// <summary>
+    /// dapper添加事务的切面
+    /// </summary>
+    public class DapperUowAsyncInterceptor : AsyncInterceptorBase
     {
         private readonly DbContext _dbContext;
+        private readonly TransactionOptions _transactionOptions;
 
         public DapperUowAsyncInterceptor(DbContext _dbContex)
         {
+            _transactionOptions = new TransactionOptions();
+            _transactionOptions.IsolationLevel = System.Transactions.IsolationLevel.ReadCommitted;
+            _transactionOptions.Timeout = new TimeSpan(0, 0, 60);
             _dbContext = _dbContex;
         }
 
-        //异步方法
-        public void InterceptAsynchronous(IInvocation invocation)
+        protected async override Task InterceptAsync(IInvocation invocation, IInvocationProceedInfo proceedInfo, Func<IInvocation, IInvocationProceedInfo, Task> proceed)
         {
-            var attribute = GetUowAttribute(invocation);
+            var attribute = invocation.GetAttribute<DapperUnitOfWorkAttribute>();
             if (attribute == null)
             {
-                invocation.Proceed();
-                var task = (Task)invocation.ReturnValue;
-                invocation.ReturnValue = task;
+                await proceed(invocation, proceedInfo);
             }
             else
             {
-                invocation.ReturnValue = InternalInterceptAsynchronous(invocation);
+
+                using (var transaction = new TransactionScope(TransactionScopeOption.Required, _transactionOptions, TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    if (_dbContext.DbConnection.State == ConnectionState.Closed)
+                        _dbContext.DbConnection.Open();
+
+                    await proceed(invocation, proceedInfo);
+
+                    transaction.Complete();
+                }
             }
         }
 
-        public async Task InternalInterceptAsynchronous(IInvocation invocation)
+        protected async override Task<TResult> InterceptAsync<TResult>(IInvocation invocation, IInvocationProceedInfo proceedInfo, Func<IInvocation, IInvocationProceedInfo, Task<TResult>> proceed)
         {
-            using (var transaction = new TransactionScope())
-            {
-                if (_dbContext.DbConnection.State == ConnectionState.Closed)
-                    _dbContext.DbConnection.Open();
-                invocation.Proceed();
-                var task = (Task)invocation.ReturnValue;
-                await task;
-                transaction.Complete();
-            }
-        }
-
-        //异步方法带返回值
-        public void InterceptAsynchronous<TResult>(IInvocation invocation)
-        {
-            var attribute = GetUowAttribute(invocation);
+            var attribute = invocation.GetAttribute<DapperUnitOfWorkAttribute>();
+            TResult result = default(TResult);
             if (attribute == null)
             {
-                invocation.Proceed();
-                var task = (Task<TResult>)invocation.ReturnValue;
-                invocation.ReturnValue = task;
+                result = await proceed(invocation, proceedInfo);
             }
             else
             {
-                invocation.ReturnValue = InternalInterceptAsynchronous<TResult>(invocation);
-            }
-        }
+                using (var transaction = new TransactionScope(TransactionScopeOption.Required, _transactionOptions, TransactionScopeAsyncFlowOption.Enabled))
+                {
+                    if (_dbContext.DbConnection.State == ConnectionState.Closed)
+                        _dbContext.DbConnection.Open();
 
+                    result = await proceed(invocation, proceedInfo);
 
-        public async Task<TResult> InternalInterceptAsynchronous<TResult>(IInvocation invocation)
-        {
-            TResult result;
-            using (var transaction = new TransactionScope())
-            {
-                if (_dbContext.DbConnection.State == ConnectionState.Closed)
-                    _dbContext.DbConnection.Open();
-
-                invocation.Proceed();
-                var task = (Task<TResult>)invocation.ReturnValue;
-                result = await task;
-
-                transaction.Complete();
+                    transaction.Complete();
+                }
             }
 
             return result;
-        }
-
-        //同步方法
-        public void InterceptSynchronous(IInvocation invocation)
-        {
-            var attribute = GetUowAttribute(invocation);
-            if (attribute == null)
-                invocation.Proceed();
-            else
-                InternalInterceptSynchronous(invocation);
-        }
-
-        public void InternalInterceptSynchronous(IInvocation invocation)
-        {
-            using (var transaction = new TransactionScope())
-            {
-                if (_dbContext.DbConnection.State == ConnectionState.Closed)
-                    _dbContext.DbConnection.Open();
-
-                invocation.Proceed();
-                transaction.Complete();
-            }
-        }
-
-
-        private DapperUnitOfWorkAttribute GetUowAttribute(IInvocation invocation)
-        {
-            var methodInfo = invocation.Method ?? invocation.MethodInvocationTarget;
-            var attribute = methodInfo.GetCustomAttribute<DapperUnitOfWorkAttribute>();
-
-            return attribute;
         }
     }
 }

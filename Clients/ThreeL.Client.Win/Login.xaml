@@ -99,6 +99,14 @@
                                 hc:PasswordBoxAttach.IsMonitoring="True"
                                 hc:InfoElement.Placeholder="密码"/>
 
+                <!--<CheckBox Content="记住账号" 
+                          VerticalAlignment="Center"
+                          Foreground="White"
+                          Margin="0 20 20 0"
+                          FontSize="15"
+                          IsChecked="{Binding IsRemember}"
+                          HorizontalAlignment="Right"/>-->
+
                 <Button Content="登录" 
                         Cursor="Hand"
                         IsDefault="True"

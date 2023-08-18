@@ -3,6 +3,7 @@ using Dapper;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Database;
@@ -49,12 +50,14 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             Source = GenerateIconByFileType();
             CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
             OpenLocationCommandAsync = new AsyncRelayCommand(OpenLocationAsync);
+            LeftButtonClickCommandAsync = new AsyncRelayCommand(LeftButtonClickAsync);
         }
 
         public FileMessageViewModel() : base(MessageType.File)
         {
             CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
             OpenLocationCommandAsync = new AsyncRelayCommand(OpenLocationAsync);
+            LeftButtonClickCommandAsync = new AsyncRelayCommand(LeftButtonClickAsync);
         }
 
         public override string GetShortDesc()
@@ -115,6 +118,34 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             {
                 Location = result;
                 ExplorerFile(Location);
+            }
+        }
+
+        private async Task LeftButtonClickAsync()
+        {
+            if (!string.IsNullOrEmpty(Location) && File.Exists(Location))
+            {
+                App.ServiceProvider.GetRequiredService<FileHelper>().OpenFile(Location);
+                return;
+            }
+
+            var dbConnection = App.ServiceProvider.GetRequiredService<ClientSqliteContext>();
+            //数据库是否存在
+            var record = await SqlMapper.QueryFirstOrDefaultAsync<ChatRecord>(dbConnection.dbConnection, "SELECT * FROM ChatRecord WHERE MessageId = @Id",
+                                           new { Id = MessageId });
+
+            if (record != null && !string.IsNullOrEmpty(record.ResourceLocalLocation) && File.Exists(record.ResourceLocalLocation))
+            {
+                Location = record.ResourceLocalLocation;
+                App.ServiceProvider.GetRequiredService<FileHelper>().OpenFile(Location);
+                return;
+            }
+
+            var result = await DownloadAsync();
+            if (!string.IsNullOrEmpty(result))
+            {
+                Location = result;
+                App.ServiceProvider.GetRequiredService<FileHelper>().OpenFile(Location);
             }
         }
 

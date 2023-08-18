@@ -57,7 +57,7 @@
                      Opacity="0.8"
                      Background="#555"
                      HorizontalAlignment="Center"
-                     FontSize="14">
+                     FontSize="12">
             </TextBox>
         </DataTemplate>
         <DataTemplate x:Key="txtSender_normol">
@@ -175,6 +175,12 @@
                         Cursor="Hand"
                         ToolTip="{Binding FileName}"
                         CornerRadius="5">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                <behaviors:InvokeCommandAction Command="{Binding LeftButtonClickCommandAsync}"
+                                                           ></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
                         <Grid Margin="5">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"></ColumnDefinition>
@@ -296,6 +302,12 @@
                         Cursor="Hand"
                         ToolTip="{Binding FileName}"
                         CornerRadius="5">
+                    <behaviors:Interaction.Triggers>
+                        <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                            <behaviors:InvokeCommandAction Command="{Binding LeftButtonClickCommandAsync}"
+                                                           ></behaviors:InvokeCommandAction>
+                        </behaviors:EventTrigger>
+                    </behaviors:Interaction.Triggers>
                     <Grid Margin="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="50"></ColumnDefinition>
@@ -351,7 +363,7 @@
                      Opacity="0.8"
                      Background="#555"
                      HorizontalAlignment="Center"
-                     FontSize="14">
+                     FontSize="12">
             </TextBox>
         </DataTemplate>
     </Page.Resources>
@@ -418,7 +430,7 @@
                                                 <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
                                                         Width="50" Height="50" HorizontalAlignment="Left" Margin="5 0 0 0"
                                                         Background="{DynamicResource PrimaryBrush}">
-                                                    <TextBlock Text="{Binding ShowName}" FontSize="28" HorizontalAlignment="Center" 
+                                                    <TextBlock Text="{Binding ShowName}" FontSize="30" HorizontalAlignment="Center" 
                                                                Foreground="White"
                                                                VerticalAlignment="Center"></TextBlock>
                                                 </Border>
@@ -426,7 +438,7 @@
                                                            HorizontalAlignment="Left"
                                                            Foreground="White"
                                                            Text="{Binding DisplayName,UpdateSourceTrigger=PropertyChanged}"
-                                                           FontSize="16"/>
+                                                           FontSize="14"/>
 
                                                 <TextBlock Grid.Column="1" Grid.Row="1"
                                                            FontSize="13" Foreground="#aaa"
@@ -436,7 +448,7 @@
                                                 <TextBlock Grid.Column="1" Grid.Row="0"
                                                            FontSize="13" Foreground="#aaa"
                                                            HorizontalAlignment="Right"
-                                                           VerticalAlignment="Center" Margin="2 5 8 0"
+                                                           VerticalAlignment="Center" Margin="2 3 8 0"
                                                            Text="{Binding LastMessage.SendTimeText}"></TextBlock>
                                             </Grid>
                                         </Border>
@@ -555,10 +567,16 @@
                               AcceptsReturn="False"
                               VerticalAlignment="Center" HorizontalAlignment="Stretch"
                               Foreground="#ddd"
-                              Text="{Binding TextMessage}"
+                              Text="{Binding TextMessage,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
                               TextWrapping="Wrap"
                               VerticalContentAlignment="Top"
-                              Height="45" Margin="50 0 0 0"></TextBox>
+                              Height="45" Margin="50 0 0 0">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="KeyDown">
+                                <behaviors:InvokeCommandAction Command="{Binding SendTextboxKeyDownCommandAsync}" PassEventArgsToCommand="True"></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
+                    </TextBox>
                     <Button Height="30" Cursor="Hand"
                             Background="Transparent" Command="{Binding SendMessageCommandAsync}" BorderThickness="0" Margin="10 0 0 0"
                             IsDefault="True">

@@ -52,11 +52,17 @@ namespace ThreeL.Client.Win.ViewModels
 
         private async Task LoadedAsync()
         {
+            var user = await SqlMapper.QueryFirstOrDefaultAsync<UserProfile>(_clientSqliteContext.dbConnection,
+                $"select * from userprofile order by LastLoginTime desc  limit 1");
 
+            UserName = user?.UserName;
         }
 
         private async Task LoginAsync(PasswordBox password)
         {
+            if (string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(password.Password))
+                return;
+
             var data = await _contextAPIService.PostAsync<UserLoginResponseDto>(Const.LOGIN, new UserLoginDto
             {
                 UserName = UserName,

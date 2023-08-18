@@ -15,7 +15,6 @@ using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Application.Impl;
 using ThreeL.ContextAPI.Application.Impl.Services.Grpc;
 using ThreeL.Shared.Application.Contract.Extensions;
-using ThreeL.Shared.Application.Middlewares;
 
 namespace ThreeL.ContextAPI;
 
@@ -34,7 +33,7 @@ internal class Program
         builder.Host.ConfigureServices((hostContext, services) =>
         {
             services.AddGrpc();
-            services.AddContextAPIApplicationService(hostContext.Configuration, appAssemblyInfo.ContractAssembly, appAssemblyInfo.ImplementAssembly);
+            services.AddContextAPIApplicationService(hostContext.Configuration, appAssemblyInfo.ContractAssembly);
             services.AddMemoryCache();
             services.AddControllers();
             services.AddEndpointsApiExplorer();
@@ -131,7 +130,7 @@ internal class Program
             option.SwaggerEndpoint($"/swagger/v1/swagger.json", "v1");
         });
         host.MapControllers();
-        host.MapGrpcService<MySocketServerService>();
+        host.MapGrpcService<SocketServerGrpcController>();
         await host.RunAsync();
     }
 }
