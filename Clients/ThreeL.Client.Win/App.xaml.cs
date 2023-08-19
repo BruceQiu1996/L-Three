@@ -1,18 +1,17 @@
 ﻿using Autofac.Extensions.DependencyInjection;
-using HandyControl.Controls;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using ThreeL.Client.Shared;
 using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Handlers;
 using ThreeL.Client.Win.Helpers;
-using ThreeL.Client.Win.MyControls;
 using ThreeL.Client.Win.Pages;
 using ThreeL.Client.Win.ViewModels;
 using ThreeL.Shared.SuperSocket.Extensions;
@@ -27,6 +26,7 @@ namespace ThreeL.Client.Win
     {
         internal static IServiceProvider? ServiceProvider;
         internal static UserProfile UserProfile;
+        internal static IHost host;
 
         protected async override void OnStartup(StartupEventArgs e)
         {
@@ -43,7 +43,6 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<LoginWindowViewModel>();
                 service.AddSingleton<Chat>();
                 service.AddSingleton<ChatViewModel>();
-                service.AddSingleton<MyScreenShotWindow>();
                 service.AddSingleton<GrowlHelper>();
                 service.AddSingleton<FileHelper>();
                 service.AddSingleton<DateTimeHelper>();
@@ -69,11 +68,17 @@ namespace ThreeL.Client.Win
                 options.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
             });
 
-            var host = builder.Build();
+            host = builder.Build();
             ServiceProvider = host.Services;
             host.Services.GetRequiredService<Login>().Show(); //TODO 测试
 
             await host.RunAsync();
+        }
+
+        public async static Task ExitAsync() 
+        {
+            await host?.StopAsync();
+            Current.Shutdown();
         }
     }
 }

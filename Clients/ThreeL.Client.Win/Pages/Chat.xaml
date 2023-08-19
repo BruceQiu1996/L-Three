@@ -578,9 +578,9 @@
                         </behaviors:Interaction.Triggers>
                     </TextBox>
                     <Button Height="30" Cursor="Hand"
-                            Background="Transparent" Command="{Binding SendMessageCommandAsync}" BorderThickness="0" Margin="10 0 0 0"
+                            Background="Transparent" Click="Button_Click" BorderThickness="0" Margin="10 0 0 0"
                             IsDefault="True">
-                        <Path Data="{StaticResource send}" 
+                        <Path Data="{StaticResource cut}" 
                               Stretch="Uniform" Fill="{DynamicResource PrimaryBrush}"></Path>
                     </Button>
                     <Button Height="30" Cursor="Hand" Name="RB_Emoji" Command="{Binding OpenEmojiCommand}"

@@ -6,14 +6,19 @@
 		<Nullable>disable</Nullable>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
+		<PlatformTarget>x86</PlatformTarget>
 	</PropertyGroup>
 
 	<ItemGroup>
 	  <None Remove="appsettings.json" />
+	  <None Remove="Resources\PrScrn.dll" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Content Include="appsettings.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="PrScrn.dll">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>
