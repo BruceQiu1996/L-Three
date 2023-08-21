@@ -37,7 +37,6 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             return Task.CompletedTask;
         }
 
-        [GrpcException]
         public async Task<SocketServerUserLoginResponse> SocketServerUserLoginAsync(SocketServerUserLoginRequest request, string token)
         {
             return await _serverServiceClient.SocketServerUserLoginAsync(request, new Metadata()
@@ -46,7 +45,6 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             });
         }
 
-        [GrpcException]
         public async Task<FileInfoResponse> FetchFileInfoAsync(FileInfoRequest request, string token)
         {
             return await _serverServiceClient.FetchFileInfoAsync(request, new Metadata()
@@ -55,7 +53,6 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             });
         }
 
-        [GrpcException]
         public async Task<ChatRecordPostResponse> PostChatRecordsAsync(IEnumerable<ChatRecordPostRequest> requests, string token)
         {
             var call = _serverServiceClient.PostChatRecord(new Metadata()
@@ -72,7 +69,6 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             return await call.ResponseAsync;
         }
 
-        [GrpcException]
         public async Task<ChatRecordPostResponse> PostChatRecordAsync(ChatRecordPostRequest request, string token)
         {
             return await _serverServiceClient.PostChatRecordSingleAsync(request, new Metadata()
@@ -81,10 +77,17 @@ namespace ThreeL.SocketServer.Application.Impl.Services
             });
         }
 
-        [GrpcException]
         public async Task<ChatRecordWithdrawResponse> WithdrawChatRecordAsync(ChatRecordWithdrawRequest request, string token)
         {
             return await _serverServiceClient.WithdrawChatRecordAsync(request, new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
+        }
+
+        public async Task<AddFriendResponse> AddFriendAsync(AddFriendRequest request, string token)
+        {
+            return await _serverServiceClient.AddFriendAsync(request, new Metadata()
             {
                 { "Authorization", $"Bearer {token}" }
             });

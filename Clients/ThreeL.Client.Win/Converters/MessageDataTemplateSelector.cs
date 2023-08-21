@@ -28,6 +28,8 @@ namespace ThreeL.Client.Win.Converters
                     dt = fe.FindResource("fileSender") as DataTemplate;
                 else if (obj.MessageType == MessageType.File && !obj.FromSelf)
                     dt = fe.FindResource("fileReceiver") as DataTemplate;
+                else if (obj.MessageType == MessageType.LoadRecord)
+                    dt = fe.FindResource("loadData") as DataTemplate;
             }
 
             return dt;

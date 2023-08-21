@@ -187,8 +187,10 @@
                                 <ColumnDefinition Width="50"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" Margin="5">
-                                <TextBlock Text="{Binding FileName}" VerticalAlignment="Center" FontSize="16"/>
-                                <TextBlock Text="{Binding FileSizeText}" Foreground="#333" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                                <TextBlock Text="{Binding FileName}" 
+                                           TextWrapping="Wrap"
+                                           VerticalAlignment="Center" FontSize="13"/>
+                                <TextBlock Text="{Binding FileSizeText}" Foreground="#333" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                             </StackPanel>
                             <Image Source="{Binding Source}" Grid.Column="1">
                             </Image>
@@ -314,8 +316,8 @@
                             <ColumnDefinition Width="*"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Margin="5">
-                            <TextBlock Text="{Binding FileName}" VerticalAlignment="Center" FontSize="16"/>
-                            <TextBlock Text="{Binding FileSizeText}" Foreground="#333" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                            <TextBlock Text="{Binding FileName}" VerticalAlignment="Center" TextWrapping="Wrap" FontSize="13"/>
+                            <TextBlock Text="{Binding FileSizeText}" Foreground="#333" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Left"/>
                         </StackPanel>
                         <Image Source="{Binding Source}" Grid.Column="0">
                         </Image>
@@ -572,14 +574,13 @@
                               VerticalContentAlignment="Top"
                               Height="45" Margin="50 0 0 0">
                         <behaviors:Interaction.Triggers>
-                            <behaviors:EventTrigger EventName="KeyDown">
+                            <behaviors:EventTrigger EventName="PreviewKeyDown">
                                 <behaviors:InvokeCommandAction Command="{Binding SendTextboxKeyDownCommandAsync}" PassEventArgsToCommand="True"></behaviors:InvokeCommandAction>
                             </behaviors:EventTrigger>
                         </behaviors:Interaction.Triggers>
                     </TextBox>
                     <Button Height="30" Cursor="Hand"
-                            Background="Transparent" Click="Button_Click" BorderThickness="0" Margin="10 0 0 0"
-                            IsDefault="True">
+                            Background="Transparent" Command="{Binding CutScreenshotCommand}" BorderThickness="0" Margin="10 0 0 0">
                         <Path Data="{StaticResource cut}" 
                               Stretch="Uniform" Fill="{DynamicResource PrimaryBrush}"></Path>
                     </Button>

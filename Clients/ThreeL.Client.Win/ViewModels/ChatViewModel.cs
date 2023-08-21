@@ -10,7 +10,9 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Handlers;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
@@ -34,6 +36,7 @@ namespace ThreeL.Client.Win.ViewModels
 {
     public class ChatViewModel : ObservableObject
     {
+        public RelayCommand CutScreenshotCommand { get; set; }
         public RelayCommand OpenEmojiCommand { get; set; }
         public AsyncRelayCommand LoadCommandAsync { get; set; }
         public AsyncRelayCommand SelectFriendCommandAsync { get; set; }
@@ -88,6 +91,9 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly SaveChatRecordService _saveChatRecordService;
         private readonly MessageFileLocationMapper _messageFileLocationMapper;
 
+        [DllImport("PrScrn.dll", EntryPoint = "PrScrn")]
+        public extern static int PrScrn();
+
         public ChatViewModel(ContextAPIService contextAPIService,
                              ClientSqliteContext clientSqliteContext,
                              SaveChatRecordService saveChatRecordService,
@@ -113,6 +119,7 @@ namespace ThreeL.Client.Win.ViewModels
             OpenEmojiCommand = new RelayCommand(OpenEmoji);
             ChooseFileSendCommandAsync = new AsyncRelayCommand(ChooseFileSendAsync);
             SendTextboxKeyDownCommandAsync = new AsyncRelayCommand<KeyEventArgs>(SendTextboxKeyDownAsync);
+            CutScreenshotCommand = new RelayCommand(CutScreenshot);
             _sequenceIncrementer = sequenceIncrementer;
             _tcpSuperSocketClient = tcpSuperSocketClient;
             _messageFileLocationMapper = messageFileLocationMapper;
@@ -247,11 +254,49 @@ namespace ThreeL.Client.Win.ViewModels
             }
         }
 
+        private void CutScreenshot()
+        {
+            var result = PrScrn();
+            if (result == 1)
+            {
+                //TODO 立即发送
+            }
+        }
+
         private async Task SendTextboxKeyDownAsync(KeyEventArgs e)
         {
+            var temp = FriendViewModel;
             if (e.Key == Key.Enter)
             {
                 await SendTextMessageAsync();
+            }
+
+            if (e.Key == Key.V && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                var dataObject = Clipboard.GetDataObject();
+                if (dataObject.GetDataPresent(DataFormats.FileDrop)) //文件
+                {
+                    var files = Clipboard.GetFileDropList();
+                    var result = HandyControl.Controls.MessageBox
+                        .Ask($"确认将[{Path.GetFileName(files[0])}]等[{files.Count}]个文件发送给\"{FriendViewModel.UserName}\"吗?");
+
+                    if (result == MessageBoxResult.OK)
+                    {
+                        
+                        foreach (var file in files)
+                        {
+                            await SendFileAsync(new FileInfo(file), temp);
+                        }
+                    }
+
+                    e.Handled = true;
+                }
+                else if (dataObject.GetDataPresent(DataFormats.Bitmap)) //图片
+                {
+                    var path = _fileHelper.SaveImageToFile(Clipboard.GetImage());
+                    await SendImageFileAsync(new FileInfo(path),temp);
+                    e.Handled = true;
+                }
             }
         }
 

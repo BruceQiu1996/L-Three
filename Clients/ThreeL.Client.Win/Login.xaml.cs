@@ -27,7 +27,7 @@ namespace ThreeL.Client.Win
 
         private async void Label_MouseLeftButtonDown_1(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            await App.ExitAsync();
+            await App.CloseAsync();
         }
     }
 }

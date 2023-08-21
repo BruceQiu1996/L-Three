@@ -19,5 +19,8 @@ namespace ThreeL.ContextAPI.Application.Contract.Services
 
         [DapperUnitOfWork]
         Task<ChatRecordWithdrawResponse> WithdrawChatRecord(ChatRecordWithdrawRequest request, ServerCallContext context);
+
+        [DapperUnitOfWork]
+        Task<AddFriendResponse> AddFriend(AddFriendRequest request, ServerCallContext context);
     }
 }

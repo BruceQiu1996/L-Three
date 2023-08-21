@@ -11,10 +11,20 @@ message SocketServerUserLoginResponse{
 	bool result = 1;
 }
 
+message AddFriendRequest{
+	int64 friendId = 1;
+}
+
+message AddFriendResponse{
+	bool result = 1;
+	string message = 2;
+}
+
 service SocketServerService{
 	rpc SocketServerUserLogin(SocketServerUserLoginRequest) returns (SocketServerUserLoginResponse);
 	rpc FetchFileInfo(FileInfoRequest) returns (FileInfoResponse);
 	rpc PostChatRecord(stream ChatRecordPostRequest) returns (ChatRecordPostResponse);
 	rpc PostChatRecordSingle(ChatRecordPostRequest) returns (ChatRecordPostResponse);
 	rpc WithdrawChatRecord(ChatRecordWithdrawRequest) returns (ChatRecordWithdrawResponse);
+	rpc AddFriend(AddFriendRequest) returns (AddFriendResponse);
 }

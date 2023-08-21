@@ -15,5 +15,7 @@ namespace ThreeL.SocketServer.Application.Contract.Services
         Task<ChatRecordPostResponse> PostChatRecordAsync(ChatRecordPostRequest request, string token);
         [GrpcException]
         Task<ChatRecordWithdrawResponse> WithdrawChatRecordAsync(ChatRecordWithdrawRequest request, string token);
+        [GrpcException]
+        Task<AddFriendResponse> AddFriendAsync(AddFriendRequest request, string token);
     }
 }

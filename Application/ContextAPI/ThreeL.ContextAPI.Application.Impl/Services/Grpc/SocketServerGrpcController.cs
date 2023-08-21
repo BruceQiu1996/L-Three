@@ -20,7 +20,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             {
                 return await _grpcService.SocketServerUserLogin(request, context);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new SocketServerUserLoginResponse() { Result = false };
             }
@@ -75,6 +75,19 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             catch (Exception ex)
             {
                 return new ChatRecordWithdrawResponse() { Result = false };
+            }
+        }
+
+        [Authorize]
+        public async override Task<AddFriendResponse> AddFriend(AddFriendRequest request, ServerCallContext context)
+        {
+            try
+            {
+                return await _grpcService.AddFriend(request, context);
+            }
+            catch (Exception ex)
+            {
+                return new AddFriendResponse() { Result = false, Message = "服务器异常" };
             }
         }
     }

@@ -40,7 +40,7 @@ namespace ThreeL.Client.Win.BackgroundService
                             };
                 }).UseUdp().Build();
 
-            await _udpServerHost!.RunAsync(cancellationToken);
+            await _udpServerHost!.StartAsync(cancellationToken);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)

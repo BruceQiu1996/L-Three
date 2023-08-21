@@ -9,5 +9,7 @@ namespace ThreeL.ContextAPI.Domain.Aggregates.UserAggregate
         public string ActiverRemark { get; set; }
         public string PassiverRemark { get; set; }
         public DateTime CreateTime { get; set; }
+        public DateTime UpdateTime { get; set; }
+
     }
 }

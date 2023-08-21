@@ -38,9 +38,6 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 await _adoExecuterRepository.ExecuteAsync("UPDATE [FILE] SET CreateTime = GETDATE() WHERE Id = @Id", new { record.Id });
             }
 
-            resp.Exist = false;
-            resp.FileId = 0;
-
             return resp;
         }
 

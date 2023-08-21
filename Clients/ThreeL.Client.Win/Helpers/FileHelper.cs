@@ -106,13 +106,49 @@ namespace ThreeL.Client.Win.Helpers
             }
         }
 
-        public void OpenFile(string fileName) 
+        public void OpenFile(string fileName)
         {
             ProcessStartInfo processStartInfo = new ProcessStartInfo(fileName);
             Process process = new Process();
             process.StartInfo = processStartInfo;
             process.StartInfo.UseShellExecute = true;
             process.Start();
+        }
+
+        public string SaveImageToFile(BitmapSource image, string path = null)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                var folder = Path.Combine(Path.GetTempPath(), "ThreeL");
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
+                path = Path.Combine(folder, $"{Guid.NewGuid()}.png");
+            }
+            BitmapEncoder encoder = GetBitmapEncoder(path);
+            encoder.Frames.Add(BitmapFrame.Create(image));
+
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                encoder.Save(stream);
+            }
+
+            return path;
+        }
+
+        private BitmapEncoder GetBitmapEncoder(string filePath)
+        {
+            var extName = Path.GetExtension(filePath).ToLower();
+            if (extName.Equals(".png"))
+            {
+                return new PngBitmapEncoder();
+            }
+            else
+            {
+                return new JpegBitmapEncoder();
+            }
         }
     }
 }

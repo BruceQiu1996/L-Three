@@ -11,9 +11,6 @@ namespace ThreeL.Client.Win.Pages
     /// </summary>
     public partial class Chat : Page
     {
-        [DllImport("PrScrn.dll", EntryPoint = "PrScrn")]
-        public extern static int PrScrn();
-
         public Chat(ChatViewModel viewModel)
         {
             InitializeComponent();
@@ -36,11 +33,6 @@ namespace ThreeL.Client.Win.Pages
         private void ScrollViewer_RequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
         {
             e.Handled = true;
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            PrScrn();
         }
     }
 }

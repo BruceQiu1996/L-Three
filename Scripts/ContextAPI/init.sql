@@ -73,6 +73,15 @@ CREATE TABLE ChatRecord(
     FileId bigint,
     Withdrawed bit NOT NULL,
 );
+CREATE TABLE [FriendApply] (
+  [Id] bigint  PRIMARY key identity,
+  [Activer] bigint  NOT NULL,
+  [Passiver] bigint  NOT NULL,
+  [CreateTime] datetime  NOT NULL,
+  [Status] tinyint  NOT NULL,
+  [ProcessTime] datetime  NULL
+)
+GO
 INSERT INTO FRIEND(Activer,Passiver,ActiverRemark,PassiverRemark,createTime) VALUES(1,2,NULL,'big b bro',GETDATE())
 
 INSERT INTO EMOJI (groupName,groupIcon,folderLocation,requestPath,isDeleted,createTime) 

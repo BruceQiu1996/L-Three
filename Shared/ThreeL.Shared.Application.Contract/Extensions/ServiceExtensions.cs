@@ -23,7 +23,6 @@ namespace ThreeL.Shared.Application.Contract.Extensions
     {
         public static void AddApplicationService(this IServiceCollection services, IConfiguration configuration, Assembly contractAssembly)
         {
-            services.AddInfraDapper();
             var config = configuration.GetSection("MongoOptions").Get<MongoOptions>();
             if (config != null)
             {
@@ -45,12 +44,13 @@ namespace ThreeL.Shared.Application.Contract.Extensions
         public static void AddApplicationContainer(this ContainerBuilder container,
                                                    Assembly implAssembly, List<Type> interceptorTypes)
         {
+            container.AddInfraDapper();
             container.RegisterGeneric(typeof(AsyncInterceptorAdaper<>));
             container.RegisterAssemblyTypes(implAssembly)
                 .Where(t => typeof(IAppService).IsAssignableFrom(t)).AsImplementedInterfaces().SingleInstance()
                 .EnableInterfaceInterceptors().InterceptedBy(interceptorTypes.ToArray());
             container.RegisterAssemblyTypes(implAssembly)
-                .Where(t => typeof(DbContext).IsAssignableFrom(t)).SingleInstance().AsSelf().As<DbContext>();
+                .Where(t => typeof(DbContext).IsAssignableFrom(t)).InstancePerDependency().AsSelf().As<DbContext>();
         }
 
         //public static void AddAppliactionSerivcesWithInterceptors(this IServiceCollection services, Assembly contractAssembly, Assembly implAssembly, List<Type> interceptorTypes)

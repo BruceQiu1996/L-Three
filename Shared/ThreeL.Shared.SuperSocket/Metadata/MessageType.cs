@@ -25,5 +25,8 @@
         LoginResponse,
         RequestForUserEndpoint,
         RequestForUserEndpointResponse,
+        AddFriend,
+        AddFriendResponse,
+        LoadRecord
     }
 }

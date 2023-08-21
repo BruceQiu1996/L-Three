@@ -48,7 +48,7 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<DateTimeHelper>();
                 service.AddSuperSocket(true);
                 service.AddSingleton<SaveChatRecordService>();
-                service.AddHostedService<UdpServerRunningService>();
+                //service.AddHostedService<UdpServerRunningService>();
                 service.AddSingleton<CustomerSettings>();
                 //message handlers
                 service.AddSingleton<IMessageHandler, TextMessageResponseHandler>();
@@ -57,7 +57,6 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<IMessageHandler, LoginCommandResponseHandler>();
                 service.AddSingleton<IMessageHandler, WithdrawMessageResponseHandler>();
                 service.AddSingleton<IMessageHandler, RequestForUserEndpointResponseHandler>();
-
             }).ConfigureLogging((hostCtx, loggingBuilder) =>
             {
                 loggingBuilder.AddConsole();
@@ -70,15 +69,15 @@ namespace ThreeL.Client.Win
 
             host = builder.Build();
             ServiceProvider = host.Services;
-            host.Services.GetRequiredService<Login>().Show(); //TODO 测试
-
-            await host.RunAsync();
+            await host.StartAsync();
+            host.Services.GetRequiredService<Login>().Show();
         }
 
-        public async static Task ExitAsync() 
+        public async static Task CloseAsync()
         {
-            await host?.StopAsync();
-            Current.Shutdown();
+            await host.StopAsync();
+            host.Dispose();
+            Environment.Exit(0);
         }
     }
 }
