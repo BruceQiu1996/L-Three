@@ -145,6 +145,63 @@ namespace ThreeL.Client.Shared.Services
             return default;
         }
 
+        public async Task<T> UploadUserAvatarAsync<T>(string filename, byte[] bytes, string code,
+                                                      Action<object, HttpProgressEventArgs> progressCallBack = null, bool excuted = false)
+        {
+            HttpClientHandler httpClientHandler = new HttpClientHandler();
+            ProgressMessageHandler progressMessageHandler = new ProgressMessageHandler(httpClientHandler);
+            if (progressCallBack != null)
+            {
+                progressMessageHandler.HttpSendProgress += (obj, e) => progressCallBack(obj, e);
+            }
+            using (var client = new HttpClient(progressMessageHandler))
+            {
+                BuildHttpClient(client);
+                if (!string.IsNullOrEmpty(_token))
+                {
+                    if (client.DefaultRequestHeaders.Contains("Authorization"))
+                    {
+                        client.DefaultRequestHeaders.Remove("Authorization");
+                    }
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_token}");
+                }
+                var fileContent = new ByteArrayContent(bytes);
+                fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+                {
+                    Name = "file",
+                    FileName = filename
+                };
+                var content = new MultipartFormDataContent
+                {
+                    fileContent
+                };
+
+                var resp = await client.PostAsync(string.Format(Const.UPLOAD_AVATAR, code), content);
+                if (resp.IsSuccessStatusCode)
+                {
+                    return JsonSerializer.Deserialize<T>(await resp.Content.ReadAsStringAsync(), _jsonOptions);
+                }
+                else if (resp.StatusCode == HttpStatusCode.Unauthorized && !excuted)
+                {
+                    var result = await TryRefreshTokenAsync?.Invoke();
+                    if (!result)
+                    {
+                        await ExcuteWhileUnauthorizedAsync?.Invoke();
+                        return default;
+                    }
+                    excuted = true;
+                    return await UploadUserAvatarAsync<T>(filename, bytes, code, progressCallBack, excuted);
+                }
+                else if (resp.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    var message = await resp.Content.ReadAsStringAsync();
+                    await ExcuteWhileBadRequestAsync?.Invoke(message);
+                }
+            }
+
+            return default;
+        }
+
         public async Task<byte[]> DownloadFileAsync(string messageId, Action<object, HttpProgressEventArgs> progressCallBack = null, bool excuted = false)
         {
             HttpClientHandler httpClientHandler = new HttpClientHandler();

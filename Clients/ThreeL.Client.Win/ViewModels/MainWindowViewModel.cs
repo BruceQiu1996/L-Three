@@ -33,7 +33,8 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly ClientSqliteContext _clientSqliteContext;
         private readonly TcpSuperSocketClient _tcpSuperSocket; //通讯服务器socket
         private readonly UdpSuperSocketClient _udpSuperSocket; //本地udp通讯socket
-        private readonly Page _chatPage;
+        private readonly Chat _chatPage;
+        private readonly Setting _setting;
 
         private Page _currentPage;
         public Page CurrentPage
@@ -57,6 +58,7 @@ namespace ThreeL.Client.Win.ViewModels
                                    IOptions<SocketServerOptions> socketServerOptions,
                                    SequenceIncrementer sequenceIncrementer,
                                    Chat chatPage,
+                                   Setting setting,
                                    PacketWaiter packetWaiter)
         {
             LoadCommandAsync = new AsyncRelayCommand(LoadAsync);
@@ -69,6 +71,7 @@ namespace ThreeL.Client.Win.ViewModels
             _tcpSuperSocket = tcpSuperSocket;
             _udpSuperSocket = udpSuperSocket;
             _chatPage = chatPage;
+            _setting = setting;
             _tcpSuperSocket.DisConnectionEvent += DisConnectionCallbackAsync;
             _tcpSuperSocket.ConnectedEvent += ConnectedCallback;
         }
@@ -99,7 +102,7 @@ namespace ThreeL.Client.Win.ViewModels
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Tips = $"连接断开，原因：{message}，正在第{index}重连...";
+                    Tips = $"连接断开，原因：{message}，正在第{index}次重连...";
                 });
                 if (await ConnectServerAsync(1))
                     break;
@@ -125,7 +128,7 @@ namespace ThreeL.Client.Win.ViewModels
                     throw new Exception("连接服务器失败");
 
                 await HandShakeAfterSocketConnectedAsync();
-                CurrentPage = _chatPage;
+                CurrentPage = _setting; //TODO
             }
             catch (Exception ex)
             {

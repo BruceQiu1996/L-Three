@@ -1,20 +1,26 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using ThreeL.ContextAPI.Application.Contract.Configurations;
+using ThreeL.ContextAPI.Application.Contract.Dtos.File;
 using ThreeL.ContextAPI.Application.Contract.Dtos.User;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
 using ThreeL.ContextAPI.Domain.Entities;
+using ThreeL.Infra.Core.Cryptography;
 using ThreeL.Infra.Redis;
 using ThreeL.Infra.Repository.IRepositories;
 using ThreeL.Shared.Application.Contract.Configurations;
 using ThreeL.Shared.Application.Contract.Helpers;
+using ThreeL.Shared.Application.Contract.Services;
+using ThreeL.Shared.Domain.Metadata;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services
 {
@@ -28,6 +34,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
         private readonly JwtOptions _jwtOptions;
         private readonly JwtBearerOptions _jwtBearerOptions;
         private readonly SystemOptions _systemOptions;
+        private readonly FileStorageOptions _storageOptions;
         private readonly IMapper _mapper;
 
         public UserService(IAdoQuerierRepository<ContextAPIDbContext> adoQuerierRepository,
@@ -36,6 +43,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                            IRedisProvider redisProvider,
                            IOptions<JwtOptions> jwtOptions,
                            IOptionsSnapshot<JwtBearerOptions> jwtBearerOptions,
+                           IOptions<FileStorageOptions> storageOptions,
                            IOptions<SystemOptions> systemOptions,
                            IMapper mapper)
         {
@@ -44,13 +52,20 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             _redisProvider = redisProvider;
             _systemOptions = systemOptions.Value;
             _jwtOptions = jwtOptions.Value;
+            _storageOptions = storageOptions.Value;
             _jwtBearerOptions = jwtBearerOptions.Get(JwtBearerDefaults.AuthenticationScheme);
             _adoQuerierRepository = adoQuerierRepository;
             _adoExecuterRepository = adoExecuterRepository;
         }
 
-        public async Task CreateUserAsync(UserCreationDto creationDto, long creator)
+        public async Task<ServiceResult> CreateUserAsync(UserCreationDto creationDto, long creator)
         {
+            var exist = await _adoQuerierRepository
+                .QueryFirstOrDefaultAsync<string>("SELECT USERNAME FROM [USER] WHERE USERNAME = @UserName", new { creationDto.UserName });
+            if (exist != null)
+            {
+                return new ServiceResult(HttpStatusCode.BadRequest, "用户名重复");
+            }
             creationDto.Password = _passwordHelper.HashPassword(creationDto.Password);
             var user = _mapper.Map<User>(creationDto);
             user.CreateTime = DateTime.Now;
@@ -58,6 +73,8 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             await _adoExecuterRepository.ExecuteScalarAsync<User>
                 ("INSERT INTO [User] (userName,password,isDeleted,createBy,createTime,role) VALUES (@UserName, @Password, 0, @CreateBy, @CreateTime, @Role)",
                 new { creationDto.UserName, creationDto.Password, creationDto.Role, user.CreateBy, user.CreateTime });
+
+            return new ServiceResult(); ;
         }
 
         public async Task<UserLoginResponseDto> LoginAsync(UserLoginDto userLoginDto)
@@ -130,7 +147,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var jwtSecurityToken = new JwtSecurityToken(
                 _jwtOptions.Issuer,             //Issuer
                 origin,                         //Audience TODO 客户端携带客户端类型头
-                claims, 
+                claims,
                 null,
                 DateTime.Now.AddSeconds(_jwtOptions.TokenExpireSeconds),    //expires
                 signingCredentials               //Credentials
@@ -182,6 +199,120 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 RefreshToken = result.refreshToken,
                 AccessToken = result.accessToken
             };
+        }
+
+        /// <summary>
+        /// 根据关键字查找用户
+        /// </summary>
+        /// <param name="keyword"></param>
+        /// <returns>查询到的用户</returns>
+        public async Task<ServiceResult<IEnumerable<UserRoughlyDto>>> FindUserByKeyword(long userId, string keyword)
+        {
+            if (string.IsNullOrEmpty(keyword))
+            {
+                return new ServiceResult<IEnumerable<UserRoughlyDto>>(HttpStatusCode.BadRequest, "错误的请求");
+            }
+            //查找除了自己的用户，附带查询是否是好友
+            var user = await _adoQuerierRepository
+                .QueryAsync<dynamic>($"SELECT t1.id AS Id,UserName, Role,Avatar,Sign,t2.id AS Fid FROM " +
+                $"(SELECT * FROM [User] WHERE userName like @Keyword AND isDeleted = 0 AND id !=@UserId) t1 LEFT JOIN " +
+                $"(SELECT * FROM FRIEND WHERE Activer = @UserId OR Passiver = @UserId) t2 ON t1.id = t2.Activer OR t1.id = t2.Passiver", new
+                {
+                    Keyword = $"%{keyword}%",
+                    UserId = userId
+                });
+
+            return new ServiceResult<IEnumerable<UserRoughlyDto>>(user.Select(x => new UserRoughlyDto()
+            {
+                Id = x.Id,
+                UserName = x.UserName,
+                Role = (Role)x.Role,
+                Avatar = x.Avatar,
+                Sign = x.Sign,
+                IsFriend = x.Fid != 0 && x.Fid != null
+            }));
+        }
+
+        public async Task<CheckFileExistResponseDto> CheckAvatarExistInServerAsync(string code, long userId)
+        {
+            var resp = new CheckFileExistResponseDto();
+            var record =
+                await _adoQuerierRepository.QueryFirstOrDefaultAsync<UserAvatar>("SELECT TOP 1 * FROM [UserAvatar] WHERE CODE = @Code AND CREATEBY = @UserId",
+                new { Code = code, UserId = userId });
+
+            if (record != null && File.Exists(record.Location)) //云存储则需要用其他判断文件存在的方式,一般是接口调用
+            {
+                resp.Exist = true;
+                resp.FileId = record.Id;
+                //滑动更新头像文件的创建时间 TODO采用发布的方式
+                await _adoExecuterRepository.ExecuteAsync("UPDATE [UserAvatar] SET CreateTime = GETDATE() WHERE Id = @Id", new { record.Id });
+            }
+
+            return resp;
+        }
+
+        public async Task<ServiceResult<UploadFileResponseDto>> UploadUserAvatarAsync(long userId, string code, IFormFile file)
+        {
+            if (file.Length > _storageOptions.AvatarMaxSize)
+            {
+                return new ServiceResult<UploadFileResponseDto>(HttpStatusCode.BadRequest, "图片大小不符要求");
+            }
+
+            var sha256code = file.OpenReadStream().ToSHA256();
+            if (sha256code != code)
+            {
+                return new ServiceResult<UploadFileResponseDto>(HttpStatusCode.BadRequest, "图片损坏");
+            }
+
+            var fileExtension = Path.GetExtension(file.FileName);
+            var savepath = Path.Combine(_storageOptions.StorageLocation, DateTime.Now.ToString("yyyy-MM"), $"user-{userId}");
+            var fileName = $"{Path.GetRandomFileName()}{fileExtension}";
+            var fullName = Path.Combine(savepath, fileName);
+
+            if (!Directory.Exists(savepath))
+            {
+                Directory.CreateDirectory(savepath);
+            }
+
+            using (var fs = File.Create(fullName))
+            {
+                await file.CopyToAsync(fs);
+                await fs.FlushAsync();
+            }
+
+            var sql = "INSERT INTO [UserAvatar](CreateBy,FileName,Code,Location,createTime) VALUES(@CreateBy,@FileName,@Code,@Location,GETDATE());SELECT CAST(SCOPE_IDENTITY() as bigint)";
+            var fileId = await _adoQuerierRepository.QueryFirstAsync<long>(sql, new
+            {
+                CreateBy = userId,
+                file.FileName,
+                Code = code,
+                Location = fullName
+            });
+
+            return new ServiceResult<UploadFileResponseDto>(new UploadFileResponseDto() { FileId = fileId });
+        }
+
+        public async Task<ServiceResult<UserUpdateAvatarResponseDto>> UpdateUserAvatarAsync(UserUpdateAvatarDto userUpdateDto, long userId)
+        {
+            var avatar = await _adoQuerierRepository
+                    .QueryFirstOrDefaultAsync<UserAvatar>("SELECT * FROM UserAvatar WHERE Id = @Id", new { Id = userUpdateDto.Avatar });
+            if (avatar == null || !File.Exists(avatar.Location))
+            {
+                return new ServiceResult<UserUpdateAvatarResponseDto>(HttpStatusCode.NotFound, "头像数据异常");
+            }
+
+            await _adoExecuterRepository.ExecuteAsync("UPDATE [User] SET Avatar = @Avatar WHERE Id = @Id",
+                new
+                {
+                    Id = userId,
+                    userUpdateDto.Avatar
+                });
+
+            return new ServiceResult<UserUpdateAvatarResponseDto>(new UserUpdateAvatarResponseDto()
+            {
+                Avatar = userUpdateDto.Avatar,
+                AvatarUrl = avatar.Location
+            });
         }
     }
 }

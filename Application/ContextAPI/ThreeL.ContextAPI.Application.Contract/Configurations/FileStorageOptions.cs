@@ -4,5 +4,6 @@
     {
         public string StorageLocation { get; set; }
         public long MaxSize { get; set; }
+        public long AvatarMaxSize { get; set; }
     }
 }

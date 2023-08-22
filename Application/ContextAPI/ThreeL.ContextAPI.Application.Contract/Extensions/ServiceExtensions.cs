@@ -19,10 +19,10 @@ namespace ThreeL.ContextAPI.Application.Contract.Extensions
             services.Configure<FileStorageOptions>(configuration.GetSection("FileStorage"));
         }
 
-        public static void AddContextAPIApplicationContainer(this ContainerBuilder container, Assembly implAssembly)
+        public static void AddContextAPIApplicationContainer(this ContainerBuilder container, Assembly implAssembly, Assembly domainAssembly)
         {
             container.RegisterType<DapperUowAsyncInterceptor>();
-            container.AddApplicationContainer(implAssembly, new List<Type> { typeof(AsyncInterceptorAdaper<DapperUowAsyncInterceptor>) });
+            container.AddApplicationContainer(implAssembly, new List<Type> { typeof(AsyncInterceptorAdaper<DapperUowAsyncInterceptor>) }, domainAssembly);
         }
     }
 }

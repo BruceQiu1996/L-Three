@@ -1,0 +1,29 @@
+﻿<Page x:Class="ThreeL.Client.Win.Pages.Setting"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:hc="https://handyorg.github.io/handycontrol"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="Setting">
+    <behaviors:Interaction.Triggers>
+        <behaviors:EventTrigger EventName="Loaded">
+            <behaviors:InvokeCommandAction Command="{Binding LoadCommandAsync}"></behaviors:InvokeCommandAction>
+        </behaviors:EventTrigger>
+    </behaviors:Interaction.Triggers>
+    <Grid>
+        <ScrollViewer Margin="0" Grid.Row="0">
+            <StackPanel Orientation="Vertical">
+                <GroupBox HorizontalAlignment="Left" BorderThickness="0" Margin="5"
+                          Header="修改头像" Style="{StaticResource GroupBoxTab}">
+                    <StackPanel Orientation="Vertical">
+                        <hc:ImageSelector Width="100" Height="100" Margin="16" Name="avatar"/>
+                        <Button Content="立即上传" Command="{Binding UploadAvatarCommandAsync}" Cursor="Hand"></Button>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

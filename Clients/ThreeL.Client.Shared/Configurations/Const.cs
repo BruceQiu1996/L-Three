@@ -3,7 +3,8 @@
     public class Const
     {
         public const string LOGIN = "user/login";
-        public const string REFRESH_TOKEN = "user/refresh/token"; 
+        public const string UPLOAD_AVATAR = "user/upload/{0}";
+        public const string REFRESH_TOKEN = "user/refresh/token";
         public const string UPLOAD_FILE = "files/{0}/{1}";
         public const string DOWNLOAD_FILE = "files/download/{0}";
         public const string FETCH_FRIENDS = "relations/friends";

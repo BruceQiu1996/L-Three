@@ -43,6 +43,8 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<LoginWindowViewModel>();
                 service.AddSingleton<Chat>();
                 service.AddSingleton<ChatViewModel>();
+                service.AddSingleton<Setting>();
+                service.AddSingleton<SettingViewModel>();
                 service.AddSingleton<GrowlHelper>();
                 service.AddSingleton<FileHelper>();
                 service.AddSingleton<DateTimeHelper>();

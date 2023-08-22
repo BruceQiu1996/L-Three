@@ -39,8 +39,11 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 FriendId = packet.Body.FriendId
             }, session.AccessToken);
 
+            respPacket.Body.Result = resp.Result;
+            respPacket.Body.Message = resp.Message;
+
             await appSession.SendAsync(respPacket.Serialize());
-            if (resp.Result)
+            if (resp.Result)//成功后还需要发通知给目标
             {
                 var toSessions = _sessionManager.TryGet(packet.Body.FriendId);
                 await SendMessageBothAsync<Packet<ImageMessageResponse>>(null, toSessions, 0, packet.Body.FriendId, respPacket);

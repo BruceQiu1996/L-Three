@@ -16,6 +16,7 @@ using ThreeL.Infra.Redis.Extensions;
 using ThreeL.Shared.Application.Contract.Configurations;
 using ThreeL.Shared.Application.Contract.Helpers;
 using ThreeL.Shared.Application.Contract.Interceptors;
+using ThreeL.Shared.Domain;
 
 namespace ThreeL.Shared.Application.Contract.Extensions
 {
@@ -42,7 +43,7 @@ namespace ThreeL.Shared.Application.Contract.Extensions
         }
 
         public static void AddApplicationContainer(this ContainerBuilder container,
-                                                   Assembly implAssembly, List<Type> interceptorTypes)
+                                                   Assembly implAssembly, List<Type> interceptorTypes, Assembly domainAssembly = null)
         {
             container.AddInfraDapper();
             container.RegisterGeneric(typeof(AsyncInterceptorAdaper<>));
@@ -51,6 +52,12 @@ namespace ThreeL.Shared.Application.Contract.Extensions
                 .EnableInterfaceInterceptors().InterceptedBy(interceptorTypes.ToArray());
             container.RegisterAssemblyTypes(implAssembly)
                 .Where(t => typeof(DbContext).IsAssignableFrom(t)).InstancePerDependency().AsSelf().As<DbContext>();
+            if (domainAssembly != null)
+            {
+                container.RegisterAssemblyTypes(domainAssembly)
+                    .Where(t => typeof(IDomainService).IsAssignableFrom(t)).AsImplementedInterfaces().SingleInstance()
+                    .EnableInterfaceInterceptors().InterceptedBy(interceptorTypes.ToArray());
+            }
         }
 
         //public static void AddAppliactionSerivcesWithInterceptors(this IServiceCollection services, Assembly contractAssembly, Assembly implAssembly, List<Type> interceptorTypes)

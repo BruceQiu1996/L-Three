@@ -30,6 +30,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\..\Application\ContextAPI\ThreeL.ContextAPI.Application.Impl\ThreeL.ContextAPI.Application.Impl.csproj" />
+	  <ProjectReference Include="..\..\Shared\ThreeL.Shared.WebApi\ThreeL.Shared.WebApi.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Properties\" />

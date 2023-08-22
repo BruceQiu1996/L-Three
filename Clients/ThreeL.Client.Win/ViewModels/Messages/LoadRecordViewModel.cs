@@ -6,6 +6,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
     {
         public LoadRecordViewModel() : base(MessageType.LoadRecord)
         {
+
         }
     }
 }

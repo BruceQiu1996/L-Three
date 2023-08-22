@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ThreeL.ContextAPI.Application.Contract.Dtos.User;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.Shared.Domain.Metadata;
+using ThreeL.Shared.WebApi.Extensions;
 
 namespace ThreeL.ContextAPI.Controllers
 {
@@ -21,8 +23,9 @@ namespace ThreeL.ContextAPI.Controllers
         [HttpPost]
         public async Task<ActionResult> Create(UserCreationDto creationDto)
         {
-            await _userService.CreateUserAsync(creationDto, 0); //TODO使用用户id
-            return Ok();
+            var sresult = await _userService.CreateUserAsync(creationDto, 0);
+
+            return sresult.ToActionResult();
         }
 
         [AllowAnonymous]
@@ -56,6 +59,46 @@ namespace ThreeL.ContextAPI.Controllers
                 return BadRequest();
 
             return Ok(resp);
+        }
+
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        [HttpGet("search/{key}")]
+        public async Task<ActionResult> SearchUserByKeyword(string key)
+        {
+            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+            var resp = await _userService.FindUserByKeyword(userId, key);
+
+            return resp.ToActionResult();
+        }
+
+        [HttpGet("avatar/{code}")]
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        public async Task<IActionResult> CheckFileExist(string code)
+        {
+            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+            var resp = await _userService.CheckAvatarExistInServerAsync(code, userId);
+
+            return Ok(resp);
+        }
+
+        [HttpPost("upload/avatar/{code}")]
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file, string code)
+        {
+            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+            var resp = await _userService.UploadUserAvatarAsync(userId, code, file);
+
+            return resp.ToActionResult();
+        }
+
+        [HttpPost("info")]
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        public async Task<IActionResult> UpdateUserInfo(UserUpdateAvatarDto dto)
+        {
+            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+            var resp = await _userService.UpdateUserAvatarAsync(dto, userId);
+
+            return resp.ToActionResult();
         }
     }
 }

@@ -27,7 +27,7 @@ internal class Program
         var builder = WebApplication.CreateBuilder(args);
         builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory()).ConfigureContainer<ContainerBuilder>((hcontext, builder) =>
         {
-            builder.AddContextAPIApplicationContainer(appAssemblyInfo.ImplementAssembly);
+            builder.AddContextAPIApplicationContainer(appAssemblyInfo.ImplementAssembly, appAssemblyInfo.DomainAssembly);
         });
 
         builder.Host.ConfigureServices((hostContext, services) =>
