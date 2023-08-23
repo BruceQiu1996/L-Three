@@ -22,7 +22,7 @@ CREATE TABLE [USER](
     id bigint PRIMARY key identity,
     userName varchar(16) not null,
     [password] varchar(255) not null,
-    avatar bigint,
+    avatar varchar(255)£¬
     sign varchar(20),
     isDeleted bit NOT NULL,
     [role] int NOT NULL,

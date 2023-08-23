@@ -14,6 +14,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
@@ -78,6 +79,13 @@ namespace ThreeL.Client.Win.ViewModels
         {
             get { return userProfile; }
             set => SetProperty(ref userProfile, value);
+        }
+
+        private BitmapImage _avatar;
+        public BitmapImage Avatar
+        {
+            get { return _avatar; }
+            set => SetProperty(ref _avatar, value);
         }
 
         private readonly ContextAPIService _contextAPIService;
@@ -168,6 +176,12 @@ namespace ThreeL.Client.Win.ViewModels
                 async (x, y) =>
                 {
                     await WithdrawMessageAsync(y);
+                });
+
+            WeakReferenceMessenger.Default.Register<ChatViewModel, byte[], string>(this, "avatar-updated",
+                (x, y) =>
+                {
+                    Avatar = _fileHelper.ByteArrayToBitmapImage(y);
                 });
         }
 
@@ -282,7 +296,7 @@ namespace ThreeL.Client.Win.ViewModels
 
                     if (result == MessageBoxResult.OK)
                     {
-                        
+
                         foreach (var file in files)
                         {
                             await SendFileAsync(new FileInfo(file), temp);
@@ -294,7 +308,7 @@ namespace ThreeL.Client.Win.ViewModels
                 else if (dataObject.GetDataPresent(DataFormats.Bitmap)) //图片
                 {
                     var path = _fileHelper.SaveImageToFile(Clipboard.GetImage());
-                    await SendImageFileAsync(new FileInfo(path),temp);
+                    await SendImageFileAsync(new FileInfo(path), temp);
                     e.Handled = true;
                 }
             }

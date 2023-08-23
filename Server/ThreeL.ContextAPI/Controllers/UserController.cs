@@ -73,12 +73,12 @@ namespace ThreeL.ContextAPI.Controllers
 
         [HttpGet("avatar/{code}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
-        public async Task<IActionResult> CheckFileExist(string code)
+        public async Task<IActionResult> CheckAvatarExist(string code)
         {
             long.TryParse(HttpContext.User.Identity?.Name, out var userId);
             var resp = await _userService.CheckAvatarExistInServerAsync(code, userId);
 
-            return Ok(resp);
+            return resp.ToActionResult();
         }
 
         [HttpPost("upload/avatar/{code}")]
@@ -87,18 +87,12 @@ namespace ThreeL.ContextAPI.Controllers
         {
             long.TryParse(HttpContext.User.Identity?.Name, out var userId);
             var resp = await _userService.UploadUserAvatarAsync(userId, code, file);
+            if (resp.Value == null)
+            {
+                return resp.ToActionResult();
+            }
 
-            return resp.ToActionResult();
-        }
-
-        [HttpPost("info")]
-        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
-        public async Task<IActionResult> UpdateUserInfo(UserUpdateAvatarDto dto)
-        {
-            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var resp = await _userService.UpdateUserAvatarAsync(dto, userId);
-
-            return resp.ToActionResult();
+            return new FileStreamResult(new FileStream(resp.Value.FullName, FileMode.Open), "application/octet-stream") { FileDownloadName = resp.Value.Name };
         }
     }
 }

@@ -10,6 +10,7 @@
         public string SocketAccessToken { get; set; }
         public string Role { get; set; }
         public DateTime LastLoginTime { get; set; }
+        public byte[] Avatar { get; set; }
 
         public void Clear()
         {

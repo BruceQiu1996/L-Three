@@ -9,7 +9,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using ThreeL.ContextAPI.Application.Contract.Configurations;
-using ThreeL.ContextAPI.Application.Contract.Dtos.File;
 using ThreeL.ContextAPI.Application.Contract.Dtos.User;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
@@ -97,14 +96,22 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                         Time = DateTime.Now,
                         user.Id
                     });
+
+                byte[] avatarBytes = null;
                 var token = await CreateTokenAsync(user, userLoginDto.Origin);
+                var avatar = await _adoQuerierRepository.QueryFirstOrDefaultAsync<UserAvatar>("SELECT * FROM [UserAvatar] WHERE Id = @Id", new { Id = user.Avatar });
+                if (avatar != null && File.Exists(avatar.Location)) 
+                {
+                    avatarBytes = File.ReadAllBytes(avatar.Location);
+                }
                 return new UserLoginResponseDto()
                 {
                     UserId = user.Id,
                     UserName = user.UserName,
                     Role = user.Role.ToString(),
                     AccessToken = token.accessToken,
-                    RefreshToken = token.refreshToken
+                    RefreshToken = token.refreshToken,
+                    Avatar = avatarBytes
                 };
             }
         }
@@ -233,39 +240,45 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             }));
         }
 
-        public async Task<CheckFileExistResponseDto> CheckAvatarExistInServerAsync(string code, long userId)
+        public async Task<ServiceResult<UserAvatarCheckExistResponseDto>> CheckAvatarExistInServerAsync(string code, long userId)
         {
-            var resp = new CheckFileExistResponseDto();
             var record =
                 await _adoQuerierRepository.QueryFirstOrDefaultAsync<UserAvatar>("SELECT TOP 1 * FROM [UserAvatar] WHERE CODE = @Code AND CREATEBY = @UserId",
                 new { Code = code, UserId = userId });
 
             if (record != null && File.Exists(record.Location)) //云存储则需要用其他判断文件存在的方式,一般是接口调用
             {
-                resp.Exist = true;
-                resp.FileId = record.Id;
                 //滑动更新头像文件的创建时间 TODO采用发布的方式
                 await _adoExecuterRepository.ExecuteAsync("UPDATE [UserAvatar] SET CreateTime = GETDATE() WHERE Id = @Id", new { record.Id });
+                await _adoExecuterRepository.ExecuteAsync("UPDATE [User] SET Avatar = @Avatar WHERE Id = @Id", new { record.Id, Avatar = record.Id });
+                return new ServiceResult<UserAvatarCheckExistResponseDto>(new UserAvatarCheckExistResponseDto()
+                {
+                    Exist = true,
+                    Avatar = File.ReadAllBytes(record.Location)
+                });
             }
 
-            return resp;
+            return new ServiceResult<UserAvatarCheckExistResponseDto>(new UserAvatarCheckExistResponseDto()
+            {
+                Exist = false,
+            });
         }
 
-        public async Task<ServiceResult<UploadFileResponseDto>> UploadUserAvatarAsync(long userId, string code, IFormFile file)
+        public async Task<ServiceResult<FileInfo>> UploadUserAvatarAsync(long userId, string code, IFormFile file)
         {
             if (file.Length > _storageOptions.AvatarMaxSize)
             {
-                return new ServiceResult<UploadFileResponseDto>(HttpStatusCode.BadRequest, "图片大小不符要求");
+                return new ServiceResult<FileInfo>(HttpStatusCode.BadRequest, "图片大小不符要求");
             }
 
             var sha256code = file.OpenReadStream().ToSHA256();
             if (sha256code != code)
             {
-                return new ServiceResult<UploadFileResponseDto>(HttpStatusCode.BadRequest, "图片损坏");
+                return new ServiceResult<FileInfo>(HttpStatusCode.BadRequest, "图片损坏");
             }
 
             var fileExtension = Path.GetExtension(file.FileName);
-            var savepath = Path.Combine(_storageOptions.StorageLocation, DateTime.Now.ToString("yyyy-MM"), $"user-{userId}");
+            var savepath = Path.Combine(_storageOptions.StorageLocation, "avatars", DateTime.Now.ToString("yyyy-MM"), $"user-{userId}");
             var fileName = $"{Path.GetRandomFileName()}{fileExtension}";
             var fullName = Path.Combine(savepath, fileName);
 
@@ -289,30 +302,13 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 Location = fullName
             });
 
-            return new ServiceResult<UploadFileResponseDto>(new UploadFileResponseDto() { FileId = fileId });
-        }
-
-        public async Task<ServiceResult<UserUpdateAvatarResponseDto>> UpdateUserAvatarAsync(UserUpdateAvatarDto userUpdateDto, long userId)
-        {
-            var avatar = await _adoQuerierRepository
-                    .QueryFirstOrDefaultAsync<UserAvatar>("SELECT * FROM UserAvatar WHERE Id = @Id", new { Id = userUpdateDto.Avatar });
-            if (avatar == null || !File.Exists(avatar.Location))
+            await _adoExecuterRepository.ExecuteAsync("UPDATE [User] SET Avatar = @Avatar WHERE Id = @Id", new
             {
-                return new ServiceResult<UserUpdateAvatarResponseDto>(HttpStatusCode.NotFound, "头像数据异常");
-            }
-
-            await _adoExecuterRepository.ExecuteAsync("UPDATE [User] SET Avatar = @Avatar WHERE Id = @Id",
-                new
-                {
-                    Id = userId,
-                    userUpdateDto.Avatar
-                });
-
-            return new ServiceResult<UserUpdateAvatarResponseDto>(new UserUpdateAvatarResponseDto()
-            {
-                Avatar = userUpdateDto.Avatar,
-                AvatarUrl = avatar.Location
+                Id = userId,
+                Avatar = fileId
             });
+
+            return new ServiceResult<FileInfo>(new FileInfo(fullName));
         }
     }
 }

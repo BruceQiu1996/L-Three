@@ -121,7 +121,7 @@ internal class Program
         {
             FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
             RequestPath = new Microsoft.AspNetCore.Http.PathString("/files"),
-            EnableDirectoryBrowsing = true
+            EnableDirectoryBrowsing = false
         });
 
         host.UseSwagger();

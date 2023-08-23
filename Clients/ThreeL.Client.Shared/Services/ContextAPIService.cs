@@ -145,7 +145,7 @@ namespace ThreeL.Client.Shared.Services
             return default;
         }
 
-        public async Task<T> UploadUserAvatarAsync<T>(string filename, byte[] bytes, string code,
+        public async Task<byte[]> UploadUserAvatarAsync(string filename, byte[] bytes, string code,
                                                       Action<object, HttpProgressEventArgs> progressCallBack = null, bool excuted = false)
         {
             HttpClientHandler httpClientHandler = new HttpClientHandler();
@@ -179,7 +179,8 @@ namespace ThreeL.Client.Shared.Services
                 var resp = await client.PostAsync(string.Format(Const.UPLOAD_AVATAR, code), content);
                 if (resp.IsSuccessStatusCode)
                 {
-                    return JsonSerializer.Deserialize<T>(await resp.Content.ReadAsStringAsync(), _jsonOptions);
+                    var steam = await resp.Content.ReadAsByteArrayAsync();
+                    return steam;
                 }
                 else if (resp.StatusCode == HttpStatusCode.Unauthorized && !excuted)
                 {
@@ -190,7 +191,7 @@ namespace ThreeL.Client.Shared.Services
                         return default;
                     }
                     excuted = true;
-                    return await UploadUserAvatarAsync<T>(filename, bytes, code, progressCallBack, excuted);
+                    return await UploadUserAvatarAsync(filename, bytes, code, progressCallBack, excuted);
                 }
                 else if (resp.StatusCode == HttpStatusCode.BadRequest)
                 {
