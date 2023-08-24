@@ -19,7 +19,7 @@ namespace ThreeL.ContextAPI.Controllers
             _userService = userService;
         }
 
-        [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        //[Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         [HttpPost]
         public async Task<ActionResult> Create(UserCreationDto creationDto)
         {

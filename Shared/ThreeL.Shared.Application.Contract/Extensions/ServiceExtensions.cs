@@ -48,8 +48,9 @@ namespace ThreeL.Shared.Application.Contract.Extensions
             container.AddInfraDapper();
             container.RegisterGeneric(typeof(AsyncInterceptorAdaper<>));
             container.RegisterAssemblyTypes(implAssembly)
-                .Where(t => typeof(IAppService).IsAssignableFrom(t)).AsImplementedInterfaces().SingleInstance()
+                .Where(t => typeof(IAppService).IsAssignableFrom(t)).AsImplementedInterfaces().InstancePerLifetimeScope()
                 .EnableInterfaceInterceptors().InterceptedBy(interceptorTypes.ToArray());
+
             container.RegisterAssemblyTypes(implAssembly)
                 .Where(t => typeof(DbContext).IsAssignableFrom(t)).InstancePerDependency().AsSelf().As<DbContext>();
             if (domainAssembly != null)

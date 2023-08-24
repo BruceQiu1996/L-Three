@@ -10,7 +10,8 @@ namespace ThreeL.Shared.SuperSocket.Dto
     [ProtoInclude(100, typeof(FromToMessage))]
     [ProtoInclude(500, typeof(LoginCommand))]
     [ProtoInclude(700, typeof(RequestForUserEndpointCommand))]
-    
+    [ProtoInclude(600, typeof(AddFriendCommand))]
+
     public abstract class AbstractMessage : IMessage
     {
         [ProtoMember(1)]

@@ -24,6 +24,7 @@ using ThreeL.Client.Shared.Utils;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.MyControls;
+using ThreeL.Client.Win.Pages;
 using ThreeL.Client.Win.ViewModels.Messages;
 using ThreeL.Infra.Core.Cryptography;
 using ThreeL.Infra.Core.Metadata;
@@ -74,6 +75,13 @@ namespace ThreeL.Client.Win.ViewModels
         {
             get => _isEmojiOpen;
             set => SetProperty(ref _isEmojiOpen, value);
+        }
+
+        private bool _hadNewApply;
+        public bool HadNewApply
+        {
+            get => _hadNewApply;
+            set => SetProperty(ref _hadNewApply, value);
         }
 
         private UserProfile userProfile;
@@ -188,6 +196,12 @@ namespace ThreeL.Client.Win.ViewModels
                 {
                     Avatar = _fileHelper.ByteArrayToBitmapImage(y);
                 });
+
+            WeakReferenceMessenger.Default.Register<ChatViewModel, string, string>(this, "message - addfriend - apply",
+                (x, y) =>
+                {
+                    HadNewApply = true;
+                });
         }
 
         private async Task LoadAsync()
@@ -216,6 +230,7 @@ namespace ThreeL.Client.Win.ViewModels
                                 {
                                     Id = dto.PassiverId,
                                     UserName = dto.PassiverName,
+                                    AvatarId = dto.PassiverAvatar,
                                     Remark = dto.PassiverRemark
                                 });
                             }
@@ -224,6 +239,7 @@ namespace ThreeL.Client.Win.ViewModels
                                 friends.Add(new FriendViewModel
                                 {
                                     Id = dto.ActiverId,
+                                    AvatarId = dto.ActiverAvatar,
                                     UserName = dto.ActiverName,
                                     Remark = dto.ActiverRemark
                                 });

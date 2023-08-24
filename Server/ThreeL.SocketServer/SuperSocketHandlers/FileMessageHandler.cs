@@ -65,6 +65,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
             var body = new FileMessageResponse();
             resp.Body = body;
+            resp.Body.From = chatSession.UserId;
             if (chatSession.UserId != packet.Body.To)
             {
                 if (!await _messageHandlerService.IsFriendAsync(chatSession.UserId, packet.Body.To))

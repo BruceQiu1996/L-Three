@@ -27,7 +27,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             var packet = message as Packet<AddFriendCommand>;
             var respPacket = new Packet<AddFriendCommandResponse>()
             {
-                MessageType = MessageType.LoginResponse,
+                MessageType = MessageType.AddFriendResponse,
                 Sequence = packet.Sequence,
                 Body = new AddFriendCommandResponse()
                 {

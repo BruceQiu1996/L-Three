@@ -109,13 +109,13 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var userIdentity = context.GetHttpContext().User.Identity?.Name;
             var userid = long.Parse(userIdentity);
             var users = await _dapperRepository
-                .QueryAsync<FriendApply>("SELECT * FROM User WHERE Id  = @ActiverId or Id = @PassiverId and IsDeleted = 0", new
+                .QueryAsync<FriendApply>("SELECT * FROM [User] WHERE Id  = @ActiverId or Id = @PassiverId and IsDeleted = 0", new
                 {
                     ActiverId = userid,
                     PassiverId = request.FriendId
                 });
 
-            if (users.Count() != 2)
+            if (users == null || users.Count() != 2)
             {
                 return new AddFriendResponse() { Result = false, Message = "账号异常" };
             }
@@ -127,15 +127,15 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                     Status = FriendApplyStatus.TobeProcessed
                 });
 
-            if (applys.Count() > 0)
+            if (applys?.Count() > 0)
             {
-                return new AddFriendResponse() { Result = false, Message = "存在未处理的申请好友请求" };
+                return new AddFriendResponse() { Result = false, Message = "已存在未处理的申请好友请求" };
             }
 
             await _dapperRepository.ExecuteAsync("INSERT INTO FriendApply(Activer,Passiver,CreateTime,Status) VALUES(@Activer,@Passiver,getdate(),@Status)", new
             {
                 Activer = userid,
-                PassiverId = request.FriendId,
+                Passiver = request.FriendId,
                 Status = FriendApplyStatus.TobeProcessed
             });
 

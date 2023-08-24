@@ -29,7 +29,7 @@ namespace ThreeL.Client.Win.Handlers
 
             if (packet.Body.Result && packet.Body.From == App.UserProfile.UserId)
             {
-                _grolHelper.Success($"发送添加好友消息成功:{packet.Body.Message}");
+                _grolHelper.Success($"发送添加好友消息成功");
 
                 return Task.CompletedTask;
             }

@@ -36,6 +36,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
         public async override Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
+            var chatSession = appSession as ChatSession;
             var packet = message as Packet<WithdrawMessage>;
             var resp = new Packet<WithdrawMessageResponse>()
             {
@@ -46,6 +47,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
             var body = _mapper.Map<WithdrawMessageResponse>(packet.Body);
             resp.Body = body;
+            resp.Body.From = chatSession.UserId;
             var result = await _contextAPIGrpcService.WithdrawChatRecordAsync(new ChatRecordWithdrawRequest() 
             { 
                 MessageId = packet.Body.WithdrawMessageId 

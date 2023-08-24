@@ -497,15 +497,19 @@
                         <TextBlock Text="{Binding UserProfile.UserName}" FontSize="16" HorizontalAlignment="Left"  Foreground="#aaa"/>
                         <TextBlock Text="{Binding UserProfile.Role}" FontSize="12" HorizontalAlignment="Left"  Foreground="#aaa"/>
                     </StackPanel>
-                    <Label Height="40" Background="Transparent" Cursor="Hand" Margin="20 0 0 0" BorderThickness="0" VerticalAlignment="Center"
+                    
+                    <hc:Badge Text="1" Foreground="White" BorderThickness="0" Background="Red" BadgeMargin="0,-10,0,0" Height="30">
+                        <Label Height="40" Background="Transparent" Cursor="Hand" Margin="20 0 0 0" BorderThickness="0" VerticalAlignment="Center"
                            HorizontalAlignment="Right" ToolTip="申请管理">
-                        <behaviors:Interaction.Triggers>
-                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
-                                <behaviors:InvokeCommandAction Command="{Binding GotoApplyPageCommand}"></behaviors:InvokeCommandAction>
-                            </behaviors:EventTrigger>
-                        </behaviors:Interaction.Triggers>
-                        <Path Data="{StaticResource friend}" Stretch="Uniform" Fill="#aaa"></Path>
-                    </Label>
+                            <behaviors:Interaction.Triggers>
+                                <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                    <behaviors:InvokeCommandAction Command="{Binding GotoApplyPageCommand}"></behaviors:InvokeCommandAction>
+                                </behaviors:EventTrigger>
+                            </behaviors:Interaction.Triggers>
+                            <Path Data="{StaticResource friend}" Stretch="Uniform" Fill="#aaa"></Path>
+                        </Label>
+                    </hc:Badge>
+
                     <Label Height="40" Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center"
                            HorizontalAlignment="Right" ToolTip="设置">
                         <behaviors:Interaction.Triggers>

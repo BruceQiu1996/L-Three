@@ -87,7 +87,6 @@ CREATE TABLE [UserAvatar](
     id bigint PRIMARY key identity,
     CreateBy bigint not NULL,
 	FileName VARCHAR(500) NOT NULL,
-	[Size] bigint not NULL,
 	Code VARCHAR(500) NOT NULL,
 	Location VARCHAR(500) NOT NULL,
     createTime datetime not null
