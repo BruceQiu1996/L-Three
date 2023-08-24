@@ -55,6 +55,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
+            var chatSession = appSession as ChatSession;
             var packet = message as Packet<TextMessage>;
             var resp = new Packet<TextMessageResponse>()
             {
@@ -66,9 +67,9 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             var body = new TextMessageResponse();
             resp.Body = body;
 
-            if (packet.Body.From != packet.Body.To)
+            if (chatSession.UserId != packet.Body.To)
             {
-                if (!await _messageHandlerService.IsFriendAsync(packet.Body.From, packet.Body.To))
+                if (!await _messageHandlerService.IsFriendAsync(chatSession.UserId, packet.Body.To))
                 {
                     body.Result = false;
                     body.Message = "好友关系异常";
@@ -81,7 +82,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             var request = _mapper.Map<ChatRecordPostRequest>(body);
             request.MessageRecordType = (int)MessageRecordType.Text;
             //await _saveChatRecordService.WriteRecordAsync(request);
-            var result = await _contextAPIGrpcService.PostChatRecordAsync(request, (appSession as ChatSession).AccessToken);//还是先使用rpc
+            var result = await _contextAPIGrpcService.PostChatRecordAsync(request, chatSession.AccessToken);//还是先使用rpc
             if (result.Result)
             {
                 //分发给发送者和接收者

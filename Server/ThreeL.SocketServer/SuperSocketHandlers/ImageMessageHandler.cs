@@ -56,6 +56,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
+            var chatSession = appSession as ChatSession;
             var packet = message as Packet<ImageMessage>;
             var resp = new Packet<ImageMessageResponse>()
             {
@@ -66,9 +67,9 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
             var body = new ImageMessageResponse();
             resp.Body = body;
-            if (packet.Body.From != packet.Body.To)
+            if (chatSession.UserId != packet.Body.To)
             {
-                if (!await _messageHandlerService.IsFriendAsync(packet.Body.From, packet.Body.To))
+                if (!await _messageHandlerService.IsFriendAsync(chatSession.UserId, packet.Body.To))
                 {
                     body.Result = false;
                     body.Message = "好友关系异常";

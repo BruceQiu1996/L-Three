@@ -6,13 +6,13 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
     [ProtoContract]
     public class ImageMessage : FromToMessage
     {
-        [ProtoMember(6)]
+        [ProtoMember(5)]
         public ImageType ImageType { get; set; }
-        [ProtoMember(7)]
+        [ProtoMember(6)]
         public string RemoteUrl { get; set; }
-        [ProtoMember(8)]
+        [ProtoMember(7)]
         public long FileId { get; set; }
-        [ProtoMember(9)]
+        [ProtoMember(8)]
         public string FileName { get; set; }
     }
 }

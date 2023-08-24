@@ -3,6 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media.Imaging;
+using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.Pages;
 using ThreeL.Client.Win.ViewModels.Messages;
@@ -14,7 +18,26 @@ namespace ThreeL.Client.Win.ViewModels
         public long Id { get; set; }
         public string UserName { get; set; }
         public string Remark { get; set; }
-        public string Avatar { get; set; }
+        private BitmapImage _avatar;
+        public BitmapImage Avatar
+        {
+            get { return _avatar; }
+            set => SetProperty(ref _avatar, value);
+        }
+        private long? avatarId;
+        public long? AvatarId
+        {
+            get => avatarId;
+            set
+            {
+                if (value != null && value != avatarId)
+                {
+                    RefreshAvatar(Id, value.Value);
+                }
+
+                SetProperty(ref avatarId, value);
+            }
+        }
         public int Port { get; set; }
         public string ShowName => UserName.Substring(0, 1).ToUpper();
         public string DisplayName => string.IsNullOrEmpty(Remark) ? UserName : Remark;
@@ -29,7 +52,7 @@ namespace ThreeL.Client.Win.ViewModels
         }
 
         private string lastMessageShortDesc;
-        public string LastMessageShortDesc 
+        public string LastMessageShortDesc
         {
             get => lastMessageShortDesc;
             set => SetProperty(ref lastMessageShortDesc, value);
@@ -41,6 +64,9 @@ namespace ThreeL.Client.Win.ViewModels
             get => messages;
             set => SetProperty(ref messages, value);
         }
+
+        private readonly ContextAPIService _contextAPIService;
+        private readonly FileHelper _fileHelper;
 
         public void AddMessage(MessageViewModel message)
         {
@@ -69,6 +95,21 @@ namespace ThreeL.Client.Win.ViewModels
         {
             Hosts = new List<string>();
             Messages = new ObservableCollection<MessageViewModel>();
+        }
+
+        private void RefreshAvatar(long userId, long id)
+        {
+            var _ = Task.Run(async () =>
+            {
+                var data = await App.ServiceProvider.GetRequiredService<ContextAPIService>().DownloadUserAvatarAsync(userId, id);
+                if (data != null)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        Avatar = App.ServiceProvider.GetRequiredService<FileHelper>().ByteArrayToBitmapImage(data);
+                    });
+                }
+            });
         }
     }
 }

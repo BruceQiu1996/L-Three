@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Amazon.Runtime.Internal.Util;
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -14,6 +15,7 @@ using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
 using ThreeL.ContextAPI.Domain.Entities;
 using ThreeL.Infra.Core.Cryptography;
+using ThreeL.Infra.Core.Enum;
 using ThreeL.Infra.Redis;
 using ThreeL.Infra.Repository.IRepositories;
 using ThreeL.Shared.Application.Contract.Configurations;
@@ -100,7 +102,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 byte[] avatarBytes = null;
                 var token = await CreateTokenAsync(user, userLoginDto.Origin);
                 var avatar = await _adoQuerierRepository.QueryFirstOrDefaultAsync<UserAvatar>("SELECT * FROM [UserAvatar] WHERE Id = @Id", new { Id = user.Avatar });
-                if (avatar != null && File.Exists(avatar.Location)) 
+                if (avatar != null && File.Exists(avatar.Location))
                 {
                     avatarBytes = File.ReadAllBytes(avatar.Location);
                 }
@@ -111,7 +113,8 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                     Role = user.Role.ToString(),
                     AccessToken = token.accessToken,
                     RefreshToken = token.refreshToken,
-                    Avatar = avatarBytes
+                    Avatar = avatarBytes,
+                    AvatarId = user.Avatar
                 };
             }
         }
@@ -229,15 +232,22 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                     UserId = userId
                 });
 
-            return new ServiceResult<IEnumerable<UserRoughlyDto>>(user.Select(x => new UserRoughlyDto()
+            if (user == null)
             {
-                Id = x.Id,
-                UserName = x.UserName,
-                Role = (Role)x.Role,
-                Avatar = x.Avatar,
-                Sign = x.Sign,
-                IsFriend = x.Fid != 0 && x.Fid != null
-            }));
+                return new ServiceResult<IEnumerable<UserRoughlyDto>>(new List<UserRoughlyDto>());
+            }
+            else
+            {
+                return new ServiceResult<IEnumerable<UserRoughlyDto>>(user.Select(x => new UserRoughlyDto()
+                {
+                    Id = x.Id,
+                    UserName = x.UserName,
+                    Role = ((Role)x.Role).GetDescription(),
+                    Avatar = x.Avatar,
+                    Sign = x.Sign,
+                    IsFriend = x.Fid != 0 && x.Fid != null
+                }));
+            }
         }
 
         public async Task<ServiceResult<UserAvatarCheckExistResponseDto>> CheckAvatarExistInServerAsync(string code, long userId)
@@ -309,6 +319,23 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             });
 
             return new ServiceResult<FileInfo>(new FileInfo(fullName));
+        }
+
+        public async Task<ServiceResult<FileInfo>> DownloadUserAvatarAsync(long avatarId, long userId)
+        {
+            var avatar = await _adoQuerierRepository.QueryFirstOrDefaultAsync<string>("SELECT LOCATION FROM UserAvatar WHERE Id = @Id AND CreateBy = @UserId",
+                new
+                {
+                    Id = avatarId,
+                    UserId = userId
+                });
+
+            if (avatar == null || !File.Exists(avatar))
+            {
+                return new ServiceResult<FileInfo>(HttpStatusCode.BadRequest, "头像数据异常");
+            }
+
+            return new ServiceResult<FileInfo>(new FileInfo(avatar));
         }
     }
 }

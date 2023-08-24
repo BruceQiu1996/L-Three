@@ -12,113 +12,147 @@
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="30"></RowDefinition>
             <RowDefinition Height="50"></RowDefinition>
-            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
+        <Label BorderThickness="0"
+               Grid.Row="0"
+               Cursor="Hand"
+               ToolTip="关闭到托盘"
+               Margin="3"
+               Background="Black"
+               HorizontalAlignment="Right">
+            <behaviors:Interaction.Triggers>
+                <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                    <behaviors:InvokeCommandAction Command="{Binding CloseApplyPageCommand}"></behaviors:InvokeCommandAction>
+                </behaviors:EventTrigger>
+            </behaviors:Interaction.Triggers>
+            <Path Data="{StaticResource CloseGeometry}" 
+                          SnapsToDevicePixels="True"
+                          Height="15"
+                          Stroke="{StaticResource PrimaryBrush}" Stretch="Uniform" 
+                          Fill="{StaticResource PrimaryBrush}"/>
+        </Label>
 
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <TextBox Text="{Binding SearchKey,UpdateSourceTrigger=PropertyChanged}" 
+        <Grid Grid.Row="1">
+            <TextBox Text="{Binding Keyword,UpdateSourceTrigger=PropertyChanged}" 
                      Height="35"
+                     Background="Transparent"
                      Style="{StaticResource TextBoxExtend}"
                      hc:InfoElement.Placeholder="输入用户名或群名"
-                     Margin="20 0 0 0"
+                     Margin="20 0 125 0"
+                     Foreground="White"
                      ></TextBox>
             <Button Content="查找好友/群" Grid.Column="1"
                     Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"
                     HorizontalAlignment="Right"
+                    Command="{Binding SearchCommandAsync}"
                     Margin="0 0 20 0"
                     Background="{StaticResource PrimaryBrush}"></Button>
         </Grid>
-        <ScrollViewer Margin="0" Grid.Row="0">
-            <ListBox ScrollViewer.CanContentScroll="False"
+        <Grid  Margin="0" Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <ScrollViewer Grid.Column="0"  Visibility="{Binding HadSearchResult,Converter={StaticResource Boolean2VisibilityConverter}}">
+                <ListBox ScrollViewer.CanContentScroll="False"
                      Padding="0"
                      hc:BorderElement.CornerRadius="0"
                      ScrollViewer.IsDeferredScrollingEnabled="True"
                      ScrollViewer.VerticalScrollBarVisibility="Visible"
-                     Background="#222"
-                     ItemsSource="{Binding FriendViewModels,UpdateSourceTrigger=PropertyChanged}"
-                     SelectedItem="{Binding FriendViewModel,UpdateSourceTrigger=PropertyChanged}"
+                     Background="Transparent"
+                     ItemsSource="{Binding Users,UpdateSourceTrigger=PropertyChanged}"
                      BorderThickness="0" BorderBrush="Transparent">
-                <behaviors:Interaction.Triggers>
-                    <behaviors:EventTrigger EventName="SelectionChanged">
-                        <behaviors:InvokeCommandAction Command="{Binding SelectFriendCommandAsync}"></behaviors:InvokeCommandAction>
-                    </behaviors:EventTrigger>
-                </behaviors:Interaction.Triggers>
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Orientation="Vertical"></StackPanel>
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
+                    <behaviors:Interaction.Triggers>
+                        <behaviors:EventTrigger EventName="SelectionChanged">
+                            <behaviors:InvokeCommandAction Command="{Binding SelectFriendCommandAsync}"></behaviors:InvokeCommandAction>
+                        </behaviors:EventTrigger>
+                    </behaviors:Interaction.Triggers>
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"></WrapPanel>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
 
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="{x:Type ListBoxItem}">
-                        <Setter Property="OverridesDefaultStyle" Value="True" />
-                        <Setter Property="SnapsToDevicePixels" Value="True" />
-                        <Setter Property="Foreground" Value="Black" />
-                        <Setter Property="Height" Value="65" />
-                        <Setter Property="Padding" Value="0" />
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="{x:Type ListBoxItem}">
-                                    <Border Margin="0 0 4 1" 
-                                                CornerRadius="0 2 2 0"
-                                                Background="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem,Mode=FindAncestor},Path=Background}">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="60"></ColumnDefinition>
-                                                <ColumnDefinition Width="*"></ColumnDefinition>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="*"></RowDefinition>
-                                                <RowDefinition Height="*"></RowDefinition>
-                                            </Grid.RowDefinitions>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListBoxItem}">
+                            <Setter Property="OverridesDefaultStyle" Value="True" />
+                            <Setter Property="SnapsToDevicePixels" Value="True" />
+                            <Setter Property="Foreground" Value="Black" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Width" Value="170" />
+                            <Setter Property="Height" Value="100" />
+                            <Setter Property="Margin" Value="10"></Setter>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                        <Border CornerRadius="0 2 2 0"
+                                            Background="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem,Mode=FindAncestor},Path=Background}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="80"></ColumnDefinition>
+                                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                                </Grid.ColumnDefinitions>
 
-                                            <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
-                                                        Width="50" Height="50" HorizontalAlignment="Left" Margin="5 0 0 0"
-                                                        Background="{DynamicResource PrimaryBrush}">
-                                                <TextBlock Text="{Binding ShowName}" FontSize="30" HorizontalAlignment="Center" 
+                                                <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                                    Width="80" Height="80" HorizontalAlignment="Left" Margin="5 0 0 0"
+                                                    Background="{DynamicResource PrimaryBrush}"
+                                                    Visibility="{Binding Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityReConverter}}">
+                                                    <TextBlock Text="{Binding ShowName}" FontSize="30" HorizontalAlignment="Center" 
                                                                Foreground="White"
                                                                VerticalAlignment="Center"></TextBlock>
-                                            </Border>
-                                            <TextBlock Grid.Column="1" Margin="2 8 0 0" 
-                                                           HorizontalAlignment="Left"
-                                                           Foreground="White"
-                                                           Text="{Binding DisplayName,UpdateSourceTrigger=PropertyChanged}"
-                                                           FontSize="14"/>
+                                                </Border>
+                                                <hc:Gravatar Height="80" Width="80"
+                                                         Margin="5 0 0 0"
+                                                         Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                                         Source="{Binding Avatar,UpdateSourceTrigger=PropertyChanged}"
+                                                         Visibility="{Binding Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityConverter}}"/>
+                                                <StackPanel Orientation="Vertical" Grid.Column="1" HorizontalAlignment="Left">
+                                                    <TextBlock Text="{Binding UserName}" 
+                                                           Margin="15 10 0 0"
+                                                           Foreground="White" FontSize="16" />
+                                                    <TextBlock Text="{Binding Role}" 
+                                                           Margin="15 2 0 0"
+                                                           Foreground="#aaa" FontSize="12"/>
 
-                                            <TextBlock Grid.Column="1" Grid.Row="1"
-                                                           FontSize="13" Foreground="#aaa"
-                                                           VerticalAlignment="Center" Margin="2 0 0 2"
-                                                           Text="{Binding LastMessage.ShortDesc,UpdateSourceTrigger=PropertyChanged}"></TextBlock>
-
-                                            <TextBlock Grid.Column="1" Grid.Row="0"
-                                                           FontSize="13" Foreground="#aaa"
-                                                           HorizontalAlignment="Right"
-                                                           VerticalAlignment="Center" Margin="2 3 8 0"
-                                                           Text="{Binding LastMessage.SendTimeText}"></TextBlock>
-                                        </Grid>
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#444"></Setter>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="False">
-                                <Setter Property="Background" Value="#111"></Setter>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#444"></Setter>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-            </ListBox>
-        </ScrollViewer>
+                                                    <Button Content="添加好友" Margin="12 10 0 0" 
+                                                        Cursor="Hand"
+                                                        Visibility="{Binding IsFriend,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Boolean2VisibilityReConverter}}"
+                                                        Style="{StaticResource ButtonPrimary}"></Button>
+                                                    <Button Content="立即聊天" Margin="12 10 0 0" 
+                                                        Cursor="Hand"
+                                                        Visibility="{Binding IsFriend,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Boolean2VisibilityConverter}}"
+                                                        Style="{StaticResource ButtonPrimary}"></Button>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#444"></Setter>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="False">
+                                    <Setter Property="Background" Value="#111"></Setter>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#444"></Setter>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+            </ScrollViewer>
+            <Label Background="Transparent" HorizontalAlignment="Center" HorizontalContentAlignment="Center" BorderThickness="0" 
+                   Height="150" Width="200"
+                   Grid.Column="0" Visibility="{Binding HadSearchResult,Converter={StaticResource Boolean2VisibilityReConverter}}">
+                <Path Data="{StaticResource empty}" HorizontalAlignment="Center" Stretch="UniformToFill" Fill="Gray"></Path>
+            </Label>
+        </Grid>
     </Grid>
 </Page>

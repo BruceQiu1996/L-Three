@@ -70,9 +70,9 @@
                     </Label>
                 </Grid>
             </Border>
-            
-            
+
             <Frame Grid.Row="1" Grid.RowSpan="2" Grid.Column="0" BorderThickness="0" Grid.ColumnSpan="2"
+                   NavigationUIVisibility="Hidden"
                    Content="{Binding CurrentPage,UpdateSourceTrigger=PropertyChanged}"></Frame>
         </Grid>
     </Grid>

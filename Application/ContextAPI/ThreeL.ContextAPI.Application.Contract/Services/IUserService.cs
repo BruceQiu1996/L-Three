@@ -16,5 +16,6 @@ namespace ThreeL.ContextAPI.Application.Contract.Services
         Task<ServiceResult<UserAvatarCheckExistResponseDto>> CheckAvatarExistInServerAsync(string code, long userId);
         [DapperUnitOfWork]
         Task<ServiceResult<FileInfo>> UploadUserAvatarAsync(long userId, string code, IFormFile file);
+        Task<ServiceResult<FileInfo>> DownloadUserAvatarAsync(long avatarId, long userId);
     }
 }

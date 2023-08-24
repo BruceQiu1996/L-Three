@@ -100,7 +100,8 @@ namespace ThreeL.Client.Win.ViewModels
                     RefreshToken = data.RefreshToken,
                     AccessToken = data.AccessToken,
                     Role = data.Role,
-                    Avatar = 
+                    Avatar = data.Avatar,
+                    AvatarId = data.AvatarId,
                 };
                 App.ServiceProvider.GetRequiredService<MainWindow>().Show();
                 App.ServiceProvider.GetRequiredService<Login>().Hide();

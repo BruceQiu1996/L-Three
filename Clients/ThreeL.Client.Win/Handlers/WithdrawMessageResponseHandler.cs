@@ -43,7 +43,7 @@ namespace ThreeL.Client.Win.Handlers
                 return;
 
             WeakReferenceMessenger.Default.Send<WithdrawMessageResponse, string>(packet.Body, "message-withdraw-result");
-            var record = await SqlMapper.QueryFirstOrDefaultAsync<ChatRecord>(_clientSqliteContext.dbConnection, "SELECT Top 1 * FROM ChatRecord WHERE MessageId = @MessageId", new
+            var record = await SqlMapper.QueryFirstOrDefaultAsync<ChatRecord>(_clientSqliteContext.dbConnection, "SELECT * FROM ChatRecord WHERE MessageId = @MessageId", new
             {
                 packet.Body.WithdrawMessageId,
                 packet.Body.From

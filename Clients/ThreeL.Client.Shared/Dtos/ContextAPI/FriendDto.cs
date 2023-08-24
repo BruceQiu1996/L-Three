@@ -8,5 +8,6 @@
         public string PassiverName { get; set; }
         public string ActiverRemark { get; set; }
         public string PassiverRemark { get; set; }
+        public long? Avatar { get; set; }
     }
 }

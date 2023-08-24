@@ -14,16 +14,41 @@
         </behaviors:EventTrigger>
     </behaviors:Interaction.Triggers>
     <Grid>
-        <ScrollViewer Margin="0" Grid.Row="0">
-            <StackPanel Orientation="Vertical">
-                <GroupBox HorizontalAlignment="Left" BorderThickness="0" Margin="5"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Label BorderThickness="0"
+               Grid.Row="0"
+               Cursor="Hand"
+               ToolTip="关闭到托盘"
+               Margin="3"
+               Background="Black"
+               HorizontalAlignment="Right">
+            <behaviors:Interaction.Triggers>
+                <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                    <behaviors:InvokeCommandAction Command="{Binding CloseSettingsPageCommand}"></behaviors:InvokeCommandAction>
+                </behaviors:EventTrigger>
+            </behaviors:Interaction.Triggers>
+            <Path Data="{StaticResource CloseGeometry}" 
+                          SnapsToDevicePixels="True"
+                          Height="15"
+                          Stroke="{StaticResource PrimaryBrush}" Stretch="Uniform" 
+                          Fill="{StaticResource PrimaryBrush}"/>
+        </Label>
+        <ScrollViewer Margin="0" Grid.Row="1">
+            <hc:Card Effect="{StaticResource EffectShadow2}" Background="Transparent" BorderThickness="0"
+                     Margin="5">
+                <StackPanel Orientation="Vertical">
+                    <GroupBox HorizontalAlignment="Left" BorderThickness="0" Margin="5"
                           Header="修改头像" Style="{StaticResource GroupBoxTab}">
-                    <StackPanel Orientation="Vertical">
-                        <hc:ImageSelector Width="100" Height="100" Margin="16" Name="avatar"/>
-                        <Button Content="立即上传" Command="{Binding UploadAvatarCommandAsync}" Cursor="Hand"></Button>
-                    </StackPanel>
-                </GroupBox>
-            </StackPanel>
+                        <StackPanel Orientation="Vertical">
+                            <hc:ImageSelector Width="100" Height="100" Margin="16" Name="avatar"/>
+                            <Button Content="立即上传" Command="{Binding UploadAvatarCommandAsync}" Cursor="Hand"></Button>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </hc:Card>
         </ScrollViewer>
     </Grid>
 </Page>

@@ -125,7 +125,7 @@
                     <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}">
                         <Image Source="{Binding Source}"
                                Stretch="Uniform"
-                               MaxHeight="200"
+                               MaxHeight="150"
                                HorizontalAlignment="Right">
                             <behaviors:Interaction.Triggers>
                                 <behaviors:EventTrigger EventName="MouseLeftButtonDown">
@@ -268,7 +268,7 @@
                     <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}">
                         <Image Source="{Binding Source}"
                                Stretch="Uniform"
-                               MaxHeight="200"
+                               MaxHeight="150"
                                HorizontalAlignment="Left">
                             <behaviors:Interaction.Triggers>
                                 <behaviors:EventTrigger EventName="MouseLeftButtonDown">
@@ -431,11 +431,17 @@
 
                                                 <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
                                                         Width="50" Height="50" HorizontalAlignment="Left" Margin="5 0 0 0"
-                                                        Background="{DynamicResource PrimaryBrush}">
+                                                        Background="{DynamicResource PrimaryBrush}"
+                                                        Visibility="{Binding Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityReConverter}}">
                                                     <TextBlock Text="{Binding ShowName}" FontSize="30" HorizontalAlignment="Center" 
                                                                Foreground="White"
                                                                VerticalAlignment="Center"></TextBlock>
                                                 </Border>
+                                                <hc:Gravatar Height="50" Width="50"
+                                                             Margin="5 0 0 0"
+                                                             Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                                             Source="{Binding Avatar,UpdateSourceTrigger=PropertyChanged}"
+                                                             Visibility="{Binding Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityConverter}}"/>
                                                 <TextBlock Grid.Column="1" Margin="2 8 0 0" 
                                                            HorizontalAlignment="Left"
                                                            Foreground="White"
@@ -476,23 +482,37 @@
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
                     <Border Background="{DynamicResource PrimaryBrush}" 
                             Height="44" Width="44" CornerRadius="22"
-                            Margin="10 0  0 0"
+                            Margin="10 0 0 0"
                             Visibility="{Binding Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityReConverter}}"
                             VerticalAlignment="Center">
                         <TextBlock Text="{Binding UserProfile.ShowName}" 
                                    VerticalAlignment="Center" FontSize="30" HorizontalAlignment="Center"  Foreground="White"></TextBlock>
                     </Border>
-                    <hc:Gravatar Style="{StaticResource GravatarCircle}" Source="{Binding Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityConverter}}"/>
+                    <hc:Gravatar Height="44" Width="44"
+                                 Margin="10 0 0 0"
+                                 Style="{StaticResource GravatarCircleImg}"
+                                 Source="{Binding Avatar,UpdateSourceTrigger=PropertyChanged}"
+                                 Visibility="{Binding Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityConverter}}"/>
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="10 0 0 0" VerticalAlignment="Center" Cursor="Hand">
                         <TextBlock Text="{Binding UserProfile.UserName}" FontSize="16" HorizontalAlignment="Left"  Foreground="#aaa"/>
                         <TextBlock Text="{Binding UserProfile.Role}" FontSize="12" HorizontalAlignment="Left"  Foreground="#aaa"/>
                     </StackPanel>
                     <Label Height="40" Background="Transparent" Cursor="Hand" Margin="20 0 0 0" BorderThickness="0" VerticalAlignment="Center"
-                           HorizontalAlignment="Right" ToolTip="好友管理">
+                           HorizontalAlignment="Right" ToolTip="申请管理">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                <behaviors:InvokeCommandAction Command="{Binding GotoApplyPageCommand}"></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
                         <Path Data="{StaticResource friend}" Stretch="Uniform" Fill="#aaa"></Path>
                     </Label>
                     <Label Height="40" Background="Transparent" Cursor="Hand" BorderThickness="0" VerticalAlignment="Center"
                            HorizontalAlignment="Right" ToolTip="设置">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                <behaviors:InvokeCommandAction Command="{Binding GotoSettingsPageCommand}"></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
                         <Path Data="{StaticResource setting}" Stretch="Uniform" Fill="#aaa"></Path>
                     </Label>
                 </StackPanel>
@@ -545,7 +565,7 @@
 
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem" BasedOn="{StaticResource ClockListBoxItemStyle}">
-                            <Setter Property="Margin" Value="0 8"></Setter>
+                            <Setter Property="Margin" Value="0 5"></Setter>
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">

@@ -17,6 +17,18 @@ namespace ThreeL.Client.Win.Helpers
             });
         }
 
+        public void Success(string message)
+        {
+            Growl.SuccessGlobal(new GrowlInfo()
+            {
+                Message = message,
+                ShowDateTime = false,
+                ShowCloseButton = false,
+                StaysOpen = false,
+                WaitTime = 6
+            });
+        }
+
         public void Warning(string message)
         {
             Growl.WarningGlobal(new GrowlInfo()

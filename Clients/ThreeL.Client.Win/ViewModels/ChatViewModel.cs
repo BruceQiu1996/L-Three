@@ -37,6 +37,7 @@ namespace ThreeL.Client.Win.ViewModels
 {
     public class ChatViewModel : ObservableObject
     {
+        public RelayCommand GotoApplyPageCommand { get; set; }
         public RelayCommand CutScreenshotCommand { get; set; }
         public RelayCommand OpenEmojiCommand { get; set; }
         public AsyncRelayCommand LoadCommandAsync { get; set; }
@@ -45,6 +46,7 @@ namespace ThreeL.Client.Win.ViewModels
         public AsyncRelayCommand SendMessageCommandAsync { get; set; }
         public AsyncRelayCommand ChooseFileSendCommandAsync { get; set; }
         public AsyncRelayCommand<KeyEventArgs> SendTextboxKeyDownCommandAsync { get; set; }
+        public RelayCommand GotoSettingsPageCommand { get; set; }
 
         private ObservableCollection<FriendViewModel> friendViewModels;
         public ObservableCollection<FriendViewModel> FriendViewModels
@@ -88,6 +90,7 @@ namespace ThreeL.Client.Win.ViewModels
             set => SetProperty(ref _avatar, value);
         }
 
+        private bool _isLoaded = false;
         private readonly ContextAPIService _contextAPIService;
         private readonly ClientSqliteContext _clientSqliteContext;
         private readonly GrowlHelper _growlHelper;
@@ -128,6 +131,8 @@ namespace ThreeL.Client.Win.ViewModels
             ChooseFileSendCommandAsync = new AsyncRelayCommand(ChooseFileSendAsync);
             SendTextboxKeyDownCommandAsync = new AsyncRelayCommand<KeyEventArgs>(SendTextboxKeyDownAsync);
             CutScreenshotCommand = new RelayCommand(CutScreenshot);
+            GotoSettingsPageCommand = new RelayCommand(GotoSettingsPage);
+            GotoApplyPageCommand = new RelayCommand(GotoApplyPage);
             _sequenceIncrementer = sequenceIncrementer;
             _tcpSuperSocketClient = tcpSuperSocketClient;
             _messageFileLocationMapper = messageFileLocationMapper;
@@ -187,54 +192,63 @@ namespace ThreeL.Client.Win.ViewModels
 
         private async Task LoadAsync()
         {
-            UserProfile = App.UserProfile;
-            //TODO删除代码
-            try
+            if (!_isLoaded)
             {
-                //获取好友列表
-                var resp = await _contextAPIService.GetAsync<IEnumerable<FriendDto>>(Const.FETCH_FRIENDS);
-                if (resp != null)
+                UserProfile = App.UserProfile;
+                if (UserProfile.Avatar != null)
                 {
-                    List<FriendViewModel> friends = new List<FriendViewModel>();
-                    //处理得到好友列表
-                    foreach (var dto in resp)
-                    {
-                        if (dto.ActiverId == App.UserProfile.UserId)
-                        {
-                            friends.Add(new FriendViewModel
-                            {
-                                Id = dto.PassiverId,
-                                UserName = dto.PassiverName,
-                                Remark = dto.PassiverRemark
-                            });
-                        }
-                        else if (dto.PassiverId == App.UserProfile.UserId)
-                        {
-                            friends.Add(new FriendViewModel
-                            {
-                                Id = dto.ActiverId,
-                                UserName = dto.ActiverName,
-                                Remark = dto.ActiverRemark
-                            });
-                        }
-                    }
-                    //加载好友列表
-                    FriendViewModels = new ObservableCollection<FriendViewModel>(friends)
-                    {
-                        new FriendViewModel()
-                        {
-                            Id = App.UserProfile.UserId,
-                            Remark = "我自己",
-                            UserName = App.UserProfile.UserName,
-                        }
-                    };
-
-                    FriendViewModel = FriendViewModels.FirstOrDefault();
+                    Avatar = _fileHelper.ByteArrayToBitmapImage(UserProfile.Avatar);
                 }
-            }
-            catch (Exception ex)
-            {
-                _growlHelper.Warning(ex.Message);
+                //TODO删除代码
+                try
+                {
+                    //获取好友列表
+                    var resp = await _contextAPIService.GetAsync<IEnumerable<FriendDto>>(Const.FETCH_FRIENDS);
+                    if (resp != null)
+                    {
+                        List<FriendViewModel> friends = new List<FriendViewModel>();
+                        //处理得到好友列表
+                        foreach (var dto in resp)
+                        {
+                            if (dto.ActiverId == App.UserProfile.UserId)
+                            {
+                                friends.Add(new FriendViewModel
+                                {
+                                    Id = dto.PassiverId,
+                                    UserName = dto.PassiverName,
+                                    Remark = dto.PassiverRemark
+                                });
+                            }
+                            else if (dto.PassiverId == App.UserProfile.UserId)
+                            {
+                                friends.Add(new FriendViewModel
+                                {
+                                    Id = dto.ActiverId,
+                                    UserName = dto.ActiverName,
+                                    Remark = dto.ActiverRemark
+                                });
+                            }
+                        }
+                        //加载好友列表
+                        FriendViewModels = new ObservableCollection<FriendViewModel>(friends)
+                        {
+                            new FriendViewModel()
+                            {
+                                Id = App.UserProfile.UserId,
+                                Remark = "本人",
+                                AvatarId = App.UserProfile.AvatarId,
+                                UserName = App.UserProfile.UserName,
+                            }
+                        };
+
+                        FriendViewModel = FriendViewModels.FirstOrDefault();
+                        _isLoaded = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _growlHelper.Warning(ex.Message);
+                }
             }
         }
 
@@ -247,6 +261,7 @@ namespace ThreeL.Client.Win.ViewModels
             var tempFriend = FriendViewModel;
             if (!tempFriend.LoadedChatRecord)
             {
+                tempFriend.Messages.Clear();
                 try
                 {
                     //加载历史100条聊天记录 //TODO与服务器聊天记录做比较
@@ -275,6 +290,16 @@ namespace ThreeL.Client.Win.ViewModels
             {
                 //TODO 立即发送
             }
+        }
+
+        private void GotoSettingsPage()
+        {
+            WeakReferenceMessenger.Default.Send<string, string>("setting", "switch-page");
+        }
+
+        private void GotoApplyPage() 
+        {
+            WeakReferenceMessenger.Default.Send<string, string>("apply", "switch-page");
         }
 
         private async Task SendTextboxKeyDownAsync(KeyEventArgs e)
@@ -771,7 +796,6 @@ namespace ThreeL.Client.Win.ViewModels
                 MessageType = MessageType.Withdraw,
                 Body = new WithdrawMessage()
                 {
-                    From = viewModel.From,
                     To = viewModel.To,
                     WithdrawMessageId = viewModel.MessageId
                 }

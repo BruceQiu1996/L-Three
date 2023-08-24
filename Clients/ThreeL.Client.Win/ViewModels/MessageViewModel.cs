@@ -111,7 +111,6 @@ namespace ThreeL.Client.Win.ViewModels
         public virtual void ToMessage(FromToMessage fromToMessage)
         {
             fromToMessage.MessageId = MessageId;
-            fromToMessage.From = From;
             fromToMessage.To = To;
             fromToMessage.SendTime = SendTime;
         }

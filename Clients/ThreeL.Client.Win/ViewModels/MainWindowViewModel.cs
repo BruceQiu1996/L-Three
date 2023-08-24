@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Options;
 using SuperSocket.Channel;
 using System;
@@ -35,6 +36,7 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly UdpSuperSocketClient _udpSuperSocket; //本地udp通讯socket
         private readonly Chat _chatPage;
         private readonly Setting _setting;
+        private readonly Apply _apply;
 
         private Page _currentPage;
         public Page CurrentPage
@@ -58,6 +60,7 @@ namespace ThreeL.Client.Win.ViewModels
                                    IOptions<SocketServerOptions> socketServerOptions,
                                    SequenceIncrementer sequenceIncrementer,
                                    Chat chatPage,
+                                   Apply apply,
                                    Setting setting,
                                    PacketWaiter packetWaiter)
         {
@@ -72,11 +75,24 @@ namespace ThreeL.Client.Win.ViewModels
             _udpSuperSocket = udpSuperSocket;
             _chatPage = chatPage;
             _setting = setting;
+            _apply = apply;
             _tcpSuperSocket.DisConnectionEvent += DisConnectionCallbackAsync;
             _tcpSuperSocket.ConnectedEvent += ConnectedCallback;
+
+            WeakReferenceMessenger.Default.Register<MainWindowViewModel, string, string>(this, "switch-page",
+                (x, y) =>
+                {
+                    CurrentPage = y switch
+                    {
+                        "chat" => _chatPage,
+                        "setting" => _setting,
+                        "apply" => _apply,
+                        _ => _chatPage
+                    };
+                });
         }
 
-        private void ConnectedCallback() 
+        private void ConnectedCallback()
         {
             Tips = null;
         }
@@ -128,7 +144,7 @@ namespace ThreeL.Client.Win.ViewModels
                     throw new Exception("连接服务器失败");
 
                 await HandShakeAfterSocketConnectedAsync();
-                CurrentPage = _setting; //TODO
+                CurrentPage = _chatPage; //TODO
             }
             catch (Exception ex)
             {

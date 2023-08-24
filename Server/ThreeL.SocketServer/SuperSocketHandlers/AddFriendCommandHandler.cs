@@ -41,6 +41,8 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
             respPacket.Body.Result = resp.Result;
             respPacket.Body.Message = resp.Message;
+            respPacket.Body.From = session.UserId;
+            respPacket.Body.To = packet.Body.FriendId;
 
             await appSession.SendAsync(respPacket.Serialize());
             if (resp.Result)//成功后还需要发通知给目标

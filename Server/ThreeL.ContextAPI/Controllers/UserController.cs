@@ -94,5 +94,18 @@ namespace ThreeL.ContextAPI.Controllers
 
             return new FileStreamResult(new FileStream(resp.Value.FullName, FileMode.Open), "application/octet-stream") { FileDownloadName = resp.Value.Name };
         }
+
+        [HttpGet("download/avatar/{userId}/{avatarId}")]
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        public async Task<IActionResult> DownloadAvatar(long userId, long avatarId)
+        {
+            var resp = await _userService.DownloadUserAvatarAsync(avatarId, userId);
+            if (resp.Value == null)
+            {
+                return resp.ToActionResult();
+            }
+
+            return new FileStreamResult(new FileStream(resp.Value.FullName, FileMode.Open), "application/octet-stream") { FileDownloadName = resp.Value.Name };
+        }
     }
 }

@@ -54,6 +54,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
+            var chatSession = appSession as ChatSession;
             var packet = message as Packet<FileMessage>;
             var resp = new Packet<FileMessageResponse>()
             {
@@ -64,9 +65,9 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
             var body = new FileMessageResponse();
             resp.Body = body;
-            if (packet.Body.From != packet.Body.To)
+            if (chatSession.UserId != packet.Body.To)
             {
-                if (!await _messageHandlerService.IsFriendAsync(packet.Body.From, packet.Body.To))
+                if (!await _messageHandlerService.IsFriendAsync(chatSession.UserId, packet.Body.To))
                 {
                     body.Result = false;
                     body.Message = "好友关系异常";
@@ -75,7 +76,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                     return;
                 }
             }
-            var fileinfo = await _contextAPIGrpcService.FetchFileInfoAsync(new FileInfoRequest() { Id = packet.Body.FileId }, (appSession as ChatSession).AccessToken);
+            var fileinfo = await _contextAPIGrpcService.FetchFileInfoAsync(new FileInfoRequest() { Id = packet.Body.FileId }, chatSession.AccessToken);
             if (fileinfo == null || !fileinfo.Result)
             {
                 body.Result = false;
