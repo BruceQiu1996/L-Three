@@ -298,19 +298,21 @@ namespace ThreeL.Client.Win.ViewModels
 
         private async Task HandleReplyFriendApplyAsync(ReplyAddFriendCommandResponse response)
         {
-
-            var friend = response.From == App.UserProfile.UserId ? response.To : response.From;
-            var name = response.From == App.UserProfile.UserId ? response.ToName : response.FromName;
-            var avatar = response.From == App.UserProfile.UserId ? response.ToAvatar : response.FromAvatar;
-            var friendViewModel = FriendViewModels.FirstOrDefault(x => x.Id == friend);
-            if (friendViewModel == null)
+            if (response.Agree)
             {
-                FriendViewModels.Insert(0, new FriendViewModel
+                var friend = response.From == App.UserProfile.UserId ? response.To : response.From;
+                var name = response.From == App.UserProfile.UserId ? response.ToName : response.FromName;
+                var avatar = response.From == App.UserProfile.UserId ? response.ToAvatar : response.FromAvatar;
+                var friendViewModel = FriendViewModels.FirstOrDefault(x => x.Id == friend);
+                if (friendViewModel == null)
                 {
-                    Id = friend,
-                    UserName = name,
-                    AvatarId = avatar == 0 ? null : avatar,
-                });
+                    FriendViewModels.Insert(0, new FriendViewModel
+                    {
+                        Id = friend,
+                        UserName = name,
+                        AvatarId = avatar == 0 ? null : avatar,
+                    });
+                }
             }
 
             await FetchUserUnProcessApplysAsync();

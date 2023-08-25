@@ -17,5 +17,7 @@ namespace ThreeL.Shared.SuperSocket.Dto.Commands
         public long FromAvatar { get; set; }
         [ProtoMember(11)]
         public long ToAvatar { get; set; }
+        [ProtoMember(12)]
+        public bool Agree { get; set; }
     }
 }

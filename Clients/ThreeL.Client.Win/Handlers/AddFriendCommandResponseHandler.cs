@@ -36,7 +36,7 @@ namespace ThreeL.Client.Win.Handlers
 
             if (packet.Body.Result)
             {
-                WeakReferenceMessenger.Default.Send<string, string>(null, "message-addfriend-apply");
+                WeakReferenceMessenger.Default.Send<string, string>(string.Empty, "message-addfriend-apply");
 
                 return Task.CompletedTask;
             }

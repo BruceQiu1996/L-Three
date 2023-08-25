@@ -323,7 +323,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
 
         public async Task<ServiceResult<FileInfo>> DownloadUserAvatarAsync(long avatarId, long userId)
         {
-            var avatar = await _adoQuerierRepository.QueryFirstOrDefaultAsync<string>("SELECT LOCATION FROM UserAvatar WHERE Id = @Id",
+            var avatar = await _adoQuerierRepository.QueryFirstOrDefaultAsync<string>("SELECT LOCATION FROM UserAvatar WHERE Id = @Id and CREATEBY = @UserId",
                 new
                 {
                     Id = avatarId,

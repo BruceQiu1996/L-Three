@@ -48,6 +48,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             respPacket.Body.ToName = resp.PassiverName;
             respPacket.Body.FromAvatar = resp.ActiverAvatarId;
             respPacket.Body.ToAvatar = resp.PassiverAvatarId;
+            respPacket.Body.Agree = packet.Body.Agree;
 
             if (resp.Result)
             {

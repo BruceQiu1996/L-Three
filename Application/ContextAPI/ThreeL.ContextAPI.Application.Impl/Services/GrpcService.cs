@@ -190,7 +190,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                     FriendId = apply.Passiver
                 });
 
-                await _redisProvider.SetAddAsync(Const.FRIEND_RELATION, new string[] { $"{apply.Activer}-{apply.Passiver}" });
+                await _redisProvider.SetAddAsync(CommonConst.FRIEND_RELATION, new string[] { $"{apply.Activer}-{apply.Passiver}" });
             }
             else
             {
