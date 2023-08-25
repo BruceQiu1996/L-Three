@@ -44,5 +44,16 @@ namespace ThreeL.ContextAPI.Controllers
 
             return Ok(records);
         }
+
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        [HttpGet("applys")]
+        public async Task<ActionResult> FetchFriendApplys()
+        {
+            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+            //验证两个人是否是好友
+            var applys = await _friendService.FetchAllFriendApplysAsync(userId);
+
+            return Ok(applys);
+        }
     }
 }

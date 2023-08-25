@@ -54,15 +54,15 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
         public async override Task ExceptionAsync(IAppSession appSession, IPacket message, Exception ex)
         {
-            var packet = message as Packet<LoginCommand>;
-            var resp = new Packet<LoginCommandResponse>()
+            var packet = message as Packet<AddFriendCommand>;
+            var resp = new Packet<AddFriendCommandResponse>()
             {
                 Sequence = packet.Sequence,
                 Checkbit = packet.Checkbit,
                 MessageType = MessageType.LoginResponse,
             };
 
-            var body = new LoginCommandResponse();
+            var body = new AddFriendCommandResponse();
             resp.Body = body;
             body.Result = false;
             body.Message = ex.Message;

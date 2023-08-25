@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using ThreeL.Shared.Application.Contract.Services;
 using ThreeL.SocketServer.Application.Contract;
 using ThreeL.SocketServer.Application.Contract.Configurations;
-using ThreeL.SocketServer.Application.Contract.Interceptors;
 using ThreeL.SocketServer.Application.Contract.Services;
 
 namespace ThreeL.SocketServer.Application.Impl.Services
@@ -88,6 +87,14 @@ namespace ThreeL.SocketServer.Application.Impl.Services
         public async Task<AddFriendResponse> AddFriendAsync(AddFriendRequest request, string token)
         {
             return await _serverServiceClient.AddFriendAsync(request, new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
+        }
+
+        public async Task<ReplyAddFriendResponse> ReplyAddFriendAsync(ReplyAddFriendRequest request, string token)
+        {
+            return await _serverServiceClient.ReplyAddFriendAsync(request, new Metadata()
             {
                 { "Authorization", $"Bearer {token}" }
             });

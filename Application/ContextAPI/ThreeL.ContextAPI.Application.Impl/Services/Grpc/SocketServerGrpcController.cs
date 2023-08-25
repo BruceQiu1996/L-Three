@@ -90,5 +90,18 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
                 return new AddFriendResponse() { Result = false, Message = "服务器异常" };
             }
         }
+
+        [Authorize]
+        public async override Task<ReplyAddFriendResponse> ReplyAddFriend(ReplyAddFriendRequest request, ServerCallContext context)
+        {
+            try
+            {
+                return await _grpcService.ReplyAddFriend(request, context);
+            }
+            catch (Exception ex)
+            {
+                return new ReplyAddFriendResponse() { Result = false, Message = "服务器异常" };
+            }
+        }
     }
 }

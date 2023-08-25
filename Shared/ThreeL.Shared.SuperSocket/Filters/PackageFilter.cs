@@ -42,6 +42,8 @@ namespace ThreeL.Shared.SuperSocket.Filters
                     MessageType.RequestForUserEndpointResponse => new Packet<RequestForUserEndpointCommandResponse>(),
                     MessageType.AddFriend => new Packet<AddFriendCommand>(),
                     MessageType.AddFriendResponse => new Packet<AddFriendCommandResponse>(),
+                    MessageType.ReplyAddFriend => new Packet<ReplyAddFriendCommand>(),
+                    MessageType.ReplyAddFriendResponse => new Packet<ReplyAddFriendCommandResponse>(),
                     _ => new Packet<TextMessage>()
                 };
 

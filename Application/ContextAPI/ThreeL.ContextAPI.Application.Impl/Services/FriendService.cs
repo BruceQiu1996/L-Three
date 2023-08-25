@@ -2,8 +2,10 @@
 using ThreeL.ContextAPI.Application.Contract.Configurations;
 using ThreeL.ContextAPI.Application.Contract.Dtos.Relation;
 using ThreeL.ContextAPI.Application.Contract.Services;
+using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
 using ThreeL.Infra.Redis;
 using ThreeL.Infra.Repository.IRepositories;
+using ThreeL.Shared.Application;
 using ThreeL.Shared.Application.Contract.Services;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services
@@ -35,7 +37,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 " WHERE (Friend.Activer = @Id OR Friend.Passiver = @Id) AND u1.isDeleted = 0 AND u2.isDeleted = 0",
                 new { Id = userId });
 
-            return friends;
+            return friends == null ? new List<FriendDto>() : friends;
         }
 
         public async Task<bool> IsFriendAsync(long userId, long fUserId)
@@ -57,7 +59,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 " WHERE u1.isDeleted = 0 AND u2.isDeleted = 0");
 
             var ids = friends?.Select(x => $"{x.ActiverId}-{x.PassiverId}");
-            await _redisProvider.SetAddAsync(Const.FRIEND_RELATIONS, ids == null ? new string[] { } : ids.ToArray());
+            await _redisProvider.SetAddAsync(CommonConst.FRIEND_RELATION, ids == null ? new string[] { } : ids.ToArray());
         }
 
         public async Task<FriendChatRecordResponseDto> FetchChatRecordsWithFriendAsync(long userId, long friendId, DateTime dateTime)
@@ -77,6 +79,17 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 FriendId = friendId,
                 Records = records?.Select(x => x.ClearDataByWithdrawed())
             };
+        }
+
+        public async Task<IEnumerable<FriendApplyResponseDto>> FetchAllFriendApplysAsync(long userId)
+        {
+            var applys = await _adoQuerierRepository
+                .QueryAsync<FriendApplyResponseDto>("SELECT FriendApply.Id AS Id, u1.Id AS ActiverId,u1.userName AS ActiverName,u2.Id AS PassiverId,u2.userName AS PassiverName ,FriendApply.CreateTime,FriendApply.ProcessTime, FriendApply.Status FROM FriendApply INNER JOIN [User] u1 ON u1.Id = FriendApply.Activer INNER JOIN [User] u2 ON u2.Id = FriendApply.Passiver WHERE FriendApply.Activer = @Id OR FriendApply.Passiver = @Id", new
+                {
+                    Id = userId
+                });
+
+            return applys == null ? new List<FriendApplyResponseDto>() : applys;
         }
     }
 }

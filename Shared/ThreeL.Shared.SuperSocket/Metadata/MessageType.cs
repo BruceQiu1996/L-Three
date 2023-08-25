@@ -27,6 +27,8 @@
         RequestForUserEndpointResponse,
         AddFriend,
         AddFriendResponse,
+        ReplyAddFriend,
+        ReplyAddFriendResponse,
         LoadRecord
     }
 }

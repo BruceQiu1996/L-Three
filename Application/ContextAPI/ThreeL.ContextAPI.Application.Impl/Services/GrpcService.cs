@@ -7,6 +7,8 @@ using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
 using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate.Metadata;
 using ThreeL.Infra.Core.Metadata;
 using ThreeL.Infra.Dapper.Repositories;
+using ThreeL.Infra.Redis;
+using ThreeL.Shared.Application;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services
 {
@@ -14,10 +16,12 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
     {
         private readonly IMapper _mapper;
         private readonly DapperRepository<ContextAPIDbContext> _dapperRepository;
+        private readonly IRedisProvider _redisProvider;
 
-        public GrpcService(DapperRepository<ContextAPIDbContext> dapperRepository, IMapper mapper)
+        public GrpcService(DapperRepository<ContextAPIDbContext> dapperRepository, IMapper mapper, IRedisProvider redisProvider)
         {
             _mapper = mapper;
+            _redisProvider = redisProvider;
             _dapperRepository = dapperRepository;
         }
 
@@ -109,7 +113,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var userIdentity = context.GetHttpContext().User.Identity?.Name;
             var userid = long.Parse(userIdentity);
             var users = await _dapperRepository
-                .QueryAsync<FriendApply>("SELECT * FROM [User] WHERE Id  = @ActiverId or Id = @PassiverId and IsDeleted = 0", new
+                .QueryAsync<User>("SELECT * FROM [User] WHERE Id  = @ActiverId or Id = @PassiverId and IsDeleted = 0", new
                 {
                     ActiverId = userid,
                     PassiverId = request.FriendId
@@ -140,6 +144,76 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             });
 
             return new AddFriendResponse() { Result = true };
+        }
+
+        public async Task<ReplyAddFriendResponse> ReplyAddFriend(ReplyAddFriendRequest request, ServerCallContext context)
+        {
+            var userIdentity = context.GetHttpContext().User.Identity?.Name;
+            var userid = long.Parse(userIdentity);
+            var apply = await _dapperRepository
+                .QueryFirstOrDefaultAsync<FriendApply>("SELECT * FROM FriendApply WHERE Id = @Id", new
+                {
+                    Id = request.RequestId,
+                });
+            if (apply == null || apply.Status != FriendApplyStatus.TobeProcessed)
+            {
+                return new ReplyAddFriendResponse() { Result = false, Message = "申请不存在" };
+            }
+
+            if (apply.Passiver != userid)
+            {
+                return new ReplyAddFriendResponse() { Result = false, Message = "无权限" };
+            }
+
+            var users = await _dapperRepository
+                .QueryAsync<User>("SELECT * FROM [User] WHERE Id  = @ActiverId or Id = @PassiverId and IsDeleted = 0", new
+                {
+                    ActiverId = apply.Activer,
+                    PassiverId = apply.Passiver
+                });
+
+            if (users == null || users.Count() != 2)
+            {
+                return new ReplyAddFriendResponse() { Result = false, Message = "账号异常" };
+            }
+
+            if (request.Agree)
+            {
+                await _dapperRepository.ExecuteAsync("UPDATE FriendApply SET Status = @Status,ProcessTime = getdate() WHERE Id = @Id", new
+                {
+                    Id = request.RequestId,
+                    Status = FriendApplyStatus.Accept
+                });
+                await _dapperRepository.ExecuteAsync("INSERT INTO Friend(Activer,Passiver,CreateTime) VALUES(@UserId,@FriendId,getdate())", new
+                {
+                    UserId = apply.Activer,
+                    FriendId = apply.Passiver
+                });
+
+                await _redisProvider.SetAddAsync(Const.FRIEND_RELATION, new string[] { $"{apply.Activer}-{apply.Passiver}" });
+            }
+            else
+            {
+                await _dapperRepository.ExecuteAsync("UPDATE FriendApply SET Status = @Status,ProcessTime = getdate() WHERE Id = @Id", new
+                {
+                    Id = request.RequestId,
+                    Status = FriendApplyStatus.Reject
+                });
+            }
+
+            var activer = users.First(x => x.Id == apply.Activer);
+            var passiver = users.First(x => x.Id == apply.Passiver);
+
+            return new ReplyAddFriendResponse()
+            {
+                Result = true,
+                ActiverId = activer.Id,
+                PassiverId = passiver.Id,
+                ActiverAvatarId = activer.Avatar == null ? 0 : activer.Avatar.Value,
+                PassiverAvatarId = passiver.Avatar == null ? 0 : passiver.Avatar.Value,
+                ActiverName = activer.UserName,
+                PassiverName = passiver.UserName,
+            };
         }
     }
 }

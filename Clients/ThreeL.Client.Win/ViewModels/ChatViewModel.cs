@@ -24,13 +24,13 @@ using ThreeL.Client.Shared.Utils;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.MyControls;
-using ThreeL.Client.Win.Pages;
 using ThreeL.Client.Win.ViewModels.Messages;
 using ThreeL.Infra.Core.Cryptography;
 using ThreeL.Infra.Core.Metadata;
 using ThreeL.Shared.SuperSocket.Cache;
 using ThreeL.Shared.SuperSocket.Client;
 using ThreeL.Shared.SuperSocket.Dto;
+using ThreeL.Shared.SuperSocket.Dto.Commands;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Metadata;
 
@@ -77,11 +77,11 @@ namespace ThreeL.Client.Win.ViewModels
             set => SetProperty(ref _isEmojiOpen, value);
         }
 
-        private bool _hadNewApply;
-        public bool HadNewApply
+        private int needProcessApplyCounts;
+        public int NeedProcessApplyCounts
         {
-            get => _hadNewApply;
-            set => SetProperty(ref _hadNewApply, value);
+            get => needProcessApplyCounts;
+            set => SetProperty(ref needProcessApplyCounts, value);
         }
 
         private UserProfile userProfile;
@@ -197,11 +197,17 @@ namespace ThreeL.Client.Win.ViewModels
                     Avatar = _fileHelper.ByteArrayToBitmapImage(y);
                 });
 
-            WeakReferenceMessenger.Default.Register<ChatViewModel, string, string>(this, "message - addfriend - apply",
-                (x, y) =>
+            WeakReferenceMessenger.Default.Register<ChatViewModel, string, string>(this, "message-addfriend-apply",
+                async (x, y) =>
                 {
-                    HadNewApply = true;
+                    await FetchUserUnProcessApplysAsync();
                 });
+
+            WeakReferenceMessenger.Default.Register<ChatViewModel, ReplyAddFriendCommandResponse, string>(this, "message-addfriend-success",
+               async (x, y) =>
+               {
+                   await HandleReplyFriendApplyAsync(y);
+               });
         }
 
         private async Task LoadAsync()
@@ -259,6 +265,9 @@ namespace ThreeL.Client.Win.ViewModels
 
                         FriendViewModel = FriendViewModels.FirstOrDefault();
                         _isLoaded = true;
+
+                        //加载申请好友记录
+                        await FetchUserUnProcessApplysAsync();
                     }
                 }
                 catch (Exception ex)
@@ -266,6 +275,45 @@ namespace ThreeL.Client.Win.ViewModels
                     _growlHelper.Warning(ex.Message);
                 }
             }
+        }
+
+        /// <summary>
+        /// 获取用户的申请
+        /// </summary>
+        /// <returns></returns>
+        private async Task FetchUserUnProcessApplysAsync()
+        {
+            var applys = await _contextAPIService.GetAsync<IEnumerable<FriendApplyResponseDto>>(Const.FETCH_FRIEND_APPLYS);
+            if (applys != null)
+            {
+                IEnumerable<ApplyRecordViewModel> applyRecordViewModels = applys.Select(x => new ApplyRecordViewModel(x)).ToList();
+                NeedProcessApplyCounts = applyRecordViewModels.Where(x => !x.FromSelf && x.Status == FriendApplyStatus.TobeProcessed).Count();
+                WeakReferenceMessenger.Default.Send<IEnumerable<ApplyRecordViewModel>, string>(applyRecordViewModels, "message-applys");
+            }
+            else
+            {
+                NeedProcessApplyCounts = 0;
+            }
+        }
+
+        private async Task HandleReplyFriendApplyAsync(ReplyAddFriendCommandResponse response)
+        {
+
+            var friend = response.From == App.UserProfile.UserId ? response.To : response.From;
+            var name = response.From == App.UserProfile.UserId ? response.ToName : response.FromName;
+            var avatar = response.From == App.UserProfile.UserId ? response.ToAvatar : response.FromAvatar;
+            var friendViewModel = FriendViewModels.FirstOrDefault(x => x.Id == friend);
+            if (friendViewModel == null)
+            {
+                FriendViewModels.Insert(0, new FriendViewModel
+                {
+                    Id = friend,
+                    UserName = name,
+                    AvatarId = avatar == 0 ? null : avatar,
+                });
+            }
+
+            await FetchUserUnProcessApplysAsync();
         }
 
         /// <summary>
@@ -313,7 +361,7 @@ namespace ThreeL.Client.Win.ViewModels
             WeakReferenceMessenger.Default.Send<string, string>("setting", "switch-page");
         }
 
-        private void GotoApplyPage() 
+        private void GotoApplyPage()
         {
             WeakReferenceMessenger.Default.Send<string, string>("apply", "switch-page");
         }

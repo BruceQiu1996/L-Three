@@ -20,6 +20,22 @@ message AddFriendResponse{
 	string message = 2;
 }
 
+message ReplyAddFriendRequest{
+	int64 requestId = 1;
+	bool agree = 2;
+}
+
+message ReplyAddFriendResponse{
+	bool result = 1;
+	string message = 2;
+	int64 activerId = 3;
+	int64 passiverId = 4;
+	string activerName = 5;
+	string passiverName = 6;
+	int64 activerAvatarId = 7;
+	int64 passiverAvatarId = 8;
+}
+
 service SocketServerService{
 	rpc SocketServerUserLogin(SocketServerUserLoginRequest) returns (SocketServerUserLoginResponse);
 	rpc FetchFileInfo(FileInfoRequest) returns (FileInfoResponse);
@@ -27,4 +43,5 @@ service SocketServerService{
 	rpc PostChatRecordSingle(ChatRecordPostRequest) returns (ChatRecordPostResponse);
 	rpc WithdrawChatRecord(ChatRecordWithdrawRequest) returns (ChatRecordWithdrawResponse);
 	rpc AddFriend(AddFriendRequest) returns (AddFriendResponse);
+	rpc ReplyAddFriend(ReplyAddFriendRequest) returns (ReplyAddFriendResponse);
 }

@@ -35,6 +35,7 @@
         <converts:ValueHalfConverter x:Key="ValueHalfConverter"></converts:ValueHalfConverter>
         <converts:ValueHalfConverter_2 x:Key="ValueHalfConverter_2"></converts:ValueHalfConverter_2>
         <converts:MessageDataTemplateSelector x:Key="MessageDataTemplateSelector"></converts:MessageDataTemplateSelector>
+        <converts:Int2BooleanConverter x:Key="Int2BooleanConverter"></converts:Int2BooleanConverter>
         <DataTemplate x:Key="loadData">
             <TextBlock Text="加载历史聊天记录" HorizontalAlignment="Center" FontSize="13" Foreground="{DynamicResource LoadColor}" Cursor="Hand" TextDecorations="Underline">
                 <behaviors:Interaction.Triggers>
@@ -497,8 +498,9 @@
                         <TextBlock Text="{Binding UserProfile.UserName}" FontSize="16" HorizontalAlignment="Left"  Foreground="#aaa"/>
                         <TextBlock Text="{Binding UserProfile.Role}" FontSize="12" HorizontalAlignment="Left"  Foreground="#aaa"/>
                     </StackPanel>
-                    
-                    <hc:Badge Text="1" Foreground="White" BorderThickness="0" Background="Red" BadgeMargin="0,-10,0,0" Height="30">
+
+                    <hc:Badge Value="{Binding NeedProcessApplyCounts}" ShowBadge="{Binding NeedProcessApplyCounts,Converter={StaticResource Int2BooleanConverter}}"
+                              Foreground="White" BorderThickness="0" Background="Red" BadgeMargin="0,-10,0,0" Height="30">
                         <Label Height="40" Background="Transparent" Cursor="Hand" Margin="20 0 0 0" BorderThickness="0" VerticalAlignment="Center"
                            HorizontalAlignment="Right" ToolTip="申请管理">
                             <behaviors:Interaction.Triggers>
