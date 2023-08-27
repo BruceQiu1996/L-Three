@@ -1,8 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Net;
 using ThreeL.Client.Mobile.Helper;
+using ThreeL.Client.Mobile.Pages;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
+using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Shared.Services;
 
 namespace ThreeL.Client.Mobile.ViewModels
@@ -27,11 +30,17 @@ namespace ThreeL.Client.Mobile.ViewModels
 
         private readonly ContextAPIService _contextAPIService;
         private readonly WarningHelper _warningHelper;
-        public LoginViewModel(ContextAPIService contextAPIService, WarningHelper warningHelper)
+        private readonly MainPage _mainPage;
+        public LoginViewModel(ContextAPIService contextAPIService, 
+                              WarningHelper warningHelper, 
+                              MainPage mainPage)
         {
             _contextAPIService = contextAPIService;
+            _mainPage = mainPage;
             _warningHelper = warningHelper;
             LoginCommandAsync = new AsyncRelayCommand(LoginAsync);
+            UserName = "bruce";
+            Password = "123456";
         }
 
         private async Task LoginAsync()
@@ -55,7 +64,18 @@ namespace ThreeL.Client.Mobile.ViewModels
 
                 if (data != null)
                 {
+                    App.UserProfile = new UserProfile()
+                    {
+                        UserId = data.UserId,
+                        UserName = data.UserName,
+                        RefreshToken = data.RefreshToken,
+                        AccessToken = data.AccessToken,
+                        Role = data.Role,
+                        Avatar = data.Avatar,
+                        AvatarId = data.AvatarId,
+                    };
 
+                    Application.Current.MainPage = _mainPage;
                 }
                 else 
                 {

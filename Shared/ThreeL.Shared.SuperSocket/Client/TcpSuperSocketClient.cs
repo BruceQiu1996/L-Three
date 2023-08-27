@@ -51,7 +51,8 @@ namespace ThreeL.Shared.SuperSocket.Client
             {
                 bool isConnect = true;
                 int i = 0;
-                while (!await mClient.ConnectAsync(new IPEndPoint(IPAddress.Parse(remoteIP), remotePort)) && i < retryTimes)
+                var a = new IPEndPoint(IPAddress.Parse(remoteIP), remotePort);
+                while (!await mClient.ConnectAsync(a) && i < retryTimes)
                 {
                     isConnect = false;
                     i++;
@@ -64,6 +65,10 @@ namespace ThreeL.Shared.SuperSocket.Client
                     ConnectedEvent?.Invoke();
                 }
                 return isConnect;
+            }
+            catch (Exception ex) 
+            {
+                throw ex;
             }
             finally
             {

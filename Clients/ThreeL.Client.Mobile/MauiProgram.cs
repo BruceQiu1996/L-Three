@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 using ThreeL.Client.Mobile.Helper;
+using ThreeL.Client.Mobile.Pages;
+using ThreeL.Client.Mobile.Pages.Content;
 using ThreeL.Client.Mobile.ViewModels;
 using ThreeL.Client.Shared;
 using ThreeL.Shared.SuperSocket.Extensions;
@@ -35,8 +37,13 @@ namespace ThreeL.Client.Mobile
             builder.Services.AddClientShared(builder.Configuration);
             builder.Services.AddSuperSocket(true);
             builder.Services.AddSingleton<WarningHelper>();
-            builder.Services.AddSingleton<LoginViewModel>();
             builder.Services.AddSingleton<LoginPage>();
+            builder.Services.AddSingleton<LoginViewModel>();
+            builder.Services.AddSingleton<MainPage>();
+            builder.Services.AddSingleton<MainPageViewModel>();
+            builder.Services.AddSingleton<Chat>();
+            builder.Services.AddSingleton<ChatViewModel>();
+            builder.Services.AddSingleton<Setting>();
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
