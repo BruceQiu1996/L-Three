@@ -11,8 +11,8 @@ namespace ThreeL.Shared.SuperSocket.Extensions
     {
         public static void AddSuperSocket(this IServiceCollection service, bool isClient = false)
         {
-            var port = PortFilter.GetFirstAvailablePort();
-            service.AddSingleton(new IPEndPoint(IPAddress.Parse("127.0.0.1"), port));
+            //var port = PortFilter.GetFirstAvailablePort();
+            //service.AddSingleton(new IPEndPoint(IPAddress.Parse("127.0.0.1"), port));
             service.AddSingleton<PacketWaitContainer>();
             service.AddSingleton<PacketWaiter>();
             service.AddSingleton(new PackageFilter());

@@ -22,7 +22,6 @@ namespace ThreeL.Shared.SuperSocket.Filters
 
         private static IList PortIsUsed()
         {
-
             IPGlobalProperties ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
             IPEndPoint[] ipsTCP = ipGlobalProperties.GetActiveTcpListeners();
             IPEndPoint[] ipsUDP = ipGlobalProperties.GetActiveUdpListeners();

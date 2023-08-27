@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ThreeL.Client.Mobile.LoginPage"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit">
+
+    <ContentPage.Resources>
+        <Style x:Key="ChatEntryContainerStyle" TargetType="Frame">
+            <Setter Property="BackgroundColor" Value="#eee" />
+            <Setter Property="HeightRequest" Value="45" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="HasShadow" Value="False" />
+            <Setter Property="Padding" Value="4" />
+            <Setter Property="Margin" Value="10,5" />
+            <Setter Property="BorderColor" Value="{StaticResource PrimaryBackgroundColor}"></Setter>
+        </Style>
+
+        <Style TargetType="Entry">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalOptions" Value="Center" />
+            <Setter Property="Margin" Value="2, 0" />
+            <Style.Triggers>
+                <EventTrigger Event=""></EventTrigger>
+            </Style.Triggers>
+        </Style>
+    </ContentPage.Resources>
+    <ScrollView>
+        <VerticalStackLayout Spacing="10" Padding="10,0"
+            VerticalOptions="Center">
+            <Label Text="ThreeL" HorizontalTextAlignment="Center"
+                   FontSize="30" FontAttributes="Bold" Margin="0,0,0,50"></Label>
+            <Frame Grid.Row="1" Style="{StaticResource ChatEntryContainerStyle}">
+                <Grid ColumnDefinitions="*, Auto">
+                    <Entry Placeholder="输入用户名"  Text="{Binding UserName}">
+                    </Entry>
+                </Grid>
+            </Frame>
+            <Frame Grid.Row="1" Style="{StaticResource ChatEntryContainerStyle}">
+                <Grid ColumnDefinitions="*, Auto">
+                    <Entry Placeholder="输入密码" Text="{Binding Password}" IsPassword="True"/>
+                </Grid>
+            </Frame>
+            <Button x:Name="CounterBtn" 
+                    Margin="10,30,10,0"
+                    Background="{StaticResource PrimaryColor}"
+                    Command="{Binding LoginCommandAsync}"
+                    Text="登录"
+                    FontSize="20"
+                    HorizontalOptions="FillAndExpand" />
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
