@@ -107,5 +107,18 @@ namespace ThreeL.ContextAPI.Controllers
 
             return new FileStreamResult(new FileStream(resp.Value.FullName, FileMode.Open), "application/octet-stream") { FileDownloadName = resp.Value.Name };
         }
+
+        [HttpPost("group/{groupName}")]
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        public async Task<IActionResult> CreateGroup(string groupName)
+        {
+            if (string.IsNullOrEmpty(groupName) || groupName.Trim().Length <= 2)
+                return BadRequest("非法群名");
+
+            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+            var resp = await _userService.CreateGroupChatAsync(userId, groupName);
+
+            return resp.ToActionResult();
+        }
     }
 }

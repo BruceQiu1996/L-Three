@@ -17,5 +17,9 @@ namespace ThreeL.ContextAPI.Application.Contract.Services
         [DapperUnitOfWork]
         Task<ServiceResult<FileInfo>> UploadUserAvatarAsync(long userId, string code, IFormFile file);
         Task<ServiceResult<FileInfo>> DownloadUserAvatarAsync(long avatarId, long userId);
+        [DapperUnitOfWork]
+        Task<ServiceResult<GroupCreationResponseDto>> CreateGroupChatAsync(long userId, string groupName);
+        [DapperUnitOfWork]
+        Task<ServiceResult> InviteUserJoinGroupChatAsync(long userId, long groupId, IEnumerable<long> ids);
     }
 }

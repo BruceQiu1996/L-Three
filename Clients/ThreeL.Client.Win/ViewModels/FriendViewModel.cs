@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Client.Shared.Services;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.Pages;
@@ -38,6 +39,15 @@ namespace ThreeL.Client.Win.ViewModels
                 SetProperty(ref avatarId, value);
             }
         }
+        public bool IsGroup { get; set; } //是否是群组
+
+        private ObservableCollection<UserRoughlyDto> members;
+        public ObservableCollection<UserRoughlyDto> Members
+        {
+            get => members;
+            set => SetProperty(ref members, value);
+        }
+
         public int Port { get; set; }
         public string ShowName => UserName.Substring(0, 1).ToUpper();
         public string DisplayName => string.IsNullOrEmpty(Remark) ? UserName : Remark;
@@ -95,6 +105,7 @@ namespace ThreeL.Client.Win.ViewModels
         {
             Hosts = new List<string>();
             Messages = new ObservableCollection<MessageViewModel>();
+            Members = new ObservableCollection<UserRoughlyDto>();
         }
 
         private void RefreshAvatar(long userId, long id)

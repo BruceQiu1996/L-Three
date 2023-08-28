@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -33,6 +33,14 @@ namespace ThreeL.Client.Win.Pages
         private void ScrollViewer_RequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
         {
             e.Handled = true;
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            var window = App.ServiceProvider.GetRequiredService<CreateGroupWindow>();
+            window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            window.Owner = App.ServiceProvider.GetRequiredService<MainWindow>();
+            window.ShowDialog();
         }
     }
 }

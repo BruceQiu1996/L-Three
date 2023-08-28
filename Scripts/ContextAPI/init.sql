@@ -22,7 +22,7 @@ CREATE TABLE [USER](
     id bigint PRIMARY key identity,
     userName varchar(16) not null,
     [password] varchar(255) not null,
-    avatar varchar(255)£¬
+    avatar bigint£¬
     sign varchar(20),
     isDeleted bit NOT NULL,
     [role] int NOT NULL,
@@ -71,6 +71,7 @@ CREATE TABLE ChatRecord(
     ImageType int,
     SendTime datetime,
     FileId bigint,
+    InnerId bigint,
     Withdrawed bit NOT NULL,
 );
 CREATE TABLE [FriendApply] (
@@ -90,6 +91,16 @@ CREATE TABLE [UserAvatar](
 	Code VARCHAR(500) NOT NULL,
 	Location VARCHAR(500) NOT NULL,
     createTime datetime not null
+);
+GO
+
+CREATE TABLE [Group](
+    id bigint PRIMARY key identity,
+    Name varchar(16) not null,
+    avatar bigint£¬
+    createBy bigint,
+    createTime datetime not null,
+    Members varchar(5000) not null,
 );
 INSERT INTO FRIEND(Activer,Passiver,ActiverRemark,PassiverRemark,createTime) VALUES(1,2,NULL,'big b bro',GETDATE())
 

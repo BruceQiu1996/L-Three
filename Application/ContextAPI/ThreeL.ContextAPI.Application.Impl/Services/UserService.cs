@@ -1,14 +1,15 @@
-﻿using Amazon.Runtime.Internal.Util;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using ThreeL.ContextAPI.Application.Contract.Configurations;
 using ThreeL.ContextAPI.Application.Contract.Dtos.User;
 using ThreeL.ContextAPI.Application.Contract.Services;
@@ -18,6 +19,7 @@ using ThreeL.Infra.Core.Cryptography;
 using ThreeL.Infra.Core.Enum;
 using ThreeL.Infra.Redis;
 using ThreeL.Infra.Repository.IRepositories;
+using ThreeL.Shared.Application;
 using ThreeL.Shared.Application.Contract.Configurations;
 using ThreeL.Shared.Application.Contract.Helpers;
 using ThreeL.Shared.Application.Contract.Services;
@@ -336,6 +338,78 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             }
 
             return new ServiceResult<FileInfo>(new FileInfo(avatar));
+        }
+
+        public async Task<ServiceResult<GroupCreationResponseDto>> CreateGroupChatAsync(long userId, string groupName)
+        {
+            var user = await _adoQuerierRepository.QueryFirstOrDefaultAsync<User>("SELECT * FROM [User] WHERE Id = @UserId AND isDeleted = 0",
+                new { UserId = userId });
+
+            if (user == null)
+                return new ServiceResult<GroupCreationResponseDto>(HttpStatusCode.BadRequest, "用户数据异常");
+
+            var group = await _adoQuerierRepository.QueryFirstAsync<Group>("INSERT INTO [GROUP] (NAME,CREATETIME,CREATEBY,MEMBERS) VALUES(@Name,getdate(),@UserId,@Members);SELECT * FROM [GROUP] WHERE id = CAST(SCOPE_IDENTITY() as Int)",
+                new
+                {
+                    Name = groupName,
+                    UserId = userId,
+                    Members = JsonSerializer.Serialize(new List<long>() { userId })
+                });
+
+            await _redisProvider.SetAddAsync(string.Format(CommonConst.GROUP, group.Id), new[] { userId.ToString() });
+
+            var resp = _mapper.Map<GroupCreationResponseDto>(group);
+            resp.Users = new List<UserRoughlyDto>() { new UserRoughlyDto()
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Role = user.Role.GetDescription(),
+                Avatar = user.Avatar,
+                Sign = user.Sign,
+                IsFriend = true
+            } };
+
+            return new ServiceResult<GroupCreationResponseDto>(resp);
+        }
+
+        public async Task<ServiceResult> InviteUserJoinGroupChatAsync(long userId, long groupId, IEnumerable<long> ids)
+        {
+            var group = await _adoQuerierRepository.QueryFirstOrDefaultAsync<Group>("SELECT * FROM [GROUP] WHERE Id = @Id",
+                               new { Id = groupId });
+            if (group == null)
+            {
+                return new ServiceResult(HttpStatusCode.BadRequest, "群组数据异常");
+            }
+            //查询用户的所有好友信息
+            var friends = await _adoQuerierRepository.QueryAsync<Friend>("SELECT * FROM [FRIEND] WHERE ACTIVER = @UserId OR PASSIVER = @UserId",
+                               new { UserId = userId });
+
+            if (friends == null || friends.Count() <= 0)
+                return new ServiceResult(HttpStatusCode.BadRequest, "用户数据异常");
+
+            bool error = false;
+            foreach (var friend in ids)
+            {
+                if (friends.FirstOrDefault(x => x.Activer == userId && x.Passiver == friend) == null
+                    && friends.FirstOrDefault(x => x.Activer == friend && x.Passiver == userId) == null)
+                {
+                    error = true;
+                    break;
+                }
+            }
+
+            if (error)
+            {
+                return new ServiceResult(HttpStatusCode.BadRequest, "用户数据异常");
+            }
+
+            var tempGroup = await _adoQuerierRepository.QueryFirstOrDefaultAsync<Group>("SELECT * FROM [GROUP] WHERE Id = @Id",
+                              new { Id = groupId });
+            var mbs = JsonSerializer.Serialize(JsonSerializer.Deserialize<IEnumerable<long>>(tempGroup.Members).Union(ids));
+            await _adoExecuterRepository.ExecuteAsync("UPDATE [GROUP] SET Members = @Members", new { Members = mbs });
+            await _redisProvider.SetAddAsync(string.Format(CommonConst.GROUP, groupId), ids.Select(x => x.ToString()).ToArray());
+
+            return new ServiceResult();
         }
     }
 }

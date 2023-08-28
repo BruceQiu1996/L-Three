@@ -19,6 +19,8 @@ namespace ThreeL.ContextAPI.Application.Contract.Mappers
                 y => y.MapFrom(src => (ImageType)src.ImageType))
             .ForMember(x => x.Message,
                 y => y.MapFrom(src => string.IsNullOrEmpty(src.Message) ? null : src.Message));
+
+            CreateMap<Group, GroupCreationResponseDto>();
         }
     }
 }

@@ -208,6 +208,12 @@ namespace ThreeL.Client.Win.ViewModels
                {
                    await HandleReplyFriendApplyAsync(y);
                });
+
+            WeakReferenceMessenger.Default.Register<ChatViewModel, GroupCreationResponseDto, string>(this, "message-newgroup",
+              async (x, y) =>
+              {
+                  await HandleNewGroupAsync(y);
+              });
         }
 
         private async Task LoadAsync()
@@ -318,8 +324,21 @@ namespace ThreeL.Client.Win.ViewModels
             await FetchUserUnProcessApplysAsync();
         }
 
+        private async Task HandleNewGroupAsync(GroupCreationResponseDto group) 
+        {
+            FriendViewModels.Insert(0, new FriendViewModel()
+            {
+                IsGroup = true,
+                Id = group.Id,
+                UserName = group.Name,
+                AvatarId = group.Avatar,
+            });
+
+            //load群聊聊天记录
+        }
+
         /// <summary>
-        /// 选中一个好友的时候进行连接
+        /// 选中一个好友或者群组时候进行连接
         /// </summary>
         /// <returns></returns>
         private async Task SelectFriendAsync()

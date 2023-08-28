@@ -28,6 +28,16 @@
                       Height="30"
                       Visibility="{Binding CanOpenLocation,Converter={StaticResource Boolean2VisibilityConverter}}" hc:IconElement.Width="0" Command="{Binding OpenLocationCommandAsync}"></MenuItem>
         </ContextMenu>
+
+        <ContextMenu x:Key="add" Width="150" BorderThickness="0">
+            <MenuItem Header="新建群组" 
+                      Height="30"
+                      Cursor="Hand"
+                      Click="MenuItem_Click"
+                      BorderThickness="0"
+                      Padding="5"
+                      Visibility="{Binding CanCopy,Converter={StaticResource Boolean2VisibilityConverter}}" hc:IconElement.Width="0"></MenuItem>
+        </ContextMenu>
         <Style TargetType="{x:Type Image}" x:Key="chatImageStyle">
             <Setter Property="Height" Value="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelHeight)}" />
             <Setter Property="Width" Value="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelWidth)}" />
@@ -381,12 +391,27 @@
             <ColumnDefinition Width="*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" Margin="0 0 0 0">
+        <Grid Grid.Column="0" Margin="0 0 0 0" Background="#222">
             <Grid.RowDefinitions>
+                <RowDefinition Height="35"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
                 <RowDefinition Height="55"></RowDefinition>
             </Grid.RowDefinitions>
-            <ScrollViewer Margin="0" Grid.Row="0">
+            <StackPanel Orientation="Horizontal" Background="#222" VerticalAlignment="Top">
+                <TextBox Text="{Binding SearchKey,UpdateSourceTrigger=PropertyChanged}"
+                         HorizontalAlignment="Stretch" Margin="1 0 2 0" Background="#444" 
+                         Width="177" Height="25"
+                         BorderThickness="0"
+                         ></TextBox>
+                <hc:ContextMenuButton Background="#444" Style="{StaticResource ButtonDanger}"
+                                      Menu="{StaticResource add}"
+                                      BorderThickness="0" Cursor="Hand">
+                    <Path Data="{StaticResource AddGeometry}" Fill="{StaticResource PrimaryBrush}">
+                        
+                    </Path>
+                </hc:ContextMenuButton>
+            </StackPanel>
+            <ScrollViewer Margin="0" Grid.Row="1">
                 <ListBox ScrollViewer.CanContentScroll="False"
                          Padding="0"
                          hc:BorderElement.CornerRadius="0"
@@ -479,7 +504,7 @@
                     </ListBox.ItemContainerStyle>
                 </ListBox>
             </ScrollViewer>
-            <Grid Grid.Row="1" Background="#111">
+            <Grid Grid.Row="2" Background="#111">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
                     <Border Background="{DynamicResource PrimaryBrush}" 
                             Height="44" Width="44" CornerRadius="22"

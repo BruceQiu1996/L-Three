@@ -34,9 +34,17 @@ namespace ThreeL.Client.Shared.Services
 
         public async Task<T> PostAsync<T>(string url, dynamic body, bool excuted = false)
         {
-            var content = new StringContent(JsonSerializer.Serialize(body, _jsonOptions));
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-            var resp = await _httpClient.PostAsync(url, content);
+            HttpResponseMessage resp = null;
+            if (body == null)
+            {
+                resp = await _httpClient.PostAsync(url, null);
+            }
+            else 
+            {
+                var content = new StringContent(JsonSerializer.Serialize(body, _jsonOptions));
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                resp = await _httpClient.PostAsync(url, content);
+            }
             if (resp.IsSuccessStatusCode)
             {
                 return JsonSerializer.Deserialize<T>(await resp.Content.ReadAsStringAsync(), _jsonOptions);

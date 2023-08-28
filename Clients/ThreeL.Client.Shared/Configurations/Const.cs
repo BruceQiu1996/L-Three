@@ -7,6 +7,7 @@
         public const string AVATAR_EXIST = "user/avatar/{0}";
         public const string UPLOAD_AVATAR = "user/upload/avatar/{0}";
         public const string REFRESH_TOKEN = "user/refresh/token";
+        public const string GROUP_CREATION = "user/group/{0}";
         public const string UPLOAD_FILE = "files/{0}/{1}";
         public const string DOWNLOAD_FILE = "files/download/{0}";
         public const string DOWNLOAD_AVATAR = "user/download/avatar/{0}/{1}";
