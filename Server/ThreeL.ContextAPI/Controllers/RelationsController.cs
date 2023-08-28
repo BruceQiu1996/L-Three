@@ -9,41 +9,41 @@ namespace ThreeL.ContextAPI.Controllers
     [ApiController]
     public class RelationsController : ControllerBase
     {
-        private readonly IFriendService _friendService;
-        public RelationsController(IFriendService friendService)
+        private readonly IRelationService _relationService;
+        public RelationsController(IRelationService relationService)
         {
-            _friendService = friendService;
+            _relationService = relationService;
         }
 
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
-        [HttpGet("friends")]
-        public async Task<ActionResult> GetFriends()
+        [HttpGet("{time}")]
+        public async Task<ActionResult> GetRelationsAndChatRecords(DateTime time)
         {
             var result = long.TryParse(HttpContext.User.Identity?.Name, out var userId);
             if (!result)
                 return Unauthorized();
 
-            var friends = await _friendService.GetFriendsAsync(userId);
+            var friends = await _relationService.GetRelationsAndChatRecordsAsync(1, time);
             return Ok(friends);
         }
 
-        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
-        [HttpGet("{friendId}/{time}/chatRecords")]
-        public async Task<ActionResult> FetchRecentlyChatRecords(long friendId, DateTime time)
-        {
-            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            //验证两个人是否是好友
-            if (friendId != userId)
-            {
-                var result = await _friendService.IsFriendAsync(userId, friendId);
-                if (!result)
-                    return BadRequest();
-            }
+        //[Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        //[HttpGet("{friendId}/{time}/chatRecords")]
+        //public async Task<ActionResult> FetchRecentlyChatRecords(long friendId, DateTime time)
+        //{
+        //    long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+        //    //验证两个人是否是好友
+        //    if (friendId != userId)
+        //    {
+        //        var result = await _friendService.IsFriendAsync(userId, friendId);
+        //        if (!result)
+        //            return BadRequest();
+        //    }
 
-            var records = await _friendService.FetchChatRecordsWithFriendAsync(userId, friendId, time);
+        //    var records = await _friendService.FetchChatRecordsWithFriendAsync(userId, friendId, time);
 
-            return Ok(records);
-        }
+        //    return Ok(records);
+        //}
 
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         [HttpGet("applys")]
@@ -51,7 +51,7 @@ namespace ThreeL.ContextAPI.Controllers
         {
             long.TryParse(HttpContext.User.Identity?.Name, out var userId);
             //验证两个人是否是好友
-            var applys = await _friendService.FetchAllFriendApplysAsync(userId);
+            var applys = await _relationService.FetchAllFriendApplysAsync(userId);
 
             return Ok(applys);
         }

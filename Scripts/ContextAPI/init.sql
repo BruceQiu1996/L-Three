@@ -2,16 +2,16 @@ USE master
 GO
 CREATE DATABASE ThreeL_ContextAPI ON PRIMARY
 (
-    NAME='threeL_contextapi',--主文件��辑文件各1�7
+    NAME='threeL_contextapi',--主文件��辑文件各1�7
     FILENAME='D:\database\mssql_mdf\threeL_contextapi.mdf', --主文件文件名
     SIZE=5mb,--系统默认创建的时候会给主文件分配初始大小
-    MAXSIZE=500MB,--主文件的朢�大��1�7
+    MAXSIZE=500MB,--主文件的朢�大��1�7
     filegrowth=15%-- 主文件的增长幅度
 )
 LOG ON
 (
-    name='book_log',--日志文件逻辑文件各1�7
-    filename='D:\database\mssql_log\threeL_contextapi.ldf',--日志文件屋里文件各1�7
+    name='book_log',--日志文件逻辑文件各1�7
+    filename='D:\database\mssql_log\threeL_contextapi.ldf',--日志文件屋里文件各1�7
     SIZE=5MB,--日志文件初始大小
     filegrowth=0 --启动自动增长
 )
@@ -22,7 +22,7 @@ CREATE TABLE [USER](
     id bigint PRIMARY key identity,
     userName varchar(16) not null,
     [password] varchar(255) not null,
-    avatar bigint��
+    avatar bigint��
     sign varchar(20),
     isDeleted bit NOT NULL,
     [role] int NOT NULL,
@@ -74,6 +74,21 @@ CREATE TABLE ChatRecord(
     InnerId bigint,
     Withdrawed bit NOT NULL,
 );
+GO
+CREATE TABLE GroupChatRecord(
+    Id bigint PRIMARY key identity,
+    [From] bigint not NULL,
+    FromName bigint not NULL,
+    [To] bigint not NULL,
+    MessageId VARCHAR(50) not NULL,
+    Message VARCHAR(500),
+    MessageRecordType int,
+    ImageType int,
+    SendTime datetime,
+    FileId bigint,
+    InnerId bigint,
+    Withdrawed bit NOT NULL,
+);
 CREATE TABLE [FriendApply] (
   [Id] bigint  PRIMARY key identity,
   [Activer] bigint  NOT NULL,
@@ -97,7 +112,7 @@ GO
 CREATE TABLE [Group](
     id bigint PRIMARY key identity,
     Name varchar(16) not null,
-    avatar bigint��
+    avatar bigint��
     createBy bigint,
     createTime datetime not null,
     Members varchar(5000) not null,

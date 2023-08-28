@@ -48,16 +48,16 @@ namespace ThreeL.Client.Win.Handlers
             HandleFromToMessageResponseFromServer(packet.Body);
             if (!packet.Body.Result)
                 return;
-            FriendViewModel friend = null;
+            RelationViewModel friend = null;
             if (App.UserProfile.UserId == packet.Body.From)
             {
                 friend = App.ServiceProvider.GetRequiredService<ChatViewModel>()
-                    .FriendViewModels.FirstOrDefault(x => x.Id == packet.Body.To);
+                    .RelationViewModels.FirstOrDefault(x => x.Id == packet.Body.To);
             }
             else
             {
                 friend = App.ServiceProvider.GetRequiredService<ChatViewModel>()
-                   .FriendViewModels.FirstOrDefault(x => x.Id == packet.Body.From);
+                   .RelationViewModels.FirstOrDefault(x => x.Id == packet.Body.From);
             }
 
             if (friend != null)

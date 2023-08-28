@@ -10,5 +10,26 @@
         public string PassiverRemark { get; set; }
         public long? ActiverAvatar { get; set; }
         public long? PassiverAvatar { get; set; }
+        public DateTime CreateTime { get; set; }
+
+        public string GetFriendName(long id)
+        {
+            return ActiverId == id ? PassiverName : ActiverName;
+        }
+
+        public string GetFriendRemark(long id)
+        {
+            return ActiverId == id ? PassiverRemark : ActiverRemark;
+        }
+
+        public long? GetFriendAvatar(long id)
+        {
+            return ActiverId == id ? PassiverAvatar : ActiverAvatar;
+        }
+
+        public long GetFriendId(long id)
+        {
+            return ActiverId == id ? PassiverId : ActiverId;
+        }
     }
 }

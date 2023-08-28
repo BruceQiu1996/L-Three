@@ -1,14 +1,12 @@
 ﻿using ThreeL.Infra.Core.Metadata;
+using ThreeL.Shared.Domain.Entities;
 
-namespace ThreeL.Client.Shared.Dtos.ContextAPI
+namespace ThreeL.ContextAPI.Domain.Aggregates.UserAggregate
 {
-    public class FriendChatRecordResponseDto
-    {
-        public long FriendId { get; set; }
-        public IEnumerable<ChatRecordResponseDto> Records { get; set; }
-    }
-
-    public class ChatRecordResponseDto
+    /// <summary>
+    /// 服务端群组聊天记录，TODO分区/分表
+    /// </summary>
+    public class GroupChatRecord : DomainEntity<long>
     {
         public string MessageId { get; set; }
         public string Message { get; set; }
@@ -16,11 +14,10 @@ namespace ThreeL.Client.Shared.Dtos.ContextAPI
         public ImageType ImageType { get; set; }
         public DateTime SendTime { get; set; }
         public long From { get; set; }
+        public string FromName { get; set; }
         public long To { get; set; }
         public long? FileId { get; set; }
-        public string FileName { get; set; }
-        public long Size { get; set; }
-        public byte[] Bytes { get; set; } //网络图片
         public bool Withdrawed { get; set; }
+        public long? InnerId { get; set; }
     }
 }

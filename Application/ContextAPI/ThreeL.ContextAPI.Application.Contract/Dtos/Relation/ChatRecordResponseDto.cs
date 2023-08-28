@@ -2,12 +2,6 @@
 
 namespace ThreeL.ContextAPI.Application.Contract.Dtos.Relation
 {
-    public class FriendChatRecordResponseDto
-    {
-        public long FriendId { get; set; }
-        public IEnumerable<ChatRecordResponseDto> Records { get; set; }
-    }
-
     public class ChatRecordResponseDto
     {
         public string MessageId { get; set; }
@@ -21,6 +15,8 @@ namespace ThreeL.ContextAPI.Application.Contract.Dtos.Relation
         public string FileName { get; set; }
         public long Size { get; set; }
         public bool Withdrawed { get; set; }
+        //群聊时候至少知道对方名字
+        public string FromName { get; set; }
 
         public ChatRecordResponseDto ClearDataByWithdrawed()
         {

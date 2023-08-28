@@ -1,7 +1,5 @@
 ﻿using Android.App;
-using Android.Content.Res;
 using Android.Runtime;
-using Microsoft.Maui.Platform;
 
 namespace ThreeL.Client.Mobile
 {

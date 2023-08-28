@@ -74,6 +74,7 @@ namespace ThreeL.Client.Shared.Services
             var resp = await _httpClient.GetAsync(url);
             if (resp.IsSuccessStatusCode)
             {
+                var temp = await resp.Content.ReadAsStringAsync();
                 return JsonSerializer.Deserialize<T>(await resp.Content.ReadAsStringAsync(), _jsonOptions);
             }
             else if (resp.StatusCode == HttpStatusCode.Unauthorized && !excuted)

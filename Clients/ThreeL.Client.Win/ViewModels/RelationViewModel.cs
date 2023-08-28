@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -14,10 +15,10 @@ using ThreeL.Client.Win.ViewModels.Messages;
 
 namespace ThreeL.Client.Win.ViewModels
 {
-    public class FriendViewModel : ObservableObject
+    public class RelationViewModel : ObservableObject
     {
         public long Id { get; set; }
-        public string UserName { get; set; }
+        public string Name { get; set; }
         public string Remark { get; set; }
         private BitmapImage _avatar;
         public BitmapImage Avatar
@@ -49,8 +50,9 @@ namespace ThreeL.Client.Win.ViewModels
         }
 
         public int Port { get; set; }
-        public string ShowName => UserName.Substring(0, 1).ToUpper();
-        public string DisplayName => string.IsNullOrEmpty(Remark) ? UserName : Remark;
+        public string ShowName => Name.Substring(0, 1).ToUpper();
+        public string TitleDisplayName { get; set; }
+        public string DisplayName => string.IsNullOrEmpty(Remark) ? Name : Remark;
         public List<string> Hosts { get; }
         public bool LoadedChatRecord { get; set; }
 
@@ -101,7 +103,36 @@ namespace ThreeL.Client.Win.ViewModels
             App.ServiceProvider.GetRequiredService<Chat>().chatScrollViewer.ScrollToEnd();
         }
 
-        public FriendViewModel()
+        public void AddMessages(IEnumerable<MessageViewModel> messages)
+        {
+            if (messages == null || messages.Count() <= 0)
+                return;
+            foreach (var message in messages)
+            {
+                Messages.Remove(message);
+                if (LastMessage == null)
+                    Messages.Add(new TimeMessageViewModel()
+                    {
+                        DateTime = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(message.SendTime)
+                    });
+
+                if (LastMessage != null && LastMessage.SendTime.AddMinutes(5) <= message.SendTime)
+                    Messages.Add(new TimeMessageViewModel()
+                    {
+                        DateTime = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(message.SendTime)
+                    });
+
+                Messages.Add(message);
+                message.SendTimeText = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToShortText(message.SendTime);
+                LastMessage = message;
+                LastMessage.ShortDesc = LastMessage.Withdrawed ? "[消息已被撤回]" : LastMessage.GetShortDesc();
+                LastMessage.WithdrawMessage = App.UserProfile.UserId == message.From ? "你撤回了一条消息" : "对方撤回了一条消息";
+            }
+
+            App.ServiceProvider.GetRequiredService<Chat>().chatScrollViewer.ScrollToEnd();
+        }
+
+        public RelationViewModel()
         {
             Hosts = new List<string>();
             Messages = new ObservableCollection<MessageViewModel>();

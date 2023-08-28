@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Bson;
 using System.ComponentModel;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
@@ -353,7 +354,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 {
                     Name = groupName,
                     UserId = userId,
-                    Members = JsonSerializer.Serialize(new List<long>() { userId })
+                    Members = userId.ToString()
                 });
 
             await _redisProvider.SetAddAsync(string.Format(CommonConst.GROUP, group.Id), new[] { userId.ToString() });
@@ -405,7 +406,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
 
             var tempGroup = await _adoQuerierRepository.QueryFirstOrDefaultAsync<Group>("SELECT * FROM [GROUP] WHERE Id = @Id",
                               new { Id = groupId });
-            var mbs = JsonSerializer.Serialize(JsonSerializer.Deserialize<IEnumerable<long>>(tempGroup.Members).Union(ids));
+            var mbs = $"{tempGroup.Members},{string.Join(",", ids)}";
             await _adoExecuterRepository.ExecuteAsync("UPDATE [GROUP] SET Members = @Members", new { Members = mbs });
             await _redisProvider.SetAddAsync(string.Format(CommonConst.GROUP, groupId), ids.Select(x => x.ToString()).ToArray());
 

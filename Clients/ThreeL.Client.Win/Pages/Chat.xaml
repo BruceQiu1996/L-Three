@@ -418,8 +418,8 @@
                          ScrollViewer.IsDeferredScrollingEnabled="True"
                          ScrollViewer.VerticalScrollBarVisibility="Visible"
                          Background="#222"
-                         ItemsSource="{Binding FriendViewModels,UpdateSourceTrigger=PropertyChanged}"
-                         SelectedItem="{Binding FriendViewModel,UpdateSourceTrigger=PropertyChanged}"
+                         ItemsSource="{Binding RelationViewModels,UpdateSourceTrigger=PropertyChanged}"
+                         SelectedItem="{Binding RelationViewModel,UpdateSourceTrigger=PropertyChanged}"
                          BorderThickness="0" BorderBrush="Transparent">
                     <behaviors:Interaction.Triggers>
                         <behaviors:EventTrigger EventName="SelectionChanged">
@@ -457,8 +457,19 @@
 
                                                 <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
                                                         Width="50" Height="50" HorizontalAlignment="Left" Margin="5 0 0 0"
-                                                        Background="{DynamicResource PrimaryBrush}"
                                                         Visibility="{Binding Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityReConverter}}">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsGroup}" Value="True">
+                                                                    <Setter Property="Background" Value="{StaticResource SuccessBrush}"></Setter>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding IsGroup}" Value="False">
+                                                                    <Setter Property="Background" Value="{StaticResource PrimaryBrush}"></Setter>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
                                                     <TextBlock Text="{Binding ShowName}" FontSize="30" HorizontalAlignment="Center" 
                                                                Foreground="White"
                                                                VerticalAlignment="Center"></TextBlock>
@@ -560,7 +571,7 @@
                     CornerRadius="0 0 0 0"
                     BorderThickness="0 0 0 2">
                 <Grid>
-                    <TextBlock Text="{Binding FriendViewModel.DisplayName}" FontSize="20"
+                    <TextBlock Text="{Binding RelationViewModel.TitleDisplayName}" FontSize="20"
                            Foreground="White"
                            HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10 0 0 5"></TextBlock>
 
@@ -580,7 +591,7 @@
                           Grid.Row="1"
                           BorderThickness="0"
                           RequestBringIntoView="ScrollViewer_RequestBringIntoView">
-                <ListBox ItemsSource="{Binding FriendViewModel.Messages,UpdateSourceTrigger=PropertyChanged}"
+                <ListBox ItemsSource="{Binding RelationViewModel.Messages,UpdateSourceTrigger=PropertyChanged}"
                              UseLayoutRounding="True"
                              ScrollViewer.CanContentScroll="False"
                              ScrollViewer.IsDeferredScrollingEnabled="True"

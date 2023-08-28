@@ -11,7 +11,7 @@
         public const string UPLOAD_FILE = "files/{0}/{1}";
         public const string DOWNLOAD_FILE = "files/download/{0}";
         public const string DOWNLOAD_AVATAR = "user/download/avatar/{0}/{1}";
-        public const string FETCH_FRIENDS = "relations/friends";
+        public const string FETCH_RELATIONS = "relations/{0}";
         public const string FETCH_FRIEND_APPLYS = "relations/applys";
         public const string FETCH_EMOJIS = "emojis";
         public const string FILE_EXIST = "files/{0}";
