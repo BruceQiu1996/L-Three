@@ -571,10 +571,31 @@
                     CornerRadius="0 0 0 0"
                     BorderThickness="0 0 0 2">
                 <Grid>
-                    <TextBlock Text="{Binding RelationViewModel.TitleDisplayName}" FontSize="20"
-                           Foreground="White"
-                           HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10 0 0 5"></TextBlock>
+                    <Button Background="Transparent" BorderThickness="0" Padding="0" Name="title"
+                            Command="{Binding DisplayDetailCommand}"
+                            HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10 0 0 5">
+                        <TextBlock Text="{Binding RelationViewModel.TitleDisplayName}" FontSize="20" Cursor="Hand" >
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="White"></Setter>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="False">
+                                            <Setter Property="Foreground" Value="#ddd"></Setter>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Button>
 
+                    <Popup PopupAnimation="Fade" PlacementTarget="{Binding ElementName=title}" 
+                           Placement="Bottom" HorizontalOffset="20" AllowsTransparency="True" StaysOpen="False" IsOpen="{Binding IsUserDetailOpen}">
+                        <myControls:UserDetailControlUC Width="280" Height="180" DataContext="{Binding DetailWindowViewModel}">
+                        </myControls:UserDetailControlUC>
+                    </Popup>
+                    
                     <Label Height="30" Background="Transparent" BorderThickness="0" Margin="0 0 0 0"
                            HorizontalAlignment="Right">
                         <Path Data="{StaticResource vedio}" Stretch="Uniform" Fill="#aaa"></Path>

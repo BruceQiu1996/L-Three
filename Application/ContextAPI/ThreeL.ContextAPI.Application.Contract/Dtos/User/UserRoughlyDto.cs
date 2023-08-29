@@ -9,5 +9,7 @@
         public bool IsFriend { get; set; } //已经建立好友关系
         public string Role { get; set; }
         public DateTime CreateTime { get; set; }
+        public string RemarkName { get; set; }
+        public DateTime? FriendCreateTime { get; set; }
     }
 }

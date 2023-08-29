@@ -23,7 +23,7 @@ namespace ThreeL.ContextAPI.Controllers
             if (!result)
                 return Unauthorized();
 
-            var friends = await _relationService.GetRelationsAndChatRecordsAsync(1, time);
+            var friends = await _relationService.GetRelationsAndChatRecordsAsync(userId, time);
             return Ok(friends);
         }
 

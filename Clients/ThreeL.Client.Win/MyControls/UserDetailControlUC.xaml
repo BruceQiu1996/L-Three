@@ -1,0 +1,73 @@
+﻿<UserControl x:Class="ThreeL.Client.Win.MyControls.UserDetailControlUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Border Margin="0 0 4 1" 
+            CornerRadius="5"
+            Background="#555" Effect="{StaticResource EffectShadow4}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="130"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Width="90" Height="90" HorizontalAlignment="Center" Margin="5 0 0 0"
+                    Visibility="{Binding Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityReConverter}}"
+                    Background="{StaticResource PrimaryBrush}">
+                <TextBlock Text="{Binding ShowName}" FontSize="50" HorizontalAlignment="Center" 
+                           Foreground="White"
+                           VerticalAlignment="Center"></TextBlock>
+            </Border>
+            <hc:Gravatar Height="90" Width="90"
+                         Margin="5 0 0 0"
+                         VerticalAlignment="Center"
+                         VerticalContentAlignment="Center"
+                         Grid.Row="0" Grid.Column="0"
+                         Source="{Binding Avatar,UpdateSourceTrigger=PropertyChanged}"
+                         Visibility="{Binding Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityConverter}}"/>
+            <StackPanel Orientation="Vertical" Grid.Column="1" Margin="2 0 0 0" VerticalAlignment="Center">
+                <TextBlock HorizontalAlignment="Left"
+                           Foreground="White"
+                           Margin="3"
+                           Text="{Binding Name,UpdateSourceTrigger=PropertyChanged,StringFormat={}用户名 : {0}}"
+                           FontSize="14"/>
+
+                <TextBlock FontSize="14" Foreground="White"
+                           VerticalAlignment="Center"
+                           Margin="3"
+                           Visibility="{Binding RemarkName,Converter={StaticResource Object2VisibilityConverter}}"
+                           Text="{Binding RemarkName,UpdateSourceTrigger=PropertyChanged,StringFormat={}备注 : {0}}"></TextBlock>
+
+                <TextBlock FontSize="14" Foreground="White"
+                           VerticalAlignment="Center"
+                           Margin="3"
+                           Text="{Binding CreateTimeText,UpdateSourceTrigger=PropertyChanged,StringFormat={}注册时间 : {0}}"></TextBlock>
+                <TextBlock FontSize="14" Foreground="White"
+                           VerticalAlignment="Center"
+                           Margin="3"
+                           Visibility="{Binding IsFriend,Converter={StaticResource Boolean2VisibilityConverter}}"
+                           Text="{Binding FriendCreateTimeText,UpdateSourceTrigger=PropertyChanged,StringFormat={}好友时间 : {0}}"></TextBlock>
+                <TextBlock FontSize="14" Foreground="White"
+                           VerticalAlignment="Center"
+                           Margin="3"
+                           Text="{Binding Role,UpdateSourceTrigger=PropertyChanged,StringFormat={}角色 : {0}}"></TextBlock>
+            </StackPanel>
+            <Button Content="立即聊天" Style="{StaticResource ButtonWarning}" Grid.Row="1" Grid.ColumnSpan="2" Width="250" Cursor="Hand"
+                    Visibility="{Binding IsFriend,Converter={StaticResource Boolean2VisibilityConverter}}"
+                    FontSize="14"></Button>
+            <Button Content="添加好友" Style="{StaticResource ButtonPrimary}" Grid.Row="1" Grid.ColumnSpan="2" Width="250" Cursor="Hand"
+                    Visibility="{Binding IsFriend,Converter={StaticResource Boolean2VisibilityReConverter}}"
+                    FontSize="14"></Button>
+        </Grid>
+    </Border>
+</UserControl>

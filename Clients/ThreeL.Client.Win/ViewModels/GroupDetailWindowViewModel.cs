@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace ThreeL.Client.Win.ViewModels
 {
-    public class GroupDetailWindowViewModel
+    public class GroupDetailWindowViewModel :  DetailWindowViewModel
     {
-        public long Id { get; set; }
-        public string  Name { get; set; }
 
     }
 }

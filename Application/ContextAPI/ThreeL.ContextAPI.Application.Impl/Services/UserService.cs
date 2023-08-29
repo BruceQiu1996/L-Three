@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -416,32 +417,35 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
 
         public async Task<ServiceResult<UserRoughlyDto>> FetchUserInfoByIdAsync(long userId, long sUserId)
         {
-            var user = await _adoQuerierRepository
-                .QueryFirstOrDefaultAsync<dynamic>($"SELECT t1.id AS Id,UserName,t1.CreateTime,Role,Avatar,Sign,t2.id AS Fid FROM " +
-                $"(SELECT * FROM [User] WHERE isDeleted = 0 AND id = @SUserId) t1 LEFT JOIN " +
-                $"(SELECT * FROM FRIEND WHERE (Activer = @UserId AND Passiver = @SUserId) OR (Passiver = @UserId AND Activer = @SUserId)) t2 ON t1.id = t2.Activer OR t1.id = t2.Passiver", new
-                {
-                    UserId = userId,
-                    SUserId = sUserId
-                });
+            var user = await _adoQuerierRepository.QueryFirstOrDefaultAsync<User>($"SELECT Top 1 * FROM [User] WHERE isDeleted = 0 AND id = @SUserId", new
+            {
+                SUserId = sUserId
+            });
+
 
             if (user == null)
             {
                 return new ServiceResult<UserRoughlyDto>(HttpStatusCode.BadRequest, "数据异常");
             }
 
-            else
+            var friend = await _adoQuerierRepository.QueryFirstOrDefaultAsync<Friend>($"SELECT Top 1 * FROM FRIEND WHERE (Activer = @UserId AND Passiver = @SUserId) OR (Passiver = @UserId AND Activer = @SUserId)", new
             {
-                return new ServiceResult<UserRoughlyDto>(new UserRoughlyDto()
-                {
-                    Id = user.Id,
-                    UserName = user.UserName,
-                    Role = ((Role)user.Role).GetDescription(),
-                    Avatar = user.Avatar,
-                    Sign = user.Sign,
-                    IsFriend = user.Fid != 0 && user.Fid != null
-                });
-            }
+                SUserId = sUserId,
+                UserId = userId
+            });
+
+            return new ServiceResult<UserRoughlyDto>(new UserRoughlyDto()
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Role = user.Role.GetDescription(),
+                CreateTime = user.CreateTime,
+                Avatar = user.Avatar,
+                Sign = user.Sign,
+                IsFriend = friend != null,
+                RemarkName = friend?.GetFriendRemarkName(sUserId),
+                FriendCreateTime = friend?.CreateTime
+            });
         }
     }
 }

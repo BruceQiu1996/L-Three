@@ -35,7 +35,7 @@ namespace ThreeL.Client.Win.ViewModels
             {
                 if (value != null && value != avatarId)
                 {
-                    App.ServiceProvider.GetRequiredService<FileHelper>().RefreshAvatarAsync(Id, value.Value);
+                    App.ServiceProvider.GetRequiredService<FileHelper>().RefreshAvatarAsync(Id, value.Value, source => Avatar = source);
                 }
                 avatarId = value;
             }

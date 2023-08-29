@@ -65,6 +65,13 @@ namespace ThreeL.Client.Win.ViewModels
             set => SetProperty(ref relationViewModel, value);
         }
 
+        private DetailWindowViewModel detailWindowViewModel;
+        public DetailWindowViewModel DetailWindowViewModel
+        {
+            get => detailWindowViewModel;
+            set => SetProperty(ref detailWindowViewModel, value);
+        }
+
         private string textMessage;
         public string TextMessage
         {
@@ -77,6 +84,13 @@ namespace ThreeL.Client.Win.ViewModels
         {
             get => _isEmojiOpen;
             set => SetProperty(ref _isEmojiOpen, value);
+        }
+
+        private bool _isUserDetailOpen;
+        public bool IsUserDetailOpen
+        {
+            get => _isUserDetailOpen;
+            set => SetProperty(ref _isUserDetailOpen, value);
         }
 
         private int needProcessApplyCounts;
@@ -251,12 +265,13 @@ namespace ThreeL.Client.Win.ViewModels
                             };
                             if (!fvm.IsGroup)
                             {
-                                fvm.TitleDisplayName = string.IsNullOrEmpty(fvm.Remark) ? fvm.Name : fvm.Remark + $"({fvm.Name})";
+                                fvm.TitleDisplayName = string.IsNullOrEmpty(fvm.Remark) ? fvm.Name : fvm.Remark + $" ( {fvm.Name} )";
                             }
                             else 
                             {
-                                fvm.TitleDisplayName = $"{fvm.Name}({rel.MemberCount})";
+                                fvm.TitleDisplayName = $"{fvm.Name} ( {rel.MemberCount} ) ";
                             }
+
                             var messages = await ConvertChatRecordToViewModel(rel.ChatRecords);
                             fvm.AddMessages(messages);
                             RelationViewModels.Add(fvm);
@@ -322,7 +337,8 @@ namespace ThreeL.Client.Win.ViewModels
                         Id = friend,
                         Name = name,
                         AvatarId = avatar == 0 ? null : avatar,
-                    });
+                        TitleDisplayName = name,
+                });
                 }
             }
 
@@ -408,7 +424,8 @@ namespace ThreeL.Client.Win.ViewModels
                 if (user == null)
                     return;
 
-
+                DetailWindowViewModel = new UserDetailWindowViewModel().FromDto(user);
+                IsUserDetailOpen = true;
             }
         }
 

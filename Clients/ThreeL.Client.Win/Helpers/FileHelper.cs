@@ -154,7 +154,7 @@ namespace ThreeL.Client.Win.Helpers
             }
         }
 
-        public void RefreshAvatarAsync(long userId, long id)
+        public void RefreshAvatarAsync(long userId, long id, Action<BitmapImage> action = null)
         {
             var _ = Task.Run(async () =>
             {
@@ -163,7 +163,8 @@ namespace ThreeL.Client.Win.Helpers
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        return App.ServiceProvider.GetRequiredService<FileHelper>().ByteArrayToBitmapImage(data);
+                        var source = App.ServiceProvider.GetRequiredService<FileHelper>().ByteArrayToBitmapImage(data);
+                        action?.Invoke(source);
                     });
                 }
             });

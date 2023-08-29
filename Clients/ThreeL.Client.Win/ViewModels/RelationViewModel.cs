@@ -34,7 +34,7 @@ namespace ThreeL.Client.Win.ViewModels
             {
                 if (value != null && value != avatarId)
                 {
-                    App.ServiceProvider.GetRequiredService<FileHelper>().RefreshAvatarAsync(Id, value.Value);
+                    App.ServiceProvider.GetRequiredService<FileHelper>().RefreshAvatarAsync(Id, value.Value, source => Avatar = source);
                 }
 
                 SetProperty(ref avatarId, value);
@@ -96,7 +96,6 @@ namespace ThreeL.Client.Win.ViewModels
                 });
 
             Messages.Add(message);
-            message.SendTimeText = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToShortText(message.SendTime);
             LastMessage = message;
             LastMessage.ShortDesc = LastMessage.Withdrawed ? "[消息已被撤回]" : LastMessage.GetShortDesc();
             LastMessage.WithdrawMessage = App.UserProfile.UserId == message.From ? "你撤回了一条消息" : "对方撤回了一条消息";
@@ -123,7 +122,6 @@ namespace ThreeL.Client.Win.ViewModels
                     });
 
                 Messages.Add(message);
-                message.SendTimeText = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToShortText(message.SendTime);
                 LastMessage = message;
                 LastMessage.ShortDesc = LastMessage.Withdrawed ? "[消息已被撤回]" : LastMessage.GetShortDesc();
                 LastMessage.WithdrawMessage = App.UserProfile.UserId == message.From ? "你撤回了一条消息" : "对方撤回了一条消息";

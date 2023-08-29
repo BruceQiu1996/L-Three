@@ -40,7 +40,7 @@ namespace ThreeL.Client.Win.ViewModels
             get => _sending;
             set => SetProperty(ref _sending, value);
         }
-        public string SendTimeText { get; set; }
+        public string SendTimeText => App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToShortText(SendTime);
         public bool CanCopy { get; protected set; } = true;
         public bool CanOpenLocation { get; protected set; } = true;
 

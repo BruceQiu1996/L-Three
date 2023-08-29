@@ -11,5 +11,9 @@ namespace ThreeL.ContextAPI.Domain.Aggregates.UserAggregate
         public DateTime CreateTime { get; set; }
         public DateTime UpdateTime { get; set; }
 
+        public string GetFriendRemarkName(long userId)
+        {
+            return userId == Activer ? ActiverRemark : PassiverRemark;
+        }
     }
 }
