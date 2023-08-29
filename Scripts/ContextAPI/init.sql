@@ -86,7 +86,6 @@ CREATE TABLE GroupChatRecord(
     ImageType int,
     SendTime datetime,
     FileId bigint,
-    InnerId bigint,
     Withdrawed bit NOT NULL,
 );
 CREATE TABLE [FriendApply] (

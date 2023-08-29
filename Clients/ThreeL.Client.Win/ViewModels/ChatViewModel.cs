@@ -49,6 +49,7 @@ namespace ThreeL.Client.Win.ViewModels
         public AsyncRelayCommand ChooseFileSendCommandAsync { get; set; }
         public AsyncRelayCommand<KeyEventArgs> SendTextboxKeyDownCommandAsync { get; set; }
         public RelayCommand GotoSettingsPageCommand { get; set; }
+        public AsyncRelayCommand DisplayDetailCommand { get; set; }
 
         private ObservableCollection<RelationViewModel> relationViewModels;
         public ObservableCollection<RelationViewModel> RelationViewModels
@@ -142,6 +143,7 @@ namespace ThreeL.Client.Win.ViewModels
             CutScreenshotCommand = new RelayCommand(CutScreenshot);
             GotoSettingsPageCommand = new RelayCommand(GotoSettingsPage);
             GotoApplyPageCommand = new RelayCommand(GotoApplyPage);
+            DisplayDetailCommand = new AsyncRelayCommand(DisplayDetailAsync);
             _sequenceIncrementer = sequenceIncrementer;
             _tcpSuperSocketClient = tcpSuperSocketClient;
             _messageFileLocationMapper = messageFileLocationMapper;
@@ -388,6 +390,26 @@ namespace ThreeL.Client.Win.ViewModels
         private void GotoApplyPage()
         {
             WeakReferenceMessenger.Default.Send<string, string>("apply", "switch-page");
+        }
+
+        private async Task DisplayDetailAsync() 
+        {
+            if (RelationViewModel == null)
+                return;
+
+            if (RelationViewModel.IsGroup)
+            {
+
+            }
+            else 
+            {
+                //个人
+                var user =  await _contextAPIService.GetAsync<UserRoughlyDto>(string.Format(Const.USER, RelationViewModel.Id));
+                if (user == null)
+                    return;
+
+
+            }
         }
 
         private async Task SendTextboxKeyDownAsync(KeyEventArgs e)

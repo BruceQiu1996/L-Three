@@ -1,6 +1,4 @@
-﻿using ThreeL.Shared.Domain.Metadata;
-
-namespace ThreeL.ContextAPI.Application.Contract.Dtos.User
+﻿namespace ThreeL.ContextAPI.Application.Contract.Dtos.User
 {
     public class UserRoughlyDto
     {
@@ -10,5 +8,6 @@ namespace ThreeL.ContextAPI.Application.Contract.Dtos.User
         public string Sign { get; set; }
         public bool IsFriend { get; set; } //已经建立好友关系
         public string Role { get; set; }
+        public DateTime CreateTime { get; set; }
     }
 }

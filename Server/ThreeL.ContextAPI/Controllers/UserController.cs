@@ -120,5 +120,15 @@ namespace ThreeL.ContextAPI.Controllers
 
             return resp.ToActionResult();
         }
+
+        [HttpGet("{userId}")]
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        public async Task<IActionResult> FetchUserDetail(long fuserId)
+        {
+            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+            var resp = await _userService.FetchUserInfoByIdAsync(userId, fuserId);
+
+            return resp.ToActionResult();
+        }
     }
 }

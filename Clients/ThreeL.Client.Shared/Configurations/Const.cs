@@ -3,6 +3,7 @@
     public class Const
     {
         public const string LOGIN = "user/login";
+        public const string USER = "user/{0}";
         public const string FIND_USER = "user/search/{0}";
         public const string AVATAR_EXIST = "user/avatar/{0}";
         public const string UPLOAD_AVATAR = "user/upload/avatar/{0}";

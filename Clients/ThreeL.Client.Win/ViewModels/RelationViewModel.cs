@@ -34,7 +34,7 @@ namespace ThreeL.Client.Win.ViewModels
             {
                 if (value != null && value != avatarId)
                 {
-                    RefreshAvatar(Id, value.Value);
+                    App.ServiceProvider.GetRequiredService<FileHelper>().RefreshAvatarAsync(Id, value.Value);
                 }
 
                 SetProperty(ref avatarId, value);
@@ -137,21 +137,6 @@ namespace ThreeL.Client.Win.ViewModels
             Hosts = new List<string>();
             Messages = new ObservableCollection<MessageViewModel>();
             Members = new ObservableCollection<UserRoughlyDto>();
-        }
-
-        private void RefreshAvatar(long userId, long id)
-        {
-            var _ = Task.Run(async () =>
-            {
-                var data = await App.ServiceProvider.GetRequiredService<ContextAPIService>().DownloadUserAvatarAsync(userId, id);
-                if (data != null)
-                {
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        Avatar = App.ServiceProvider.GetRequiredService<FileHelper>().ByteArrayToBitmapImage(data);
-                    });
-                }
-            });
         }
     }
 }

@@ -17,6 +17,5 @@ namespace ThreeL.ContextAPI.Domain.Aggregates.UserAggregate
         public long To { get; set; }
         public long? FileId { get; set; } 
         public bool Withdrawed { get; set; }
-        public long? InnerId { get; set; }
     }
 }

@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media.Imaging;
+using ThreeL.Client.Shared.Services;
 using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.Helpers
@@ -149,6 +152,21 @@ namespace ThreeL.Client.Win.Helpers
             {
                 return new JpegBitmapEncoder();
             }
+        }
+
+        public void RefreshAvatarAsync(long userId, long id)
+        {
+            var _ = Task.Run(async () =>
+            {
+                var data = await App.ServiceProvider.GetRequiredService<ContextAPIService>().DownloadUserAvatarAsync(userId, id);
+                if (data != null)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        return App.ServiceProvider.GetRequiredService<FileHelper>().ByteArrayToBitmapImage(data);
+                    });
+                }
+            });
         }
     }
 }

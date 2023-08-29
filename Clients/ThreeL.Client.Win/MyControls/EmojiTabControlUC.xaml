@@ -77,7 +77,7 @@
             </TabControl.ItemTemplate>
             <TabControl.ContentTemplate>
                 <DataTemplate DataType="TabItem">
-                    <ListBox ItemsSource="{Binding EmojiEntities}" SelectionChanged="ListBox_SelectionChanged" 
+                    <ListBox ItemsSource="{Binding EmojiEntities}"  SelectionChanged="ListBox_SelectionChanged" 
                              Style="{StaticResource WrapListBox}" 
                              ItemContainerStyle="{StaticResource ListBoxItemStyle}"/>
                 </DataTemplate>
