@@ -25,6 +25,7 @@ using ThreeL.Shared.Application.Contract.Configurations;
 using ThreeL.Shared.Application.Contract.Helpers;
 using ThreeL.Shared.Application.Contract.Services;
 using ThreeL.Shared.Domain.Metadata;
+using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services
 {
@@ -411,6 +412,36 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             await _redisProvider.SetAddAsync(string.Format(CommonConst.GROUP, groupId), ids.Select(x => x.ToString()).ToArray());
 
             return new ServiceResult();
+        }
+
+        public async Task<ServiceResult<UserRoughlyDto>> FetchUserInfoByIdAsync(long userId, long sUserId)
+        {
+            var user = await _adoQuerierRepository
+                .QueryFirstOrDefaultAsync<dynamic>($"SELECT t1.id AS Id,UserName,t1.CreateTime,Role,Avatar,Sign,t2.id AS Fid FROM " +
+                $"(SELECT * FROM [User] WHERE isDeleted = 0 AND id = @SUserId) t1 LEFT JOIN " +
+                $"(SELECT * FROM FRIEND WHERE (Activer = @UserId AND Passiver = @SUserId) OR (Passiver = @UserId AND Activer = @SUserId)) t2 ON t1.id = t2.Activer OR t1.id = t2.Passiver", new
+                {
+                    UserId = userId,
+                    SUserId = sUserId
+                });
+
+            if (user == null)
+            {
+                return new ServiceResult<UserRoughlyDto>(HttpStatusCode.BadRequest, "数据异常");
+            }
+
+            else
+            {
+                return new ServiceResult<UserRoughlyDto>(new UserRoughlyDto()
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    Role = ((Role)user.Role).GetDescription(),
+                    Avatar = user.Avatar,
+                    Sign = user.Sign,
+                    IsFriend = user.Fid != 0 && user.Fid != null
+                });
+            }
         }
     }
 }
