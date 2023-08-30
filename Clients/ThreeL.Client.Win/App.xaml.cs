@@ -49,6 +49,8 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<ApplyViewModel>();
                 service.AddTransient<CreateGroupWindow>();
                 service.AddTransient<CreateGroupWindowViewModel>();
+                service.AddTransient<GroupDetailWindow>();
+                service.AddTransient<GroupDetailWindowViewModel>();
                 service.AddSingleton<GrowlHelper>();
                 service.AddSingleton<FileHelper>();
                 service.AddSingleton<DateTimeHelper>();

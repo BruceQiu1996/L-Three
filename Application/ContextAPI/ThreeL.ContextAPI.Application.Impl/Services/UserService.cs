@@ -1,17 +1,13 @@
 ﻿using AutoMapper;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using MongoDB.Bson;
-using System.ComponentModel;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using ThreeL.ContextAPI.Application.Contract.Configurations;
 using ThreeL.ContextAPI.Application.Contract.Dtos.User;
 using ThreeL.ContextAPI.Application.Contract.Services;
@@ -26,7 +22,6 @@ using ThreeL.Shared.Application.Contract.Configurations;
 using ThreeL.Shared.Application.Contract.Helpers;
 using ThreeL.Shared.Application.Contract.Services;
 using ThreeL.Shared.Domain.Metadata;
-using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services
 {
@@ -446,6 +441,34 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 RemarkName = friend?.GetFriendRemarkName(sUserId),
                 FriendCreateTime = friend?.CreateTime
             });
+        }
+
+        public async Task<ServiceResult<GroupRoughlyDto>> FetchGroupInfoByIdAsync(long groupId)
+        {
+            var group = await _adoQuerierRepository.QueryFirstOrDefaultAsync<Group>("SELECT * FROM [GROUP] WHERE Id = @Id",
+                              new { Id = groupId });
+            if (group == null)
+            {
+                return new ServiceResult<GroupRoughlyDto>(HttpStatusCode.BadRequest, "群组数据异常");
+            }
+
+            var userIds = group.Members.Split(",").Select(x => long.Parse(x));
+            var users = await _adoQuerierRepository.QueryAsync<User>($"SELECT Id,Avatar,UserName FROM [User] WHERE Id IN @Ids", new
+            {
+                Ids = userIds
+            });
+
+            var userDtos = users.Select(x => new UserBriefDto()
+            {
+                Id = x.Id,
+                UserName = x.UserName,
+                Avatar = x.Avatar
+            });
+
+            var resp = _mapper.Map<GroupRoughlyDto>(group);
+            resp.Users = userDtos;
+
+            return new ServiceResult<GroupRoughlyDto>(resp);
         }
     }
 }

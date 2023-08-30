@@ -130,5 +130,14 @@ namespace ThreeL.ContextAPI.Controllers
 
             return resp.ToActionResult();
         }
+
+        [HttpGet("group/{groupId}")]
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        public async Task<IActionResult> FetchGroupDetail(long groupId)
+        {
+            var resp = await _userService.FetchGroupInfoByIdAsync(groupId);
+
+            return resp.ToActionResult();
+        }
     }
 }

@@ -592,7 +592,7 @@
 
                     <Popup PopupAnimation="Fade" PlacementTarget="{Binding ElementName=title}" 
                            Placement="Bottom" HorizontalOffset="20" AllowsTransparency="True" StaysOpen="False" IsOpen="{Binding IsUserDetailOpen}">
-                        <myControls:UserDetailControlUC Width="280" Height="180" DataContext="{Binding DetailWindowViewModel}">
+                        <myControls:UserDetailControlUC Width="290" Height="180" DataContext="{Binding DetailWindowViewModel}">
                         </myControls:UserDetailControlUC>
                     </Popup>
                     

@@ -11,6 +11,7 @@ namespace ThreeL.ContextAPI.Application.Contract.Mappers
         public UserProfile()
         {
             CreateMap<UserCreationDto, User>();
+            CreateMap<Group, GroupRoughlyDto>();
             CreateMap<ChatRecordPostRequest, ChatRecord>().ForMember(x => x.SendTime,
                 y => y.MapFrom(src => src.SendTime.ToDateTime().ToLocalTime()))
                 .ForMember(x => x.MessageRecordType,

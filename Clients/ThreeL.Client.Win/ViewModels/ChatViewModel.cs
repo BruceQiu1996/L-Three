@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Dapper;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -415,11 +416,18 @@ namespace ThreeL.Client.Win.ViewModels
 
             if (RelationViewModel.IsGroup)
             {
+                var group = await _contextAPIService.GetAsync<GroupRoughlyDto>(string.Format(Const.GROUP_DETAIL, RelationViewModel.Id));
+                if (group == null)
+                    return;
 
+                var window = App.ServiceProvider.GetRequiredService<GroupDetailWindow>();
+                window.DataContext = new GroupDetailWindowViewModel().FromDto(group);
+                window.Owner = App.ServiceProvider.GetRequiredService<MainWindow>();
+                window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                window.ShowDialog();
             }
             else 
             {
-                //个人
                 var user =  await _contextAPIService.GetAsync<UserRoughlyDto>(string.Format(Const.USER, RelationViewModel.Id));
                 if (user == null)
                     return;

@@ -22,5 +22,6 @@ namespace ThreeL.ContextAPI.Application.Contract.Services
         [DapperUnitOfWork]
         Task<ServiceResult> InviteUserJoinGroupChatAsync(long userId, long groupId, IEnumerable<long> ids);
         Task<ServiceResult<UserRoughlyDto>> FetchUserInfoByIdAsync(long userId, long sUserId);
+        Task<ServiceResult<GroupRoughlyDto>> FetchGroupInfoByIdAsync(long groupId);
     }
 }
