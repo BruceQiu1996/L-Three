@@ -21,8 +21,10 @@ namespace ThreeL.Client.Win.ViewModels
             set => SetProperty(ref memberViewModels, value);
         }
 
+        public RelayCommand OpenInviteWindowCommand { get; set; }
         public GroupDetailWindowViewModel()
         {
+            OpenInviteWindowCommand = new RelayCommand(OpenInviteWindow);
             MemberViewModels = new ObservableCollection<GroupMemberViewModel>();
         }
 
@@ -35,16 +37,33 @@ namespace ThreeL.Client.Win.ViewModels
             CreateTime = groupRoughlyDto.CreateTime;
             foreach (var item in groupRoughlyDto.Users)
             {
-                foreach (var index in Enumerable.Range(0, 20))
-                {
-                    var vm = new GroupMemberViewModel().FromDto(item);
-                    vm.IsCreator = item.Id == groupRoughlyDto.CreateBy ? true : false;
+                var vm = new GroupMemberViewModel().FromDto(item);
+                vm.IsCreator = item.Id == groupRoughlyDto.CreateBy ? true : false;
 
-                    MemberViewModels.Add(vm);
-                }
+                MemberViewModels.Add(vm);
             }
 
             return this;
+        }
+
+        private void OpenInviteWindow()
+        {
+            var window = App.ServiceProvider.GetRequiredService<InviteFriendsIntoGroup>();
+            var vm = window.DataContext as InviteFriendsIntoGroupViewModel;
+            var datas = new ObservableCollection<RelationViewModel>(App.ServiceProvider.GetRequiredService<ChatViewModel>()
+                .RelationViewModels.Where(x => !x.IsGroup && MemberViewModels.FirstOrDefault(y => y.Id == x.Id) == null));
+
+            if (datas == null || datas.Count <= 0)
+            {
+                App.ServiceProvider.GetRequiredService<GrowlHelper>().Info("不存在尚未邀请的好友");
+            }
+
+            vm.GroupId = (int)Id;
+            vm.ToBeInviteRelationViewModels = datas;
+            vm.LeftToBeInviteRelationViewModels = new ObservableCollection<RelationViewModel>(datas);
+            window.Owner = App.ServiceProvider.GetRequiredService<MainWindow>();
+            window.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner;
+            window.ShowDialog();
         }
 
         public class GroupMemberViewModel : ObservableObject

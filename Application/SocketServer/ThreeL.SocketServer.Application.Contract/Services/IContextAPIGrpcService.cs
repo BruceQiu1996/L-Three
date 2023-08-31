@@ -19,5 +19,7 @@ namespace ThreeL.SocketServer.Application.Contract.Services
         Task<AddFriendResponse> AddFriendAsync(AddFriendRequest request, string token);
         [GrpcException]
         Task<ReplyAddFriendResponse> ReplyAddFriendAsync(ReplyAddFriendRequest request, string token);
+        [GrpcException]
+        Task<InviteFriendsIntoGroupResponse> InviteFriendsIntoGroupAsync(InviteFriendsIntoGroupRequest request, string token);
     }
 }

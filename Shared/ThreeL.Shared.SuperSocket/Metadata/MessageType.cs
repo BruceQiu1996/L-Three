@@ -29,6 +29,8 @@
         AddFriendResponse,
         ReplyAddFriend,
         ReplyAddFriendResponse,
+        InviteFriendsIntoGroup,
+        InviteFriendsIntoGroupResponse,
         LoadRecord
     }
 }

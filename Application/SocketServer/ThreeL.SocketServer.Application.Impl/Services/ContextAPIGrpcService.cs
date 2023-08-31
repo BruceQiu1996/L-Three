@@ -99,5 +99,13 @@ namespace ThreeL.SocketServer.Application.Impl.Services
                 { "Authorization", $"Bearer {token}" }
             });
         }
+
+        public async Task<InviteFriendsIntoGroupResponse> InviteFriendsIntoGroupAsync(InviteFriendsIntoGroupRequest request, string token)
+        {
+            return await _serverServiceClient.InviteFriendsIntoGroupAsync(request, new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
+        }
     }
 }

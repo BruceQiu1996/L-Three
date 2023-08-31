@@ -24,5 +24,7 @@ namespace ThreeL.ContextAPI.Application.Contract.Services
         Task<AddFriendResponse> AddFriend(AddFriendRequest request, ServerCallContext context);
         [DapperUnitOfWork]
         Task<ReplyAddFriendResponse> ReplyAddFriend(ReplyAddFriendRequest request, ServerCallContext context);
+        [DapperUnitOfWork]
+        Task<InviteFriendsIntoGroupResponse> InviteFriendsIntoGroup(InviteFriendsIntoGroupRequest request, ServerCallContext context);
     }
 }

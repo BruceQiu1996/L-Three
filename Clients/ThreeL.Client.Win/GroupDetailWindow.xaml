@@ -94,6 +94,7 @@
                 <Button    Grid.Row="1" Grid.Column="1" FontSize="14"
                            Foreground="White"
                            Cursor="Hand"
+                           Command="{Binding OpenInviteWindowCommand}"
                            Style="{StaticResource ButtonPrimary}"
                            Width="150"
                            HorizontalAlignment="Right"

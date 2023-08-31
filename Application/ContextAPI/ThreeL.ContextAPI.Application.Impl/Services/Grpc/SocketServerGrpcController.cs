@@ -103,5 +103,18 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
                 return new ReplyAddFriendResponse() { Result = false, Message = "服务器异常" };
             }
         }
+
+        [Authorize]
+        public async override Task<InviteFriendsIntoGroupResponse> InviteFriendsIntoGroup(InviteFriendsIntoGroupRequest request, ServerCallContext context)
+        {
+            try
+            {
+                return await _grpcService.InviteFriendsIntoGroup(request, context);
+            }
+            catch (Exception ex)
+            {
+                return new InviteFriendsIntoGroupResponse() { Result = false, Message = "服务器异常" };
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ namespace ThreeL.Shared.SuperSocket.Dto.Commands
     [ProtoInclude(5200, typeof(RequestForUserEndpointCommand))]
     [ProtoInclude(5300, typeof(AddFriendCommandResponse))]
     [ProtoInclude(5400, typeof(ReplyAddFriendCommandResponse))]
+    [ProtoInclude(5500, typeof(InviteMembersIntoGroupCommandResponse))]
     public abstract class CommandResponse : AbstractMessage
     {
         [ProtoMember(4)]

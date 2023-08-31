@@ -12,6 +12,7 @@ namespace ThreeL.Shared.SuperSocket.Dto
     [ProtoInclude(700, typeof(RequestForUserEndpointCommand))]
     [ProtoInclude(600, typeof(AddFriendCommand))]
     [ProtoInclude(800, typeof(ReplyAddFriendCommand))]
+    [ProtoInclude(900, typeof(InviteMembersIntoGroupCommand))]
 
     public abstract class AbstractMessage : IMessage
     {

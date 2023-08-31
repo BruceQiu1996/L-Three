@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Grpc.Core;
+using System.Linq;
 using ThreeL.ContextAPI.Application.Contract.Protos;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Domain.Aggregates.File;
@@ -214,6 +215,53 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 ActiverName = activer.UserName,
                 PassiverName = passiver.UserName,
             };
+        }
+
+        public async Task<InviteFriendsIntoGroupResponse> InviteFriendsIntoGroup(InviteFriendsIntoGroupRequest request, ServerCallContext context)
+        {
+            var userIdentity = context.GetHttpContext().User.Identity?.Name;
+            var userid = long.Parse(userIdentity);
+
+            var group = await _dapperRepository
+                .QueryFirstOrDefaultAsync<Group>("SELECT * FROM [Group] WHERE Id = @Id", new
+                {
+                    Id = request.GroupId
+                });
+
+            if (group == null)
+            {
+                return new InviteFriendsIntoGroupResponse() { Result = false, Message = "群组数据不存在" };
+            }
+
+            var members = group.Members.Split(",").Select(long.Parse).ToList();
+
+            if (!members.Contains(userid))
+            {
+                return new InviteFriendsIntoGroupResponse() { Result = false, Message = "无权限" };
+            }
+
+            var ids = request.Friends.Split(",").Select(long.Parse).ToList();
+            var result = new List<long>();
+            foreach (var id in ids)
+            {
+                if (!members.Contains(id))
+                {
+                    members.Add(id);
+                    result.Add(id);
+                }
+            }
+
+            var newMembers = string.Join(",", members);
+            await _dapperRepository.ExecuteAsync("UPDATE [Group] SET Members = @Members WHERE Id = @Id", new
+            {
+                Members = newMembers,
+                group.Id
+            });
+
+            //更新redis
+            await _redisProvider.SetAddAsync(string.Format(CommonConst.GROUP, group.Id), ids.Select(x => x.ToString()).ToArray());
+
+            return new InviteFriendsIntoGroupResponse() { Result = true, Friends = string.Join(",", result) };
         }
     }
 }

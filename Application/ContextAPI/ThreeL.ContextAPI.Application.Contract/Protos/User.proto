@@ -37,6 +37,16 @@ message ReplyAddFriendResponse{
 	int64 passiverAvatarId = 8;
 }
 
+message InviteFriendsIntoGroupRequest{
+	string friends = 1;
+	int32 groupId = 2;
+}
+
+message InviteFriendsIntoGroupResponse{
+	bool result = 1;
+	string message = 2;
+	string friends = 3;
+}
 
 service SocketServerService{
 	rpc SocketServerUserLogin(SocketServerUserLoginRequest) returns (SocketServerUserLoginResponse);
@@ -46,4 +56,5 @@ service SocketServerService{
 	rpc WithdrawChatRecord(ChatRecordWithdrawRequest) returns (ChatRecordWithdrawResponse);
 	rpc AddFriend(AddFriendRequest) returns (AddFriendResponse);
 	rpc ReplyAddFriend(ReplyAddFriendRequest) returns (ReplyAddFriendResponse);
+	rpc InviteFriendsIntoGroup(InviteFriendsIntoGroupRequest) returns (InviteFriendsIntoGroupResponse);
 }

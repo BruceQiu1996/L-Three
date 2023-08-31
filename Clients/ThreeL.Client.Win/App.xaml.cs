@@ -51,6 +51,8 @@ namespace ThreeL.Client.Win
                 service.AddTransient<CreateGroupWindowViewModel>();
                 service.AddTransient<GroupDetailWindow>();
                 service.AddTransient<GroupDetailWindowViewModel>();
+                service.AddTransient<InviteFriendsIntoGroup>();
+                service.AddTransient<InviteFriendsIntoGroupViewModel>();
                 service.AddSingleton<GrowlHelper>();
                 service.AddSingleton<FileHelper>();
                 service.AddSingleton<DateTimeHelper>();
