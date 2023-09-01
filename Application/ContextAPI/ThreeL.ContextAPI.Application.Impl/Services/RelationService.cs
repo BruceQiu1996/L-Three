@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using System.Net;
 using ThreeL.ContextAPI.Application.Contract.Dtos.Relation;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Domain.Aggregates.UserAggregate;
@@ -91,7 +92,11 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                         MemberCount = group.Members?.Split(",")?.Count(),
                         Avatar = group.Avatar,
                         Id = group.Id,
-                        ChatRecords = records?.Select(x => x.ClearDataByWithdrawed())?.ToList()
+                        ChatRecords = records?.Select(x =>
+                        {
+                            x.IsGroup = true;
+                            return x.ClearDataByWithdrawed();
+                        }).ToList()
                     });
                 }
             }
@@ -149,6 +154,56 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 });
 
             return applys == null ? new List<FriendApplyResponseDto>() : applys;
+        }
+
+        public async Task<ServiceResult<IEnumerable<ChatRecordResponseDto>>> GetChatRecordsByUserIdAsync(long userId, long relationId, bool isGroup, DateTime dateTime)
+        {
+            if (isGroup)
+            {
+                var group = await _adoQuerierRepository.QueryFirstOrDefaultAsync<Group>("SELECT * FROM [Group] WHERE Id = @Id", new { Id = relationId });
+                if (group == null || string.IsNullOrEmpty(group.Members.Split(",").FirstOrDefault(x => x == userId.ToString())))
+                {
+                    return new ServiceResult<IEnumerable<ChatRecordResponseDto>>(HttpStatusCode.BadRequest, "数据异常");
+                }
+
+                var records = await _adoQuerierRepository.QueryAsync<ChatRecordResponseDto>("SELECT MessageId,Message,MessageRecordType,ImageType,Withdrawed,SendTime,[From],[To],FileId,f.FileName,f.Size FROM (SELECT TOP 30 * FROM GroupChatRecord " +
+                        "WHERE GroupChatRecord.SendTime < @Time AND [To] = @GroupId ORDER BY SendTime DESC) t LEFT JOIN [File] f ON t.FileId = f.id",
+                    new
+                    {
+                        GroupId = group.Id,
+                        Time = dateTime
+                    });
+
+                var result = records?.Select(x => x.ClearDataByWithdrawed()).ToList();
+
+                return new ServiceResult<IEnumerable<ChatRecordResponseDto>>(result);
+            }
+            else
+            {
+                var friend = await _adoQuerierRepository.QueryFirstOrDefaultAsync<FriendDto>("SELECT * FROM Friend WHERE (Friend.Activer = @Id AND Friend.Passiver = @FId) OR (Friend.Activer = @FId AND Friend.Passiver = @Id)", new
+                {
+                    Id = userId,
+                    FId = relationId
+                });
+                if (friend == null)
+                    return new ServiceResult<IEnumerable<ChatRecordResponseDto>>(HttpStatusCode.BadRequest, "数据异常");
+                var records = await _adoQuerierRepository.QueryAsync<ChatRecordResponseDto>("SELECT MessageId,Message,MessageRecordType,ImageType,Withdrawed,SendTime,[From],[To],FileId,f.FileName,f.Size FROM (SELECT TOP 30 * FROM ChatRecord " +
+                                       "WHERE ChatRecord.SendTime < @Time AND ([FROM] = @UserId AND [To] = @FriendId) OR ([FROM] = @FriendId AND [To] = @UserId) ORDER BY SendTime DESC) t LEFT JOIN [File] f ON t.FileId = f.id",
+                                                      new
+                                                      {
+                                                          UserId = userId,
+                                                          FriendId = relationId,
+                                                          Time = dateTime
+                                                      });
+
+                var result = records?.Select(x =>
+                {
+                    x.IsGroup = true;
+                    return x.ClearDataByWithdrawed();
+                }).ToList();
+
+                return new ServiceResult<IEnumerable<ChatRecordResponseDto>>(result);
+            }
         }
     }
 }

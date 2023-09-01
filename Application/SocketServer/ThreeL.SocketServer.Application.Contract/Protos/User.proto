@@ -9,6 +9,8 @@ message SocketServerUserLoginRequest{
 
 message SocketServerUserLoginResponse{
 	bool result = 1;
+	int64 userId = 2;
+	string userName = 3;
 }
 
 message AddFriendRequest{
@@ -47,6 +49,15 @@ message InviteFriendsIntoGroupResponse{
 	string friends = 3;
 }
 
+message ValidateRelationRequest{
+	int64 To = 1;
+	bool IsGroup = 2;
+}
+
+message ValidateRelationResponse{
+	bool result = 1;
+}
+
 service SocketServerService{
 	rpc SocketServerUserLogin(SocketServerUserLoginRequest) returns (SocketServerUserLoginResponse);
 	rpc FetchFileInfo(FileInfoRequest) returns (FileInfoResponse);
@@ -56,4 +67,5 @@ service SocketServerService{
 	rpc AddFriend(AddFriendRequest) returns (AddFriendResponse);
 	rpc ReplyAddFriend(ReplyAddFriendRequest) returns (ReplyAddFriendResponse);
 	rpc InviteFriendsIntoGroup(InviteFriendsIntoGroupRequest) returns (InviteFriendsIntoGroupResponse);
+	rpc ValidateRelation(ValidateRelationRequest) returns (ValidateRelationResponse);
 }

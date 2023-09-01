@@ -47,11 +47,11 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             if (resp.Result && !string.IsNullOrEmpty(resp.Friends))
             {
                 var ids = resp.Friends.Split(",").Select(long.Parse).ToList();
-                foreach (var id in ids)
+                Parallel.ForEach(ids, async id =>
                 {
                     var toSessions = _sessionManager.TryGet(id);
                     await SendMessageBothAsync<Packet<InviteMembersIntoGroupCommandResponse>>(null, toSessions, 0, id, respPacket);
-                }
+                });
             }
         }
 

@@ -56,6 +56,7 @@ namespace ThreeL.Client.Win.ViewModels
             if (datas == null || datas.Count <= 0)
             {
                 App.ServiceProvider.GetRequiredService<GrowlHelper>().Info("不存在尚未邀请的好友");
+                return;
             }
 
             vm.GroupId = (int)Id;

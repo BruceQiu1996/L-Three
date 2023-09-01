@@ -17,5 +17,6 @@ namespace ThreeL.Client.Shared.Dtos.ContextAPI
         public long Size { get; set; }
         public byte[] Bytes { get; set; } //网络图片
         public bool Withdrawed { get; set; }
+        public bool IsGroup { get; set; }
     }
 }

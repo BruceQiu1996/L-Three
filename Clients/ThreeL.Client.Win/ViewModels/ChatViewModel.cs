@@ -618,6 +618,7 @@ namespace ThreeL.Client.Win.ViewModels
                 SendTime = DateTime.Now,
                 From = App.UserProfile.UserId,
                 To = tempFriend.Id,
+                IsGroup = tempFriend.IsGroup,
                 Sending = true,
             };
 
@@ -662,6 +663,7 @@ namespace ThreeL.Client.Win.ViewModels
                 SendTime = DateTime.Now,
                 From = App.UserProfile.UserId,
                 To = tempFriend.Id,
+                IsGroup = tempFriend.IsGroup,
                 Sending = true,
                 RemoteUrl = routedEventArgs.Emoji.Url
             };
@@ -773,6 +775,7 @@ namespace ThreeL.Client.Win.ViewModels
                 From = App.UserProfile.UserId,
                 Location = fileInfo.FullName,
                 To = friend.Id,
+                IsGroup = friend.IsGroup,
                 Sending = true
             };
 
@@ -824,6 +827,7 @@ namespace ThreeL.Client.Win.ViewModels
                 From = App.UserProfile.UserId,
                 Location = fileInfo.FullName,
                 To = friend.Id,
+                IsGroup = friend.IsGroup,
                 Sending = true
             };
 
@@ -921,6 +925,7 @@ namespace ThreeL.Client.Win.ViewModels
                 Body = new WithdrawMessage()
                 {
                     To = viewModel.To,
+                    IsGroup = viewModel.IsGroup,
                     WithdrawMessageId = viewModel.MessageId
                 }
             };

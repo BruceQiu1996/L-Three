@@ -26,9 +26,10 @@ public class LoginCommandHandler : AbstractMessageHandler
         var resp = await _contextAPIGrpc.SocketServerUserLoginAsync(new SocketServerUserLoginRequest(), packet.Body.AccessToken);
         if (resp.Result)
         {
-            session.UserId = packet.Body.UserId;
+            session.UserId = resp.UserId;
             session.SsToken = Guid.NewGuid().ToString();
             session.AccessToken = packet.Body.AccessToken;
+            session.UserName = resp.UserName;
             _sessionManager.TryAddOrUpdate(session.UserId, session);
         }
 

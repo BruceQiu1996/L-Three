@@ -23,6 +23,7 @@ namespace ThreeL.Client.Win.ViewModels
         public bool FromSelf => App.UserProfile == null ? true : App.UserProfile.UserId == From ? true : false;
         public long From { get; set; }
         public long To { get; set; }
+
         private bool _sendSuccess = true;
         public bool SendSuccess
         {
@@ -66,7 +67,8 @@ namespace ThreeL.Client.Win.ViewModels
             }
         }
 
-        public string WithdrawMessage { get; set; }
+        public bool IsGroup { get; set; }
+        public string WithdrawMessage { get; set; } //撤回消息后的显示
 
         private string _shortDesc;
         public string ShortDesc
@@ -101,6 +103,7 @@ namespace ThreeL.Client.Win.ViewModels
             MessageId = chatRecord.MessageId;
             From = chatRecord.From;
             To = chatRecord.To;
+            IsGroup = chatRecord.IsGroup;
             SendTime = chatRecord.SendTime;
         }
 
@@ -112,6 +115,7 @@ namespace ThreeL.Client.Win.ViewModels
         {
             fromToMessage.MessageId = MessageId;
             fromToMessage.To = To;
+            fromToMessage.IsGroup = IsGroup;
             fromToMessage.SendTime = SendTime;
         }
 

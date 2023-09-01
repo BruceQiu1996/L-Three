@@ -17,6 +17,7 @@ namespace ThreeL.ContextAPI.Application.Contract.Dtos.Relation
         public bool Withdrawed { get; set; }
         //群聊时候至少知道对方名字
         public string FromName { get; set; }
+        public bool IsGroup { get; set; }
 
         public ChatRecordResponseDto ClearDataByWithdrawed()
         {

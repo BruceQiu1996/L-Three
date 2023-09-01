@@ -14,5 +14,7 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
     {
         [ProtoMember(4)]
         public long To { get; set; }
+        [ProtoMember(5)]
+        public bool IsGroup { get; set; }
     }
 }

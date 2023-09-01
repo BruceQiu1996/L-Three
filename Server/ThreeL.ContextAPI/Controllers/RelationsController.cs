@@ -55,5 +55,18 @@ namespace ThreeL.ContextAPI.Controllers
 
             return Ok(applys);
         }
+
+        [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        [HttpGet("{relationId}/{isGroup}/{time}")]
+        public async Task<ActionResult> GetChatRecords(long relationId, bool isGroup, DateTime time)
+        {
+            var result = long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+            if (!result)
+                return Unauthorized();
+
+            var records = await _relationService.GetChatRecordsByUserIdAsync(userId, relationId, isGroup, time);
+
+            return Ok(records);
+        }
     }
 }

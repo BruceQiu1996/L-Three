@@ -68,10 +68,10 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             resp.Body.From = chatSession.UserId;
             if (chatSession.UserId != packet.Body.To)
             {
-                if (!await _messageHandlerService.IsFriendAsync(chatSession.UserId, packet.Body.To))
+                if (!await _messageHandlerService.IsValidRelationAsync(chatSession.UserId, packet.Body.To, packet.Body.IsGroup, chatSession.AccessToken))
                 {
                     body.Result = false;
-                    body.Message = "好友关系异常";
+                    body.Message = "关系异常";
                     await appSession.SendAsync(resp.Serialize());
 
                     return;
@@ -103,7 +103,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 var toSessions = _sessionManager.TryGet(resp.Body.To);
                 await SendMessageBothAsync<Packet<ImageMessageResponse>>(fromSessions, toSessions, resp.Body.From, resp.Body.To, resp);
             }
-            else 
+            else
             {
                 body.Result = false;
                 body.Message = "发送文件失败";

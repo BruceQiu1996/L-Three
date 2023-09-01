@@ -116,5 +116,18 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
                 return new InviteFriendsIntoGroupResponse() { Result = false, Message = "服务器异常" };
             }
         }
+
+        [Authorize]
+        public async override Task<ValidateRelationResponse> ValidateRelation(ValidateRelationRequest request, ServerCallContext context)
+        {
+            try
+            {
+                return await _grpcService.ValidateRelation(request, context);
+            }
+            catch (Exception ex)
+            {
+                return new ValidateRelationResponse() { Result = false};
+            }
+        }
     }
 }

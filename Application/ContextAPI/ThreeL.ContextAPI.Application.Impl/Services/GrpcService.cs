@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Grpc.Core;
 using System.Linq;
+using ThreeL.ContextAPI.Application.Contract.Configurations;
 using ThreeL.ContextAPI.Application.Contract.Protos;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Domain.Aggregates.File;
@@ -35,7 +36,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var user = await _dapperRepository
                 .QueryFirstOrDefaultAsync<User>("SELECT * FROM [User] WHERE id= @UserId AND isDeleted = 0", new { UserId = userid });
 
-            return new SocketServerUserLoginResponse() { Result = (user != null) };
+            return new SocketServerUserLoginResponse() { Result = (user != null), UserName = user.UserName, UserId = user == null ? 0 : user.Id };
         }
 
         public async Task<FileInfoResponse> FetchFileInfo(FileInfoRequest request, ServerCallContext context)
@@ -262,6 +263,50 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             await _redisProvider.SetAddAsync(string.Format(CommonConst.GROUP, group.Id), ids.Select(x => x.ToString()).ToArray());
 
             return new InviteFriendsIntoGroupResponse() { Result = true, Friends = string.Join(",", result) };
+        }
+
+        public async Task<ValidateRelationResponse> ValidateRelation(ValidateRelationRequest request, ServerCallContext context)
+        {
+            var userIdentity = context.GetHttpContext().User.Identity?.Name;
+            var userid = long.Parse(userIdentity);
+            if (request.IsGroup)
+            {
+                var relation = await _dapperRepository.QueryFirstOrDefaultAsync<Friend>("SELECT * FROM FRIEND WHERE (ACTIVER = @Id AND PASSIVER = @FID) OR (ACTIVER = @FID AND PASSIVER = @Id)", new
+                {
+                    Id = userid,
+                    FID = request.To
+                });
+
+                if (relation == null)
+                {
+                    return new ValidateRelationResponse() { Result = false };
+                }
+
+                await _redisProvider.SetAddAsync(CommonConst.FRIEND_RELATION, new[] { $"{relation.Activer}-{relation.Passiver}" });
+
+                return new ValidateRelationResponse() { Result = true };
+            }
+            else
+            {
+                var group = await _dapperRepository.QueryFirstOrDefaultAsync<Group>("SELECT * FROM [Group] WHERE Id = @Id", new
+                {
+                    Id = request.To
+                });
+
+                if (group == null)
+                {
+                    return new ValidateRelationResponse() { Result = false };
+                }
+
+                var contain = group.Members.Split(",").Select(long.Parse).ToList().Contains(userid);
+                if (!contain)
+                {
+                    return new ValidateRelationResponse() { Result = false };
+                }
+                await _redisProvider.SetAddAsync(string.Format(CommonConst.GROUP, group.Id), new[] { userid.ToString() });
+
+                return new ValidateRelationResponse() { Result = true };
+            }
         }
     }
 }

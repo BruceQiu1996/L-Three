@@ -7,6 +7,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers;
 public class ChatSession : AppSession
 {
     public long UserId { get; set; }
+    public string UserName { get; set; }
     public string SsToken { get; set; }
     public string AccessToken { get; set; }
     private ServerAppSessionManager<ChatSession> _sessionManager => Program.ServiceProvider.GetRequiredService<ServerAppSessionManager<ChatSession>>();

@@ -107,5 +107,13 @@ namespace ThreeL.SocketServer.Application.Impl.Services
                 { "Authorization", $"Bearer {token}" }
             });
         }
+
+        public async Task<ValidateRelationResponse> ValidateRelation(ValidateRelationRequest request, string token)
+        {
+            return await _serverServiceClient.ValidateRelationAsync(request, new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
+        }
     }
 }

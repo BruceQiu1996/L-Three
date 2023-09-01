@@ -5,7 +5,7 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
     [ProtoContract]
     public class FileMessage : FromToMessage
     {
-        [ProtoMember(5)]
+        [ProtoMember(6)]
         public long FileId { get; set; }
     }
 }
