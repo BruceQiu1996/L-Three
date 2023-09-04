@@ -103,5 +103,17 @@ namespace ThreeL.Infra.Redis.Providers
         {
             return await _redisDb.SetContainsAsync(cacheKey, cacheValue);
         }
+
+        public async Task<List<string>> SetGetAsync(string cacheKey)
+        {
+            var values =  await _redisDb.SetMembersAsync(cacheKey);
+            List<string> ids = new List<string>();
+            foreach (var item in values)
+            {
+                ids.Add(item.ToString());
+            }
+
+            return ids;
+        }
     }
 }

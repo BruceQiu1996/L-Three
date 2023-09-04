@@ -11,6 +11,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Handlers;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -164,31 +165,25 @@ namespace ThreeL.Client.Win.ViewModels
             _messageFileLocationMapper = messageFileLocationMapper;
             RelationViewModels = new ObservableCollection<RelationViewModel>();
 
-            WeakReferenceMessenger.Default.Register<ChatViewModel, FromToMessageResponse, string>(this, "message-send-result",
-                (x, y) =>
-            {
-                var message = RelationViewModels.FirstOrDefault(x => x.Id == y.To)?
-                .Messages.FirstOrDefault(x => x.MessageId == y.MessageId);
-
-                if (message != null)
+            WeakReferenceMessenger.Default.Register<ChatViewModel, FromToMessageResponse, string>(this, "message-receive",
+                async (x, resp) =>
                 {
-                    message.SendSuccess = y.Result;
-                    if (!message.SendSuccess && y.From == App.UserProfile.UserId)
+                    var relation = GetRelation(resp.From,resp.To,resp.IsGroup);
+                    if (relation == null) 
                     {
-                        _growlHelper.Warning($"消息发送失败:[{y.Message}]");
+                        //TODO 存储消息防止因为并发导致消息错乱或者消息丢失
+                        return;
                     }
-                }
-            });
 
-            WeakReferenceMessenger.Default.Register<ChatViewModel, FromToMessageResponse, string>(this, "message-send-finished",
-                (x, y) =>
-                {
-                    var message = RelationViewModels.FirstOrDefault(x => x.Id == y.To)?
-                    .Messages.FirstOrDefault(x => x.MessageId == y.MessageId);
-
-                    if (message != null)
+                    //显示错误提示
+                    if (!resp.Result) 
                     {
-                        message.Sending = false;
+                        _growlHelper.Warning(resp.Message);
+                    }
+
+                    if (resp is TextMessageResponse) 
+                    {
+                        await ReceiveTextMessageAsync(resp as TextMessageResponse, relation);
                     }
                 });
 
@@ -228,10 +223,18 @@ namespace ThreeL.Client.Win.ViewModels
                    await HandleReplyFriendApplyAsync(y);
                });
 
+            //创建新的群聊事件
             WeakReferenceMessenger.Default.Register<ChatViewModel, GroupCreationResponseDto, string>(this, "message-newgroup",
               async (x, y) =>
               {
-                  await HandleNewGroupAsync(y);
+                  HandleNewGroup(y);
+              });
+
+            //邀请进入群聊
+            WeakReferenceMessenger.Default.Register<ChatViewModel, InviteMembersIntoGroupCommandResponse, string>(this, "message-invite-group",
+              async (x, y) =>
+              {
+                  await HandleInviteGroupAsync(y);
               });
         }
 
@@ -249,7 +252,7 @@ namespace ThreeL.Client.Win.ViewModels
                 {
                     INITIALIZE_TIME = DateTime.Now;
                     //获取好友列表
-                    
+
                     var relations = await _contextAPIService.GetAsync<IEnumerable<RelationDto>>(string.Format(Const.FETCH_RELATIONS, INITIALIZE_TIME.ToString("yyyy-MM-dd HH:mm:ss.fff")));
                     if (relations != null)
                     {
@@ -268,12 +271,19 @@ namespace ThreeL.Client.Win.ViewModels
                             {
                                 fvm.TitleDisplayName = string.IsNullOrEmpty(fvm.Remark) ? fvm.Name : fvm.Remark + $" ( {fvm.Name} )";
                             }
-                            else 
+                            else
                             {
                                 fvm.TitleDisplayName = $"{fvm.Name} ( {rel.MemberCount} ) ";
                             }
 
                             var messages = await ConvertChatRecordToViewModel(rel.ChatRecords);
+                            if (messages != null && rel.IsGroup)
+                            {
+                                foreach (var item in messages)
+                                {
+                                    item.IsGroup = true;
+                                }
+                            }
                             fvm.AddMessages(messages);
                             RelationViewModels.Add(fvm);
                         }
@@ -339,24 +349,53 @@ namespace ThreeL.Client.Win.ViewModels
                         Name = name,
                         AvatarId = avatar == 0 ? null : avatar,
                         TitleDisplayName = name,
-                });
+                    });
                 }
             }
 
             await FetchUserUnProcessApplysAsync();
         }
 
-        private async Task HandleNewGroupAsync(GroupCreationResponseDto group) 
+        private void HandleNewGroup(GroupCreationResponseDto group)
         {
-            RelationViewModels.Insert(0, new RelationViewModel()
+            var groupViewModel = new RelationViewModel()
             {
                 IsGroup = true,
                 Id = group.Id,
                 Name = group.Name,
                 AvatarId = group.Avatar,
-            });
+                TitleDisplayName = group.Name,
+            };
 
-            //load群聊聊天记录
+            groupViewModel.AddMessage(new TipMessageViewModel { Content = "你创建了新的群组,快邀请大家一起聊天吧", SendTime = DateTime.Now });
+            RelationViewModels.Insert(0, groupViewModel);
+        }
+
+        private async Task HandleInviteGroupAsync(InviteMembersIntoGroupCommandResponse intoGroupCommandResponse)
+        {
+            var groupViewModel = RelationViewModels.FirstOrDefault(x => x.Id == intoGroupCommandResponse.GroupId);
+            if (groupViewModel == null)
+            {
+                var vm = new RelationViewModel()
+                {
+                    IsGroup = true,
+                    Id = intoGroupCommandResponse.GroupId,
+                    Name = intoGroupCommandResponse.GroupName,
+                    AvatarId = intoGroupCommandResponse.GroupAvatar,
+                    TitleDisplayName = intoGroupCommandResponse.GroupName,
+                };
+                RelationViewModels.Insert(0, vm);
+                var time = DateTime.Now;
+                //获取群聊的聊天记录
+                var records = await _contextAPIService.GetAsync<IEnumerable<ChatRecordResponseDto>>(string.Format(Const.FETCH_RELATION_CHATRECORDS,
+                    intoGroupCommandResponse.GroupId, true, time));
+
+                if (records != null)
+                {
+                    var messages = await ConvertChatRecordToViewModel(records);
+                    vm.AddMessages(messages);
+                }
+            }
         }
 
         ///// <summary>
@@ -401,37 +440,50 @@ namespace ThreeL.Client.Win.ViewModels
 
         private void GotoSettingsPage()
         {
-            WeakReferenceMessenger.Default.Send<string, string>("setting", "switch-page");
+            WeakReferenceMessenger.Default.Send("setting", "switch-page");
         }
 
         private void GotoApplyPage()
         {
-            WeakReferenceMessenger.Default.Send<string, string>("apply", "switch-page");
+            WeakReferenceMessenger.Default.Send("apply", "switch-page");
         }
 
-        private async Task DisplayDetailAsync() 
+        /// <summary>
+        /// 点击标题显示详细信息
+        /// </summary>
+        /// <returns></returns>
+        private async Task DisplayDetailAsync()
         {
-            if (RelationViewModel == null)
+            var temp = RelationViewModel;
+            if (temp == null)
                 return;
 
-            if (RelationViewModel.IsGroup)
+            if (temp.IsGroup)
             {
                 var group = await _contextAPIService.GetAsync<GroupRoughlyDto>(string.Format(Const.GROUP_DETAIL, RelationViewModel.Id));
                 if (group == null)
                     return;
-
+                //更新群组信息
+                if (temp.AvatarId != group.Avatar)
+                {
+                    temp.AvatarId = group.Avatar;
+                }
+                temp.TitleDisplayName = $"{group.Name} ( {group.Users?.Count()} ) ";
                 var window = App.ServiceProvider.GetRequiredService<GroupDetailWindow>();
                 window.DataContext = new GroupDetailWindowViewModel().FromDto(group);
                 window.Owner = App.ServiceProvider.GetRequiredService<MainWindow>();
                 window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
                 window.ShowDialog();
             }
-            else 
+            else
             {
-                var user =  await _contextAPIService.GetAsync<UserRoughlyDto>(string.Format(Const.USER, RelationViewModel.Id));
+                var user = await _contextAPIService.GetAsync<UserRoughlyDto>(string.Format(Const.USER, RelationViewModel.Id));
                 if (user == null)
                     return;
-
+                if (temp.AvatarId != user.Avatar)
+                {
+                    temp.AvatarId = user.Avatar;
+                }
                 DetailWindowViewModel = new UserDetailWindowViewModel().FromDto(user);
                 IsUserDetailOpen = true;
             }
@@ -947,9 +999,63 @@ namespace ThreeL.Client.Win.ViewModels
             if (message != null)
             {
                 message.Withdrawed = true;
-                message.WithdrawMessage = App.UserProfile.UserId == message.From ? "你撤回了一条消息" : "对方撤回了一条消息";
             }
         }
+
+        #region 收到新消息
+        /// <summary>
+        /// 收到新的文本信息
+        /// </summary>
+        /// <param name="textMessageResponse">文本信息响应</param>
+        /// <param name="relation">关联主体</param>
+        /// <returns></returns>
+        private async Task ReceiveTextMessageAsync(TextMessageResponse textMessageResponse, RelationViewModel relation)
+        {
+            if (textMessageResponse.Result)
+            {
+                await _saveChatRecordService.WriteRecordAsync(new ChatRecord
+                {
+                    From = textMessageResponse.From,
+                    To = textMessageResponse.To,
+                    MessageId = textMessageResponse.MessageId,
+                    Message = textMessageResponse.Text,
+                    MessageRecordType = MessageRecordType.Text,
+                    SendTime = textMessageResponse.SendTime
+                });
+            }
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                relation.AddMessage(new TextMessageViewModel()
+                {
+                    Text = textMessageResponse.Text,
+                    IsGroup = textMessageResponse.IsGroup,
+                    SendTime = textMessageResponse.SendTime,
+                    MessageId = textMessageResponse.MessageId,
+                    From = textMessageResponse.From,
+                    FromName = textMessageResponse.FromName,
+                    To = textMessageResponse.To,
+                    Sending = false,
+                    SendSuccess = textMessageResponse.Result
+                });
+            });
+        }
+
+        //获取消息中的聊天主体
+        private RelationViewModel GetRelation(long from, long to, bool isGroup)
+        {
+            if (isGroup)
+            {
+                return RelationViewModels.FirstOrDefault(x => x.IsGroup && x.Id == to);
+            }
+            else
+            {
+                return from == App.UserProfile.UserId ?
+                    RelationViewModels.FirstOrDefault(x => x.Id == to) :
+                    RelationViewModels.FirstOrDefault(x => x.Id == from);
+            }
+        }
+        #endregion
 
         public bool IsRealImage(string path)
         {

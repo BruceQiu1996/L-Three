@@ -16,8 +16,8 @@ namespace ThreeL.Client.Win.Handlers
         /// </summary>
         protected virtual void HandleFromToMessageResponseFromServer(FromToMessageResponse response)
         {
-            WeakReferenceMessenger.Default.Send<FromToMessageResponse, string>(response, "message-send-finished");
-            WeakReferenceMessenger.Default.Send<FromToMessageResponse, string>(response, "message-send-result");
+            WeakReferenceMessenger.Default.Send(response, "message-send-finished");
+            WeakReferenceMessenger.Default.Send(response, "message-send-result");
         }
     }
 }

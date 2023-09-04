@@ -11,8 +11,10 @@ message ChatRecordPostRequest{
 	int32 ImageType = 4;
 	google.protobuf.Timestamp sendTime = 5;
 	int64 from = 6;
-	int64 to = 7;
-	int64 fileId = 8;
+	string fromName = 7;
+	int64 to = 8;
+	int64 fileId = 9;
+	bool isGroup = 10;
 }
 
 message ChatRecordPostResponse{

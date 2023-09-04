@@ -57,7 +57,7 @@ namespace ThreeL.ContextAPI.Controllers
         }
 
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
-        [HttpGet("{relationId}/{isGroup}/{time}")]
+        [HttpGet("chatRecords/{relationId}/{isGroup}/{time}")]
         public async Task<ActionResult> GetChatRecords(long relationId, bool isGroup, DateTime time)
         {
             var result = long.TryParse(HttpContext.User.Identity?.Name, out var userId);

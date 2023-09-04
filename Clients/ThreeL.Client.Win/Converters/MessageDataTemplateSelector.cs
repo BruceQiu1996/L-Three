@@ -16,6 +16,8 @@ namespace ThreeL.Client.Win.Converters
             {
                 if (obj.MessageType == MessageType.Time)
                     dt = fe.FindResource("time") as DataTemplate;
+                if (obj.MessageType == MessageType.Tip)
+                    dt = fe.FindResource("tip") as DataTemplate;
                 else if (obj.MessageType == MessageType.Text && obj.FromSelf)
                     dt = fe.FindResource("txtSender") as DataTemplate;
                 else if (obj.MessageType == MessageType.Text && !obj.FromSelf)

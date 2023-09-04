@@ -22,6 +22,7 @@ namespace ThreeL.Client.Win.ViewModels
         public DateTime SendTime { get; set; }
         public bool FromSelf => App.UserProfile == null ? true : App.UserProfile.UserId == From ? true : false;
         public long From { get; set; }
+        public string FromName { get; set; }
         public long To { get; set; }
 
         private bool _sendSuccess = true;
@@ -60,7 +61,7 @@ namespace ThreeL.Client.Win.ViewModels
             {
                 SetProperty(ref _withdrawed, value);
                 CanWithdraw = !Withdrawed && !Sending && SendSuccess && FromSelf;
-                if (value) 
+                if (value)
                 {
                     ShortDesc = "[消息已被撤回]";
                 }
@@ -68,7 +69,7 @@ namespace ThreeL.Client.Win.ViewModels
         }
 
         public bool IsGroup { get; set; }
-        public string WithdrawMessage { get; set; } //撤回消息后的显示
+        public string WithdrawMessage => App.UserProfile.UserId == From ? "你撤回了一条消息" : IsGroup ? $"\"{FromName}\"撤回了一条消息" : "对方撤回了一条消息";
 
         private string _shortDesc;
         public string ShortDesc

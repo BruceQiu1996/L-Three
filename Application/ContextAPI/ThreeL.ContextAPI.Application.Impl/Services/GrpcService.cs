@@ -83,8 +83,8 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
         {
             var record = _mapper.Map<ChatRecord>(request);
             if (record.FileId == 0) record.FileId = null;
-            await _dapperRepository.ExecuteAsync("INSERT INTO ChatRecord([FROM],[TO],MESSAGEID,MESSAGE,MessageRecordType,ImageType,SendTime,FileId)" +
-                "VALUES(@From,@To,@MessageId,@Message,@MessageRecordType,@ImageType,@SendTime,@FileId)", record);
+            await _dapperRepository.ExecuteAsync("INSERT INTO ChatRecord([FROM],[FROMNAME],[TO],MESSAGEID,MESSAGE,MessageRecordType,ImageType,SendTime,FileId,IsGroup)" +
+                "VALUES(@From,@FromName,@To,@MessageId,@Message,@MessageRecordType,@ImageType,@SendTime,@FileId,@IsGroup)", record);
 
             return new ChatRecordPostResponse() { Result = true };
         }
@@ -262,7 +262,14 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             //更新redis
             await _redisProvider.SetAddAsync(string.Format(CommonConst.GROUP, group.Id), ids.Select(x => x.ToString()).ToArray());
 
-            return new InviteFriendsIntoGroupResponse() { Result = true, Friends = string.Join(",", result) };
+            return new InviteFriendsIntoGroupResponse() 
+            { 
+                Result = true, 
+                Friends = string.Join(",", result),
+                GroupId = group.Id,
+                GroupName = group.Name,
+                AvatarId = group.Avatar == null ? 0 : group.Avatar.Value
+            };
         }
 
         public async Task<ValidateRelationResponse> ValidateRelation(ValidateRelationRequest request, ServerCallContext context)

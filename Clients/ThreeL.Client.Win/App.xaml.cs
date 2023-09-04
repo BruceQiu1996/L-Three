@@ -69,6 +69,7 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<IMessageHandler, RequestForUserEndpointResponseHandler>();
                 service.AddSingleton<IMessageHandler, AddFriendCommandResponseHandler>();
                 service.AddSingleton<IMessageHandler, ReplyAddFriendCommandResponseHandler>();
+                service.AddSingleton<IMessageHandler, InviteMembersIntoGroupResponseHandler>();
             }).ConfigureLogging((hostCtx, loggingBuilder) =>
             {
                 loggingBuilder.AddConsole();

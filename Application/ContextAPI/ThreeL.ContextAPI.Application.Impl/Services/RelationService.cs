@@ -74,8 +74,8 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 foreach (var group in groups)
                 {
                     //查询聊天记录
-                    var records = await _adoQuerierRepository.QueryAsync<ChatRecordResponseDto>("SELECT MessageId,Message,MessageRecordType,ImageType,Withdrawed,SendTime,[From],[To],FileId,f.FileName,f.Size FROM (SELECT TOP 30 * FROM GroupChatRecord " +
-                        "WHERE GroupChatRecord.SendTime < @Time AND [To] = @GroupId ORDER BY SendTime DESC) t LEFT JOIN [File] f ON t.FileId = f.id",
+                    var records = await _adoQuerierRepository.QueryAsync<ChatRecordResponseDto>("SELECT MessageId,Message,MessageRecordType,ImageType,Withdrawed,SendTime,[From],[To],FileId,f.FileName,f.Size FROM (SELECT TOP 30 * FROM ChatRecord " +
+                        "WHERE ChatRecord.SendTime < @Time AND [To] = @GroupId AND IsGroup = 1 ORDER BY SendTime DESC) t LEFT JOIN [File] f ON t.FileId = f.id",
                     new
                     {
                         GroupId = group.Id,

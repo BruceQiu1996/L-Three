@@ -47,6 +47,9 @@ message InviteFriendsIntoGroupResponse{
 	bool result = 1;
 	string message = 2;
 	string friends = 3;
+	int32 groupId = 4;
+	int64 avatarId = 5;
+	string groupName = 6;
 }
 
 message ValidateRelationRequest{

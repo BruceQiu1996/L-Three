@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using SuperSocket;
-using ThreeL.Infra.Core.Metadata;
 using ThreeL.Infra.Redis;
+using ThreeL.Shared.Application;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Handlers;
@@ -53,6 +53,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             await appSession.SendAsync(resp.Serialize());
         }
 
+        //TODO 利用消息队列存储消息记录到数据库，可以使用cap,不使用grpc
         public override async Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
             var chatSession = appSession as ChatSession;
@@ -67,33 +68,45 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             var body = new TextMessageResponse();
             resp.Body = body;
             body.From = chatSession.UserId;
-            if (chatSession.UserId != packet.Body.To)
+            if (chatSession.UserId != packet.Body.To || packet.Body.IsGroup)
             {
                 if (!await _messageHandlerService.IsValidRelationAsync(chatSession.UserId, packet.Body.To, packet.Body.IsGroup, chatSession.AccessToken))
                 {
                     body.Result = false;
-                    body.Message = "好友关系异常";
+                    body.Message = "关系异常";
                     await appSession.SendAsync(resp.Serialize());
                     return;
                 }
             }
             _mapper.Map(packet.Body, body);
             body.Result = true;
+            body.FromName = chatSession.UserName;
             var request = _mapper.Map<ChatRecordPostRequest>(body);
-            request.MessageRecordType = (int)MessageRecordType.Text;
-            //await _saveChatRecordService.WriteRecordAsync(request);
-            var result = await _contextAPIGrpcService.PostChatRecordAsync(request, chatSession.AccessToken);//还是先使用rpc
+            var result = await _contextAPIGrpcService.PostChatRecordAsync(request, chatSession.AccessToken);
             if (result.Result)
             {
-                //分发给发送者和接收者
-                var fromSessions = _sessionManager.TryGet(resp.Body.From);
-                var toSessions = _sessionManager.TryGet(resp.Body.To);
-                await SendMessageBothAsync<Packet<ImageMessageResponse>>(fromSessions, toSessions, resp.Body.From, resp.Body.To, resp);
+                if (!packet.Body.IsGroup)
+                {
+                    //分发给发送者和接收者
+                    var fromSessions = _sessionManager.TryGet(resp.Body.From);
+                    var toSessions = _sessionManager.TryGet(resp.Body.To);
+                    await SendMessageBothAsync(fromSessions, toSessions, resp.Body.From, resp.Body.To, resp);
+                }
+                else
+                {
+                    var members = await _redisProvider.SetGetAsync(string.Format(CommonConst.GROUP, packet.Body.To));
+                    var ids = members.Select(long.Parse).ToList();
+                    Parallel.ForEach(ids, async id =>
+                    {
+                        var toSessions = _sessionManager.TryGet(id);
+                        await SendMessageBothAsync(null, toSessions, 0, id, resp);
+                    });
+                }
             }
             else
             {
                 body.Result = false;
-                body.Message = "发送文件失败";
+                body.Message = "发送消息失败";
                 await appSession.SendAsync(resp.Serialize());
 
                 return;

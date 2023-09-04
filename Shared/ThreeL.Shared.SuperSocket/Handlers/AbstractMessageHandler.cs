@@ -15,8 +15,8 @@ namespace ThreeL.Shared.SuperSocket.Handlers
             MessageType = messageType;
         }
 
-        protected virtual async Task SendMessageBothAsync<TIPacket>(IEnumerable<IAppSession> fromSessions, IEnumerable<IAppSession> toSessions,
-            long from, long to, IPacket resp) where TIPacket : class, IPacket
+        protected virtual async Task SendMessageBothAsync(IEnumerable<IAppSession> fromSessions, IEnumerable<IAppSession> toSessions,
+            long from, long to, IPacket resp)
         {
             if (fromSessions != null)
             {
@@ -26,14 +26,11 @@ namespace ThreeL.Shared.SuperSocket.Handlers
                 }
             }
 
-            if (from != to)
+            if (toSessions != null)
             {
-                if (toSessions != null)
+                foreach (var item in toSessions)
                 {
-                    foreach (var item in toSessions)
-                    {
-                        await item!.SendAsync(resp.Serialize());
-                    }
+                    await item!.SendAsync(resp.Serialize());
                 }
             }
         }

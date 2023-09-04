@@ -14,8 +14,10 @@ namespace ThreeL.ContextAPI.Domain.Aggregates.UserAggregate
         public ImageType ImageType { get; set; }
         public DateTime SendTime { get; set; }
         public long From { get; set; }
+        public string FromName { get; set; }
         public long To { get; set; }
         public long? FileId { get; set; } 
         public bool Withdrawed { get; set; }
+        public bool IsGroup { get; set; }
     }
 }

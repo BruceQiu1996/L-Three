@@ -3,7 +3,6 @@ using Dapper;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
-using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Database;

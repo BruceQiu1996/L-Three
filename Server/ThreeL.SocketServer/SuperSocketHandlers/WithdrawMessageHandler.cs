@@ -67,7 +67,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 //分发给发送者和接收者
                 var fromSessions = _sessionManager.TryGet(resp.Body.From);
                 var toSessions = _sessionManager.TryGet(resp.Body.To);
-                await SendMessageBothAsync<Packet<ImageMessageResponse>>(fromSessions, toSessions, resp.Body.From, resp.Body.To, resp);
+                await SendMessageBothAsync(fromSessions, toSessions, resp.Body.From, resp.Body.To, resp);
             }
         }
 

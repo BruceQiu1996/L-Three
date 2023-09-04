@@ -26,9 +26,9 @@ namespace ThreeL.Client.Win
             WindowState = WindowState.Minimized;
         }
 
-        private void Label_MouseLeftButtonDown_1(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private async void Label_MouseLeftButtonDown_1(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            Application.Current.Shutdown();
+            await App.CloseAsync();
         }
     }
 }

@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Dtos.ContextAPI;
 using ThreeL.Client.Shared.Services;
@@ -83,6 +81,11 @@ namespace ThreeL.Client.Win.ViewModels
         public void AddMessage(MessageViewModel message)
         {
             Messages.Remove(message);
+            var temp = Messages.FirstOrDefault(x => x.MessageId == message.MessageId);
+            if (temp != null)
+            {
+                Messages.Remove(temp);
+            }
             if (LastMessage == null)
                 Messages.Add(new TimeMessageViewModel()
                 {
@@ -98,7 +101,6 @@ namespace ThreeL.Client.Win.ViewModels
             Messages.Add(message);
             LastMessage = message;
             LastMessage.ShortDesc = LastMessage.Withdrawed ? "[消息已被撤回]" : LastMessage.GetShortDesc();
-            LastMessage.WithdrawMessage = App.UserProfile.UserId == message.From ? "你撤回了一条消息" : "对方撤回了一条消息";
             App.ServiceProvider.GetRequiredService<Chat>().chatScrollViewer.ScrollToEnd();
         }
 
@@ -124,7 +126,6 @@ namespace ThreeL.Client.Win.ViewModels
                 Messages.Add(message);
                 LastMessage = message;
                 LastMessage.ShortDesc = LastMessage.Withdrawed ? "[消息已被撤回]" : LastMessage.GetShortDesc();
-                LastMessage.WithdrawMessage = App.UserProfile.UserId == message.From ? "你撤回了一条消息" : "对方撤回了一条消息";
             }
 
             App.ServiceProvider.GetRequiredService<Chat>().chatScrollViewer.ScrollToEnd();

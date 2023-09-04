@@ -11,6 +11,7 @@
         Link = 7,
         Withdraw = 8,
         Time = 9,
+        Tip = 10,
 
         TextResp,
         ImageResp,

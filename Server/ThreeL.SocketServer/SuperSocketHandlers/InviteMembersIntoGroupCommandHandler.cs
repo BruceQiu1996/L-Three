@@ -40,8 +40,12 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 GroupId = packet.Body.GroupId
             }, session.AccessToken);
 
+            respPacket.Body.InviterId = session.UserId;
             respPacket.Body.Result = resp.Result;
             respPacket.Body.Message = resp.Message;
+            respPacket.Body.GroupId = resp.GroupId;
+            respPacket.Body.GroupName = resp.GroupName;
+            respPacket.Body.GroupAvatar = resp.AvatarId == 0 ? null : resp.AvatarId;
 
             await appSession.SendAsync(respPacket.Serialize());
             if (resp.Result && !string.IsNullOrEmpty(resp.Friends))
@@ -50,7 +54,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 Parallel.ForEach(ids, async id =>
                 {
                     var toSessions = _sessionManager.TryGet(id);
-                    await SendMessageBothAsync<Packet<InviteMembersIntoGroupCommandResponse>>(null, toSessions, 0, id, respPacket);
+                    await SendMessageBothAsync(null, toSessions, 0, id, respPacket);
                 });
             }
         }

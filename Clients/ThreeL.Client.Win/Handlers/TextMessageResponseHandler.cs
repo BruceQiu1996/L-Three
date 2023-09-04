@@ -1,14 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using SuperSocket;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
-using ThreeL.Client.Shared.Entities;
 using ThreeL.Client.Win.BackgroundService;
 using ThreeL.Client.Win.Helpers;
-using ThreeL.Client.Win.ViewModels;
-using ThreeL.Client.Win.ViewModels.Messages;
-using ThreeL.Infra.Core.Metadata;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Metadata;
@@ -28,48 +22,7 @@ namespace ThreeL.Client.Win.Handlers
         public async override Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
             var packet = message as Packet<TextMessageResponse>;
-            HandleFromToMessageResponseFromServer(packet.Body);
-            if (!packet.Body.Result)
-                return;
-            RelationViewModel friend = null;
-            if (App.UserProfile.UserId == packet.Body.From)
-            {
-                friend = App.ServiceProvider.GetRequiredService<ChatViewModel>()
-                    .RelationViewModels.FirstOrDefault(x => x.Id == packet.Body.To);
-            }
-            else
-            {
-                friend = App.ServiceProvider.GetRequiredService<ChatViewModel>()
-                   .RelationViewModels.FirstOrDefault(x => x.Id == packet.Body.From);
-            }
-
-            if (friend != null)
-            {
-                await _saveChatRecordService.WriteRecordAsync(new ChatRecord
-                {
-                    From = packet.Body.From,
-                    To = packet.Body.To,
-                    MessageId = packet.Body.MessageId,
-                    Message = packet.Body.Text,
-                    MessageRecordType = MessageRecordType.Text,
-                    SendTime = packet.Body.SendTime
-                });
-
-                if (App.UserProfile.UserId != packet.Body.From)
-                {
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        friend.AddMessage(new TextMessageViewModel()
-                        {
-                            Text = packet.Body.Text,
-                            SendTime = packet.Body.SendTime,
-                            MessageId = packet.Body.MessageId,
-                            From = packet.Body.From,
-                            To = packet.Body.To,
-                        });
-                    });
-                }
-            }
+            WeakReferenceMessenger.Default.Send<FromToMessageResponse, string>(packet.Body, "message-receive");
         }
     }
 }

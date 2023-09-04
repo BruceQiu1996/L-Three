@@ -72,13 +72,13 @@ CREATE TABLE ChatRecord(
     SendTime datetime,
     FileId bigint,
     InnerId bigint,
-    Withdrawed bit NOT NULL,
+    Withdrawed bit NOT NULL, --TODO默认值0
 );
 GO
 CREATE TABLE GroupChatRecord(
     Id bigint PRIMARY key identity,
     [From] bigint not NULL,
-    FromName VARCHAR(50) not NULL,
+    FromName NVARCHAR(50) not NULL,
     [To] bigint not NULL,
     MessageId VARCHAR(50) not NULL,
     Message VARCHAR(500),
@@ -86,7 +86,7 @@ CREATE TABLE GroupChatRecord(
     ImageType int,
     SendTime datetime,
     FileId bigint,
-    Withdrawed bit NOT NULL,
+    Withdrawed bit NOT NULL, --TODO默认值0
 );
 CREATE TABLE [FriendApply] (
   [Id] bigint  PRIMARY key identity,

@@ -17,7 +17,7 @@
         public const string FETCH_FRIEND_APPLYS = "relations/applys";
         public const string FETCH_EMOJIS = "emojis";
         public const string FILE_EXIST = "files/{0}";
-        public const string FETCH_FRIEND_CHATRECORDS = "relations/{0}/{1}/chatRecords";
+        public const string FETCH_RELATION_CHATRECORDS = "relations/chatRecords/{0}/{1}/{2}";
 
         //配置:存储在sqlite中
         public const string FILE_SAVE_FOLDER = "FileSaveFolder";

@@ -48,7 +48,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             if (resp.Result)//成功后还需要发通知给目标
             {
                 var toSessions = _sessionManager.TryGet(packet.Body.FriendId);
-                await SendMessageBothAsync<Packet<ImageMessageResponse>>(null, toSessions, 0, packet.Body.FriendId, respPacket);
+                await SendMessageBothAsync(null, toSessions, 0, packet.Body.FriendId, respPacket);
             }
         }
 

@@ -54,7 +54,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             {
                 var fromSessions = _sessionManager.TryGet(respPacket.Body.From);
                 var toSessions = _sessionManager.TryGet(respPacket.Body.To);
-                await SendMessageBothAsync<Packet<ImageMessageResponse>>(fromSessions, toSessions, respPacket.Body.From, respPacket.Body.To, respPacket);
+                await SendMessageBothAsync(fromSessions, toSessions, respPacket.Body.From, respPacket.Body.To, respPacket);
             }
             else
             {
