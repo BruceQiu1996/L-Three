@@ -68,6 +68,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             var body = new TextMessageResponse();
             resp.Body = body;
             body.From = chatSession.UserId;
+            body.FromName = chatSession.UserName;
             if (chatSession.UserId != packet.Body.To || packet.Body.IsGroup)
             {
                 if (!await _messageHandlerService.IsValidRelationAsync(chatSession.UserId, packet.Body.To, packet.Body.IsGroup, chatSession.AccessToken))
@@ -80,7 +81,6 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             }
             _mapper.Map(packet.Body, body);
             body.Result = true;
-            body.FromName = chatSession.UserName;
             var request = _mapper.Map<ChatRecordPostRequest>(body);
             var result = await _contextAPIGrpcService.PostChatRecordAsync(request, chatSession.AccessToken);
             if (result.Result)
@@ -95,12 +95,12 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 else
                 {
                     var members = await _redisProvider.SetGetAsync(string.Format(CommonConst.GROUP, packet.Body.To));
-                    var ids = members.Select(long.Parse).ToList();
-                    Parallel.ForEach(ids, async id =>
+                    var ids = members.Select(long.Parse).ToList().Distinct();
+                    foreach (var id in ids)
                     {
                         var toSessions = _sessionManager.TryGet(id);
                         await SendMessageBothAsync(null, toSessions, 0, id, resp);
-                    });
+                    }
                 }
             }
             else

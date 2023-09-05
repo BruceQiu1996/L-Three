@@ -12,5 +12,6 @@ namespace ThreeL.ContextAPI.Domain.Aggregates.File
         public long Receiver { get; set; }
         public long CreateBy { get; set; }
         public DateTime CreateTime { get; set; }
+        public bool IsGroup { get; set; }
     }
 }

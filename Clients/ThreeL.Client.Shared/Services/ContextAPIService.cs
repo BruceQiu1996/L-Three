@@ -39,7 +39,7 @@ namespace ThreeL.Client.Shared.Services
             {
                 resp = await _httpClient.PostAsync(url, null);
             }
-            else 
+            else
             {
                 var content = new StringContent(JsonSerializer.Serialize(body, _jsonOptions));
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
@@ -97,7 +97,7 @@ namespace ThreeL.Client.Shared.Services
             return default;
         }
 
-        public async Task<T> UploadFileAsync<T>(string filename, byte[] bytes, string code, long receiver,
+        public async Task<T> UploadFileAsync<T>(string filename, byte[] bytes, string code, bool isGroup, long receiver,
                                                 Action<object, HttpProgressEventArgs> progressCallBack = null, bool excuted = false)
         {
             HttpClientHandler httpClientHandler = new HttpClientHandler();
@@ -128,7 +128,7 @@ namespace ThreeL.Client.Shared.Services
                     fileContent
                 };
 
-                var resp = await client.PostAsync(string.Format(Const.UPLOAD_FILE, receiver, code), content);
+                var resp = await client.PostAsync(string.Format(Const.UPLOAD_FILE, isGroup, receiver, code), content);
                 if (resp.IsSuccessStatusCode)
                 {
                     return JsonSerializer.Deserialize<T>(await resp.Content.ReadAsStringAsync(), _jsonOptions);
@@ -142,7 +142,7 @@ namespace ThreeL.Client.Shared.Services
                         return default;
                     }
                     excuted = true;
-                    return await UploadFileAsync<T>(filename, bytes, code, receiver, progressCallBack, excuted);
+                    return await UploadFileAsync<T>(filename, bytes, code, isGroup, receiver, progressCallBack, excuted);
                 }
                 else if (resp.StatusCode == HttpStatusCode.BadRequest)
                 {

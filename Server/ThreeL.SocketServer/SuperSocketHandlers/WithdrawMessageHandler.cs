@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using SuperSocket;
 using ThreeL.Infra.Redis;
+using ThreeL.Shared.Application;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Handlers;
@@ -47,10 +48,12 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
             var body = _mapper.Map<WithdrawMessageResponse>(packet.Body);
             resp.Body = body;
+            body.Result = true;
             resp.Body.From = chatSession.UserId;
-            var result = await _contextAPIGrpcService.WithdrawChatRecordAsync(new ChatRecordWithdrawRequest() 
-            { 
-                MessageId = packet.Body.WithdrawMessageId 
+            resp.Body.FromName = chatSession.UserName;
+            var result = await _contextAPIGrpcService.WithdrawChatRecordAsync(new ChatRecordWithdrawRequest()
+            {
+                MessageId = packet.Body.WithdrawMessageId
             }, (appSession as ChatSession).AccessToken);
 
             if (result == null || !result.Result)
@@ -61,13 +64,25 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
 
                 return;
             }
-            else 
+            else
             {
-                body.Result = true;
-                //分发给发送者和接收者
-                var fromSessions = _sessionManager.TryGet(resp.Body.From);
-                var toSessions = _sessionManager.TryGet(resp.Body.To);
-                await SendMessageBothAsync(fromSessions, toSessions, resp.Body.From, resp.Body.To, resp);
+                if (!packet.Body.IsGroup)
+                {
+                    //分发给发送者和接收者
+                    var fromSessions = _sessionManager.TryGet(resp.Body.From);
+                    var toSessions = _sessionManager.TryGet(resp.Body.To);
+                    await SendMessageBothAsync(fromSessions, toSessions, resp.Body.From, resp.Body.To, resp);
+                }
+                else
+                {
+                    var members = await _redisProvider.SetGetAsync(string.Format(CommonConst.GROUP, packet.Body.To));
+                    var ids = members.Select(long.Parse).ToList().Distinct();
+                    foreach (var id in ids)
+                    {
+                        var toSessions = _sessionManager.TryGet(id);
+                        await SendMessageBothAsync(null, toSessions, 0, id, resp);
+                    }
+                }
             }
         }
 

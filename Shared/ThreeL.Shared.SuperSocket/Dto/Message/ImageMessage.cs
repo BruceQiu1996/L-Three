@@ -12,7 +12,5 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
         public string RemoteUrl { get; set; }
         [ProtoMember(8)]
         public long FileId { get; set; }
-        [ProtoMember(9)]
-        public string FileName { get; set; }
     }
 }

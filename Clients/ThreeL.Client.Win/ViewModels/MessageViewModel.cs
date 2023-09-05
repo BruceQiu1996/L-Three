@@ -103,6 +103,7 @@ namespace ThreeL.Client.Win.ViewModels
         {
             MessageId = chatRecord.MessageId;
             From = chatRecord.From;
+            FromName = chatRecord.FromName;
             To = chatRecord.To;
             IsGroup = chatRecord.IsGroup;
             SendTime = chatRecord.SendTime;

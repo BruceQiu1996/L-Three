@@ -11,10 +11,10 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Handlers;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using ThreeL.Client.Shared.Configurations;
@@ -44,6 +44,7 @@ namespace ThreeL.Client.Win.ViewModels
         public RelayCommand GotoApplyPageCommand { get; set; }
         public RelayCommand CutScreenshotCommand { get; set; }
         public RelayCommand OpenEmojiCommand { get; set; }
+        public RelayCommand<System.Windows.Controls.ScrollChangedEventArgs> ChatScrollChangeCommand { get; set; }
         public AsyncRelayCommand LoadCommandAsync { get; set; }
         public AsyncRelayCommand SelectFriendCommandAsync { get; set; }
         public AsyncRelayCommand<SelectEmojiClickRoutedEventArgs> AddEmojiCommandAsync { get; set; }
@@ -64,7 +65,17 @@ namespace ThreeL.Client.Win.ViewModels
         public RelationViewModel RelationViewModel
         {
             get => relationViewModel;
-            set => SetProperty(ref relationViewModel, value);
+            set
+            {
+                _currentRelationViewModel = value;
+                _lastVehicleOffset = 0;
+                _currentVehicleOffset = 0;
+                SetProperty(ref relationViewModel, value);
+                if (value != null) 
+                {
+                    value.UnReadCount = 0;
+                }
+            }
         }
 
         private DetailWindowViewModel detailWindowViewModel;
@@ -160,6 +171,7 @@ namespace ThreeL.Client.Win.ViewModels
             GotoSettingsPageCommand = new RelayCommand(GotoSettingsPage);
             GotoApplyPageCommand = new RelayCommand(GotoApplyPage);
             DisplayDetailCommand = new AsyncRelayCommand(DisplayDetailAsync);
+            ChatScrollChangeCommand = new RelayCommand<System.Windows.Controls.ScrollChangedEventArgs>(ChatScrollChange);
             _sequenceIncrementer = sequenceIncrementer;
             _tcpSuperSocketClient = tcpSuperSocketClient;
             _messageFileLocationMapper = messageFileLocationMapper;
@@ -168,29 +180,49 @@ namespace ThreeL.Client.Win.ViewModels
             WeakReferenceMessenger.Default.Register<ChatViewModel, FromToMessageResponse, string>(this, "message-receive",
                 async (x, resp) =>
                 {
-                    var relation = GetRelation(resp.From,resp.To,resp.IsGroup);
-                    if (relation == null) 
+                    var relation = GetRelation(resp.From, resp.To, resp.IsGroup);
+                    if (relation == null)
                     {
                         //TODO 存储消息防止因为并发导致消息错乱或者消息丢失
                         return;
                     }
 
                     //显示错误提示
-                    if (!resp.Result) 
+                    if (!resp.Result)
                     {
                         _growlHelper.Warning(resp.Message);
                     }
 
-                    if (resp is TextMessageResponse) 
+                    if (resp is TextMessageResponse)
                     {
                         await ReceiveTextMessageAsync(resp as TextMessageResponse, relation);
+                    }
+                    else if (resp is ImageMessageResponse)
+                    {
+                        await ReceiveImageMessageAsync(resp as ImageMessageResponse, relation);
+                    }
+                    else if (resp is FileMessageResponse)
+                    {
+                        await ReceiveFileMessageAsync(resp as FileMessageResponse, relation);
+                    }
+
+                    if (relation != RelationViewModel && resp.From != App.UserProfile.UserId)
+                    {
+                        relation.UnReadCount++;
                     }
                 });
 
             WeakReferenceMessenger.Default.Register<ChatViewModel, WithdrawMessageResponse, string>(this, "message-withdraw-result",
-                (x, y) =>
+                (x, resp) =>
                 {
-                    WithdrawMessage(y);
+                    if (!resp.Result)
+                    {
+                        _growlHelper.Warning(resp.Message);
+
+                        return;
+                    }
+                    var relation = GetRelation(resp.From, resp.To, resp.IsGroup);
+                    WithdrawMessage(resp, relation);
                 });
 
             WeakReferenceMessenger.Default.Register<ChatViewModel, MessageViewModel, string>(this, "message-resend",
@@ -252,7 +284,6 @@ namespace ThreeL.Client.Win.ViewModels
                 {
                     INITIALIZE_TIME = DateTime.Now;
                     //获取好友列表
-
                     var relations = await _contextAPIService.GetAsync<IEnumerable<RelationDto>>(string.Format(Const.FETCH_RELATIONS, INITIALIZE_TIME.ToString("yyyy-MM-dd HH:mm:ss.fff")));
                     if (relations != null)
                     {
@@ -277,29 +308,10 @@ namespace ThreeL.Client.Win.ViewModels
                             }
 
                             var messages = await ConvertChatRecordToViewModel(rel.ChatRecords);
-                            if (messages != null && rel.IsGroup)
-                            {
-                                foreach (var item in messages)
-                                {
-                                    item.IsGroup = true;
-                                }
-                            }
                             fvm.AddMessages(messages);
                             RelationViewModels.Add(fvm);
                         }
 
-                        ////加载好友列表
-                        //FriendViewModels = new ObservableCollection<FriendViewModel>(friends)
-                        //{
-                        //    new FriendViewModel()
-                        //    {
-                        //        Id = App.UserProfile.UserId,
-                        //        Remark = "本人",
-                        //        AvatarId = App.UserProfile.AvatarId,
-                        //        UserName = App.UserProfile.UserName,
-                        //        IsGroup = false
-                        //    }
-                        //};
                         RelationViewModel = RelationViewModels.FirstOrDefault();
                         _isLoaded = true;
 
@@ -508,7 +520,6 @@ namespace ThreeL.Client.Win.ViewModels
 
                     if (result == MessageBoxResult.OK)
                     {
-
                         foreach (var file in files)
                         {
                             await SendFileAsync(new FileInfo(file), temp);
@@ -612,37 +623,44 @@ namespace ThreeL.Client.Win.ViewModels
             List<MessageViewModel> messages = new List<MessageViewModel>();
             foreach (var record in resp.OrderBy(x => x.SendTime))
             {
-                if (record.Withdrawed)
+                try
                 {
-                    MessageViewModel temp = new MessageViewModel(MessageType.Text);
-                    temp.MessageId = record.MessageId;
-                    temp.Withdrawed = true;
-                    temp.From = record.From;
-                    temp.To = record.To;
-                    temp.SendTime = record.SendTime;
-                    messages.Add(temp);
+                    if (record.Withdrawed)
+                    {
+                        MessageViewModel temp = new MessageViewModel(MessageType.Text);
+                        temp.MessageId = record.MessageId;
+                        temp.Withdrawed = true;
+                        temp.From = record.From;
+                        temp.To = record.To;
+                        temp.SendTime = record.SendTime;
+                        messages.Add(temp);
+                        continue;
+                    }
+                    MessageViewModel messageViewModel = null;
+                    if (record.MessageRecordType == MessageRecordType.Text)
+                    {
+                        messageViewModel = new TextMessageViewModel();
+                        messageViewModel.FromDto(record);
+                    }
+
+                    if (record.MessageRecordType == MessageRecordType.Image)
+                    {
+                        messageViewModel = new ImageMessageViewModel();
+                        messageViewModel.FromDto(record);
+                    }
+
+                    if (record.MessageRecordType == MessageRecordType.File)
+                    {
+                        messageViewModel = new FileMessageViewModel();
+                        messageViewModel.FromDto(record);
+                    }
+
+                    messages.Add(messageViewModel);
+                }
+                catch (Exception ex) 
+                {
                     continue;
                 }
-                MessageViewModel messageViewModel = null;
-                if (record.MessageRecordType == MessageRecordType.Text)
-                {
-                    messageViewModel = new TextMessageViewModel();
-                    messageViewModel.FromDto(record);
-                }
-
-                if (record.MessageRecordType == MessageRecordType.Image)
-                {
-                    messageViewModel = new ImageMessageViewModel();
-                    messageViewModel.FromDto(record);
-                }
-
-                if (record.MessageRecordType == MessageRecordType.File)
-                {
-                    messageViewModel = new FileMessageViewModel();
-                    messageViewModel.FromDto(record);
-                }
-
-                messages.Add(messageViewModel);
             }
 
             return messages;
@@ -793,7 +811,7 @@ namespace ThreeL.Client.Win.ViewModels
         /// <param name="friendId">发送好友的id</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private async Task<long> UploadFileAsync(FileInfo fileInfo, long friendId)
+        private async Task<long> UploadFileAsync(FileInfo fileInfo, long relation, bool isGroup)
         {
             var data = await File.ReadAllBytesAsync(fileInfo.FullName);
             string code = data.ToSHA256();
@@ -803,7 +821,7 @@ namespace ThreeL.Client.Win.ViewModels
             if (!resp.Exist)//文件存在，直接发送
             {
                 var fileResp = await _contextAPIService.UploadFileAsync<UploadFileResponseDto>
-                    (fileInfo.Name, data, code, friendId, UploadProgressCallback, false);
+                    (fileInfo.Name, data, code, isGroup, relation, UploadProgressCallback, false);
 
                 if (fileResp == null) throw new Exception("发送文件异常，请稍后再试");
                 resp.FileId = fileResp.FileId;
@@ -840,7 +858,7 @@ namespace ThreeL.Client.Win.ViewModels
             friend.AddMessage(viewModel);
             if (viewModel.FileId == default)
             {
-                viewModel.FileId = await UploadFileAsync(fileInfo, friend.Id);
+                viewModel.FileId = await UploadFileAsync(fileInfo, friend.Id, friend.IsGroup);
             }
             var body = new ImageMessage();
             viewModel.ToMessage(body);
@@ -886,12 +904,12 @@ namespace ThreeL.Client.Win.ViewModels
             await SendFileByVmAsync(viewModel, friend, fileInfo);
         }
 
-        private async Task SendFileByVmAsync(FileMessageViewModel viewModel, RelationViewModel friend, FileInfo fileInfo)
+        private async Task SendFileByVmAsync(FileMessageViewModel viewModel, RelationViewModel relation, FileInfo fileInfo)
         {
-            friend.AddMessage(viewModel);
+            relation.AddMessage(viewModel);
             if (viewModel.FileId == default)
             {
-                var fileId = await UploadFileAsync(fileInfo, viewModel.To);
+                var fileId = await UploadFileAsync(fileInfo, viewModel.To, relation.IsGroup);
                 viewModel.FileId = fileId;
             }
             var body = new FileMessage();
@@ -991,10 +1009,9 @@ namespace ThreeL.Client.Win.ViewModels
             }
         }
 
-        private void WithdrawMessage(WithdrawMessageResponse response)
+        private void WithdrawMessage(WithdrawMessageResponse response, RelationViewModel relation)
         {
-            var friend = App.UserProfile.UserId == response.From ? response.To : response.From;
-            var message = RelationViewModels.FirstOrDefault(x => x.Id == friend)?.Messages
+            var message = relation?.Messages
                 .FirstOrDefault(x => x.MessageId == response.WithdrawMessageId);
             if (message != null)
             {
@@ -1041,6 +1058,127 @@ namespace ThreeL.Client.Win.ViewModels
             });
         }
 
+        /// <summary>
+        /// 收到新的图片信息
+        /// </summary>
+        /// <param name="textMessageResponse">文本信息响应</param>
+        /// <param name="relation">关联主体</param>
+        /// <returns></returns>
+        private async Task ReceiveImageMessageAsync(ImageMessageResponse imageMessageResponse, RelationViewModel relation)
+        {
+            var image = new ImageMessageViewModel()
+            {
+                ImageType = imageMessageResponse.ImageType,
+                SendTime = imageMessageResponse.SendTime,
+                MessageId = imageMessageResponse.MessageId,
+                IsGroup = imageMessageResponse.IsGroup,
+                From = imageMessageResponse.From,
+                FromName = imageMessageResponse.FromName,
+                To = imageMessageResponse.To,
+                Sending = false,
+                SendSuccess = imageMessageResponse.Result,
+                RemoteUrl = imageMessageResponse.RemoteUrl
+            };
+
+            if (imageMessageResponse.Result)
+            {
+                string imageLocation = _messageFileLocationMapper.Pop(imageMessageResponse.MessageId);
+                if (string.IsNullOrEmpty(imageLocation) || !File.Exists(imageLocation))
+                {
+                    var bytes = image.ImageType == ImageType.Local ?
+                            await _contextAPIService.DownloadFileAsync(imageMessageResponse.MessageId, null)
+                            :
+                            await _contextAPIService.DownloadNetworkImageAsync(imageMessageResponse.RemoteUrl, null);
+
+                    if (bytes == null)
+                    {
+                        _growlHelper.Warning("接收图片出现异常");
+                        return;
+                    }
+
+                    if (image.ImageType == ImageType.Local)
+                    {
+                        imageLocation = await _fileHelper.AutoSaveFileByBytesAsync(bytes, imageMessageResponse.FileName, MessageType.Image);
+                        if (string.IsNullOrEmpty(imageLocation))
+                        {
+                            _growlHelper.Warning("接收图片出现异常");
+                            return;
+                        }
+                    }
+
+                    image.Location = imageLocation;
+                    image.Source = _fileHelper.ByteArrayToBitmapImage(bytes);
+                }
+                else
+                {
+                    image.Location = imageLocation;
+                    image.Source = _fileHelper.ByteArrayToBitmapImage(await File.ReadAllBytesAsync(imageLocation));
+                }
+
+                await _saveChatRecordService.WriteRecordAsync(new ChatRecord
+                {
+                    From = imageMessageResponse.From,
+                    To = imageMessageResponse.To,
+                    MessageId = imageMessageResponse.MessageId,
+                    Message = image.ImageType == ImageType.Network ? "表情包" : imageMessageResponse.FileName,
+                    ResourceLocalLocation = image.ImageType == ImageType.Network ? imageMessageResponse.RemoteUrl : imageLocation,
+                    MessageRecordType = MessageRecordType.Image,
+                    ImageType = image.ImageType,
+                    SendTime = imageMessageResponse.SendTime,
+                    FileId = imageMessageResponse.FileId == 0 ? null : imageMessageResponse.FileId,
+                });
+            }
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                relation.AddMessage(image);
+            });
+        }
+
+        /// <summary>
+        /// 收到新的文件信息
+        /// </summary>
+        /// <param name="textMessageResponse">文本信息响应</param>
+        /// <param name="relation">关联主体</param>
+        /// <returns></returns>
+        private async Task ReceiveFileMessageAsync(FileMessageResponse fileMessageResponse, RelationViewModel relation)
+        {
+            var path = _messageFileLocationMapper.Pop(fileMessageResponse.MessageId);
+            if (fileMessageResponse.Result)
+            {
+                await _saveChatRecordService.WriteRecordAsync(new ChatRecord
+                {
+                    From = fileMessageResponse.From,
+                    To = fileMessageResponse.To,
+                    MessageId = fileMessageResponse.MessageId,
+                    Message = fileMessageResponse.FileName,
+                    MessageRecordType = MessageRecordType.File,
+                    ResourceLocalLocation = path,
+                    SendTime = fileMessageResponse.SendTime,
+                    FileId = fileMessageResponse.FileId == 0 ? null : fileMessageResponse.FileId,
+                    ResourceSize = fileMessageResponse.Size
+                });
+            }
+
+            var filevm = new FileMessageViewModel(fileMessageResponse.FileName)
+            {
+                FileSize = fileMessageResponse.Size,
+                SendTime = fileMessageResponse.SendTime,
+                MessageId = fileMessageResponse.MessageId,
+                From = fileMessageResponse.From,
+                FromName = fileMessageResponse.FromName,
+                IsGroup = fileMessageResponse.IsGroup,
+                To = fileMessageResponse.To,
+                Sending = false,
+                SendSuccess = fileMessageResponse.Result
+            };
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                relation.AddMessage(filevm);
+            });
+        }
+
         //获取消息中的聊天主体
         private RelationViewModel GetRelation(long from, long to, bool isGroup)
         {
@@ -1057,11 +1195,24 @@ namespace ThreeL.Client.Win.ViewModels
         }
         #endregion
 
+        private double _lastVehicleOffset = 0;
+        private double _currentVehicleOffset = 0;
+        private RelationViewModel _currentRelationViewModel = null;
+        private void ChatScrollChange(ScrollChangedEventArgs eventArgs)
+        {
+            _lastVehicleOffset = _currentVehicleOffset;
+            _currentVehicleOffset = eventArgs.VerticalOffset;
+            if (_currentVehicleOffset == 0 && _lastVehicleOffset != 0 &&  _currentRelationViewModel == RelationViewModel)
+            {
+
+            }
+        }
+
         public bool IsRealImage(string path)
         {
             try
             {
-                Image img = Image.FromFile(path);
+                System.Drawing.Image img = System.Drawing.Image.FromFile(path);
                 return true;
             }
             catch

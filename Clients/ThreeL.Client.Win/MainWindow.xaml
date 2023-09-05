@@ -11,7 +11,7 @@
         AllowsTransparency="True"
         WindowStyle="None"
         BorderThickness="0"
-        Title="主界面" Height="550" Width="850">
+        Title="主界面" Height="650" Width="850">
     <behaviors:Interaction.Triggers>
         <behaviors:EventTrigger EventName="Loaded">
             <behaviors:InvokeCommandAction Command="{Binding LoadCommandAsync}"></behaviors:InvokeCommandAction>

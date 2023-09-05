@@ -42,5 +42,10 @@ namespace ThreeL.Client.Win.Pages
             window.Owner = App.ServiceProvider.GetRequiredService<MainWindow>();
             window.ShowDialog();
         }
+
+        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            toSendText.Focus();
+        }
     }
 }

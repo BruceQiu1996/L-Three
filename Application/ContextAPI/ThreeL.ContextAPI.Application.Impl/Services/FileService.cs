@@ -47,10 +47,11 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                await _adoQuerierRepository.QueryFirstOrDefaultAsync<dynamic>("SELECT * FROM ChatRecord INNER JOIN [File] ON [File].id = ChatRecord.FileId WHERE MessageId = @MessageId",
                new { MessageId = messageId });
 
-            if (record == null || (record.From != userId && record.To != userId))
-            {
-                throw new Exception("下载文件错误");
-            }
+            //TODO文件归属校验，是否可以下载文件
+            //if (record == null || (record.From != userId && record.To != userId))
+            //{
+            //    throw new Exception("下载文件错误");
+            //}
 
             if (!File.Exists(record.Location))
             {
@@ -61,7 +62,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
         }
 
         //https://learn.microsoft.com/zh-cn/aspnet/core/mvc/models/file-uploads?view=aspnetcore-7.0 TODO文件签名认证
-        public async Task<UploadFileResponseDto> UploadFileAsync(long userId, long receiver, string code, IFormFile file)
+        public async Task<UploadFileResponseDto> UploadFileAsync(bool isGroup, long userId, long receiver, string code, IFormFile file)
         {
             if (file.Length > _storageOptions.MaxSize)
             {
@@ -87,7 +88,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 await file.CopyToAsync(fs);
                 await fs.FlushAsync();
             }
-            var sql = "INSERT INTO [File](CreateBy,FileName,[Size],Code,Location,Receiver,createTime) VALUES(@CreateBy,@FileName,@Size,@Code,@Location,@Receiver,GETDATE());SELECT CAST(SCOPE_IDENTITY() as bigint)";
+            var sql = "INSERT INTO [File](CreateBy,FileName,[Size],Code,Location,Receiver,IsGroup,createTime) VALUES(@CreateBy,@FileName,@Size,@Code,@Location,@Receiver,@IsGroup,GETDATE());SELECT CAST(SCOPE_IDENTITY() as bigint)";
             var fileId = await _adoQuerierRepository.QueryFirstAsync<long>(sql, new
             {
                 CreateBy = userId,
@@ -95,7 +96,8 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
                 Size = file.Length,
                 Code = code,
                 Location = fullName,
-                Receiver = receiver
+                Receiver = receiver,
+                isGroup
             });
 
             return new UploadFileResponseDto() { FileId = fileId };

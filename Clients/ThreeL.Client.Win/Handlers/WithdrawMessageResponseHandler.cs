@@ -38,10 +38,6 @@ namespace ThreeL.Client.Win.Handlers
         public async override Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
             var packet = message as Packet<WithdrawMessageResponse>;
-            HandleFromToMessageResponseFromServer(packet.Body);
-            if (!packet.Body.Result)
-                return;
-
             WeakReferenceMessenger.Default.Send<WithdrawMessageResponse, string>(packet.Body, "message-withdraw-result");
             var record = await SqlMapper.QueryFirstOrDefaultAsync<ChatRecord>(_clientSqliteContext.dbConnection, "SELECT * FROM ChatRecord WHERE MessageId = @MessageId", new
             {

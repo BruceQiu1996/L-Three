@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using HandyControl.Controls;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -32,7 +33,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             }
         }
 
-        public ImageMessageViewModel() : base (MessageType.Image)
+        public ImageMessageViewModel() : base(MessageType.Image)
         {
             CopyCommandAsync = new AsyncRelayCommand(CopyAsync);
             LeftButtonClickCommandAsync = new AsyncRelayCommand(LeftButtonClickAsync);
@@ -58,7 +59,7 @@ namespace ThreeL.Client.Win.ViewModels.Messages
                         Source = source;
                     }
                 }
-                finally 
+                finally
                 {
                     source.Freeze();
                 }
@@ -71,6 +72,10 @@ namespace ThreeL.Client.Win.ViewModels.Messages
                 {
                     Location = chatRecord.Message;
                     source.BeginInit();
+                    if (string.IsNullOrEmpty(Location))
+                    {
+
+                    }
                     source.UriSource = new Uri(Location, UriKind.RelativeOrAbsolute);
                     source.EndInit();
 
@@ -88,7 +93,6 @@ namespace ThreeL.Client.Win.ViewModels.Messages
             base.ToMessage(fromToMessage);
             var message = fromToMessage as ImageMessage;
             message.ImageType = ImageType;
-            message.FileName = FileName;
             message.FileId = FileId;
             message.RemoteUrl = RemoteUrl;
         }
@@ -107,12 +111,16 @@ namespace ThreeL.Client.Win.ViewModels.Messages
 
         private Task CopyAsync()
         {
-            SetFileDrop(Location);
+            if (ImageType == ImageType.Network || string.IsNullOrEmpty(Location) || !File.Exists(Location))
+                return Task.CompletedTask;
+
+            var img = new Bitmap(Location);
+            System.Windows.Forms.Clipboard.SetImage(img);
 
             return Task.CompletedTask;
         }
 
-        private Task OpenLocationAsync() 
+        private Task OpenLocationAsync()
         {
             ExplorerFile(Location);
 

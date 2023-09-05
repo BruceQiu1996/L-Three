@@ -53,6 +53,13 @@ namespace ThreeL.Client.Win.ViewModels
         public string DisplayName => string.IsNullOrEmpty(Remark) ? Name : Remark;
         public List<string> Hosts { get; }
         public bool LoadedChatRecord { get; set; }
+        //TODO暂时只是在线的未读消息数量，后续需要智能，并且各端同步
+        private int unReadCount;
+        public int UnReadCount
+        {
+            get => unReadCount;
+            set=>SetProperty(ref unReadCount, value);
+        }
 
         private MessageViewModel lastMessage;
         public MessageViewModel LastMessage
@@ -104,10 +111,18 @@ namespace ThreeL.Client.Win.ViewModels
             App.ServiceProvider.GetRequiredService<Chat>().chatScrollViewer.ScrollToEnd();
         }
 
-        public void AddMessages(IEnumerable<MessageViewModel> messages)
+        public void AddMessages(IEnumerable<MessageViewModel> messages, bool before = false)
         {
             if (messages == null || messages.Count() <= 0)
                 return;
+            if (before)
+            {
+                var temp = Messages.FirstOrDefault();
+                if (temp != null && temp is LoadRecordViewModel)
+                {
+                    Messages.Remove(temp);
+                }
+            }
             foreach (var message in messages)
             {
                 Messages.Remove(message);
@@ -123,9 +138,21 @@ namespace ThreeL.Client.Win.ViewModels
                         DateTime = App.ServiceProvider.GetService<DateTimeHelper>().ConvertDateTimeToText(message.SendTime)
                     });
 
-                Messages.Add(message);
-                LastMessage = message;
-                LastMessage.ShortDesc = LastMessage.Withdrawed ? "[消息已被撤回]" : LastMessage.GetShortDesc();
+                if (before)
+                {
+                    Messages.Insert(0, message);
+                }
+                else
+                {
+                    Messages.Add(message);
+                    LastMessage = message;
+                    LastMessage.ShortDesc = LastMessage.Withdrawed ? "[消息已被撤回]" : LastMessage.GetShortDesc();
+                }
+            }
+
+            if (Messages.FirstOrDefault() is not LoadRecordViewModel) 
+            {
+                Messages.Insert(0, new LoadRecordViewModel() { Relation = this});
             }
 
             App.ServiceProvider.GetRequiredService<Chat>().chatScrollViewer.ScrollToEnd();

@@ -41,12 +41,12 @@ namespace ThreeL.ContextAPI.Controllers
                 { FileDownloadName = info.Name };
         }
 
-        [HttpPost("{receiver}/{code}")]
+        [HttpPost("{isGroup}/{receiver}/{code}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
-        public async Task<IActionResult> UploadFile([FromForm] IFormFile file, long receiver, string code)
+        public async Task<IActionResult> UploadFile([FromForm] IFormFile file, bool isGroup, long receiver, string code)
         {
             long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var resp = await _fileService.UploadFileAsync(userId, receiver, code, file);
+            var resp = await _fileService.UploadFileAsync(isGroup,userId, receiver, code, file);
 
             return Ok(resp);
         }

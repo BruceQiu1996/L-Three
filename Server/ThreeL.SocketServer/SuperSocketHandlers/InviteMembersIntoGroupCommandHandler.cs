@@ -50,12 +50,12 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             await appSession.SendAsync(respPacket.Serialize());
             if (resp.Result && !string.IsNullOrEmpty(resp.Friends))
             {
-                var ids = resp.Friends.Split(",").Select(long.Parse).ToList();
-                Parallel.ForEach(ids, async id =>
+                var ids = resp.Friends.Split(",").Select(long.Parse).ToList().Distinct();
+                foreach (var id in ids)
                 {
                     var toSessions = _sessionManager.TryGet(id);
                     await SendMessageBothAsync(null, toSessions, 0, id, respPacket);
-                });
+                }
             }
         }
 
