@@ -71,11 +71,10 @@ namespace ThreeL.Client.Shared.Services
 
         public async Task<T> GetAsync<T>(string url, bool excuted = false)
         {
-            var resp = await _httpClient.GetAsync(url);
+            var resp = await _httpClient.GetAsync(url).ConfigureAwait(false);
             if (resp.IsSuccessStatusCode)
             {
-                var temp = await resp.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<T>(await resp.Content.ReadAsStringAsync(), _jsonOptions);
+                return JsonSerializer.Deserialize<T>(await resp.Content.ReadAsStringAsync().ConfigureAwait(false), _jsonOptions);
             }
             else if (resp.StatusCode == HttpStatusCode.Unauthorized && !excuted)
             {
@@ -90,7 +89,7 @@ namespace ThreeL.Client.Shared.Services
             }
             else if (resp.StatusCode == HttpStatusCode.BadRequest)
             {
-                var message = await resp.Content.ReadAsStringAsync();
+                var message = await resp.Content.ReadAsStringAsync().ConfigureAwait(false);
                 await ExcuteWhileBadRequestAsync?.Invoke(message);
             }
 

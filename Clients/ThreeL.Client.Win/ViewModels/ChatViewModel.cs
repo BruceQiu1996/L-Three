@@ -35,6 +35,7 @@ using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Commands;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Metadata;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace ThreeL.Client.Win.ViewModels
 {
@@ -67,9 +68,7 @@ namespace ThreeL.Client.Win.ViewModels
             get => relationViewModel;
             set
             {
-                _currentRelationViewModel = value;
-                _lastVehicleOffset = 0;
-                _currentVehicleOffset = 0;
+                InitScrollFlags();
                 SetProperty(ref relationViewModel, value);
                 if (value != null) 
                 {
@@ -284,7 +283,8 @@ namespace ThreeL.Client.Win.ViewModels
                 {
                     INITIALIZE_TIME = DateTime.Now;
                     //获取好友列表
-                    var relations = await _contextAPIService.GetAsync<IEnumerable<RelationDto>>(string.Format(Const.FETCH_RELATIONS, INITIALIZE_TIME.ToString("yyyy-MM-dd HH:mm:ss.fff")));
+                    var relations = await _contextAPIService.GetAsync<IEnumerable<RelationDto>>(string.Format(Const.FETCH_RELATIONS,
+                        INITIALIZE_TIME.ToString("yyyy-MM-dd HH:mm:ss.fff")));
                     if (relations != null)
                     {
 
@@ -297,6 +297,8 @@ namespace ThreeL.Client.Win.ViewModels
                                 AvatarId = rel.Avatar,
                                 Remark = rel.Remark,
                                 IsGroup = rel.IsGroup,
+                                FetchFirstRecordTime = rel.ChatRecords == null ? null : rel.ChatRecords.Count() < 30 ? null : rel.ChatRecords.LastOrDefault()?.SendTime,
+                                FetchLastestRecordTime = INITIALIZE_TIME
                             };
                             if (!fvm.IsGroup)
                             {
@@ -386,6 +388,7 @@ namespace ThreeL.Client.Win.ViewModels
         private async Task HandleInviteGroupAsync(InviteMembersIntoGroupCommandResponse intoGroupCommandResponse)
         {
             var groupViewModel = RelationViewModels.FirstOrDefault(x => x.Id == intoGroupCommandResponse.GroupId);
+            var time = DateTime.Now;
             if (groupViewModel == null)
             {
                 var vm = new RelationViewModel()
@@ -395,17 +398,18 @@ namespace ThreeL.Client.Win.ViewModels
                     Name = intoGroupCommandResponse.GroupName,
                     AvatarId = intoGroupCommandResponse.GroupAvatar,
                     TitleDisplayName = intoGroupCommandResponse.GroupName,
+                    FetchLastestRecordTime = time,
                 };
                 RelationViewModels.Insert(0, vm);
-                var time = DateTime.Now;
+                
                 //获取群聊的聊天记录
                 var records = await _contextAPIService.GetAsync<IEnumerable<ChatRecordResponseDto>>(string.Format(Const.FETCH_RELATION_CHATRECORDS,
-                    intoGroupCommandResponse.GroupId, true, time));
+                    intoGroupCommandResponse.GroupId, true, time.ToString("yyyy-MM-dd HH:mm:ss.fff")));
 
                 if (records != null)
                 {
-                    var messages = await ConvertChatRecordToViewModel(records);
-                    vm.AddMessages(messages);
+                    var messages = await ConvertChatRecordToViewModel(records,true);
+                    vm.AddMessages(messages,true);
                 }
             }
         }
@@ -543,7 +547,7 @@ namespace ThreeL.Client.Win.ViewModels
         /// <param name="friendId">服务器拉取的聊天记录</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        private async Task<IEnumerable<MessageViewModel>> ConvertChatRecordToViewModel(IEnumerable<ChatRecordResponseDto> resp)
+        private async Task<IEnumerable<MessageViewModel>> ConvertChatRecordToViewModel(IEnumerable<ChatRecordResponseDto> resp, bool desc = false)
         {
             if (resp == null)
                 return null;
@@ -621,7 +625,7 @@ namespace ThreeL.Client.Win.ViewModels
             }
 
             List<MessageViewModel> messages = new List<MessageViewModel>();
-            foreach (var record in resp.OrderBy(x => x.SendTime))
+            foreach (var record in desc ? resp.OrderByDescending(x => x.SendTime) : resp.OrderBy(x => x.SendTime))
             {
                 try
                 {
@@ -657,7 +661,7 @@ namespace ThreeL.Client.Win.ViewModels
 
                     messages.Add(messageViewModel);
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     continue;
                 }
@@ -1197,15 +1201,48 @@ namespace ThreeL.Client.Win.ViewModels
 
         private double _lastVehicleOffset = 0;
         private double _currentVehicleOffset = 0;
-        private RelationViewModel _currentRelationViewModel = null;
-        private void ChatScrollChange(ScrollChangedEventArgs eventArgs)
+        private bool _firstTop = false;
+        private async void ChatScrollChange(ScrollChangedEventArgs eventArgs)
         {
             _lastVehicleOffset = _currentVehicleOffset;
             _currentVehicleOffset = eventArgs.VerticalOffset;
-            if (_currentVehicleOffset == 0 && _lastVehicleOffset != 0 &&  _currentRelationViewModel == RelationViewModel)
-            {
 
+            if (_lastVehicleOffset != 0 && _currentVehicleOffset == 0 && eventArgs.VerticalChange != 0)
+            {
+                if (!_firstTop) 
+                {
+                    _firstTop = true;
+                    return;
+                }
+                _firstTop = false;
+                //同步请求聊天记录
+                var temp = RelationViewModel;
+                if (temp.FetchFirstRecordTime == null)
+                {
+                    _growlHelper.Info("没有更多的聊天记录");
+                    return;
+                }
+
+                var records = _contextAPIService.GetAsync<IEnumerable<ChatRecordResponseDto>>(string.Format(Const.FETCH_RELATION_CHATRECORDS,
+                    temp.Id, temp.IsGroup, temp.FetchFirstRecordTime.Value.ToString("yyyy-MM-dd HH:mm:ss.fff"))).GetAwaiter().GetResult();
+
+                if (records != null && records.Count() != 0)
+                {
+                    var messages = await ConvertChatRecordToViewModel(records, true);
+                    temp.AddMessages(messages, true);
+                }
+                else if (records != null && records.Count() == 0) 
+                {
+                    _growlHelper.Info("没有更多的聊天记录");
+                }
             }
+        }
+
+        private void InitScrollFlags()
+        {
+            _lastVehicleOffset = 0;
+            _currentVehicleOffset = 0;
+            _firstTop = false;
         }
 
         public bool IsRealImage(string path)

@@ -39,6 +39,8 @@ namespace ThreeL.Client.Win.ViewModels
             }
         }
         public bool IsGroup { get; set; } //是否是群组
+        public DateTime? FetchFirstRecordTime { get; set; }
+        public DateTime FetchLastestRecordTime { get; set; }
 
         private ObservableCollection<UserRoughlyDto> members;
         public ObservableCollection<UserRoughlyDto> Members
@@ -58,7 +60,7 @@ namespace ThreeL.Client.Win.ViewModels
         public int UnReadCount
         {
             get => unReadCount;
-            set=>SetProperty(ref unReadCount, value);
+            set => SetProperty(ref unReadCount, value);
         }
 
         private MessageViewModel lastMessage;
@@ -122,6 +124,8 @@ namespace ThreeL.Client.Win.ViewModels
                 {
                     Messages.Remove(temp);
                 }
+
+                FetchFirstRecordTime = messages.LastOrDefault().SendTime;
             }
             foreach (var message in messages)
             {
@@ -150,12 +154,12 @@ namespace ThreeL.Client.Win.ViewModels
                 }
             }
 
-            if (Messages.FirstOrDefault() is not LoadRecordViewModel) 
+            if (Messages.FirstOrDefault() is not LoadRecordViewModel)
             {
-                Messages.Insert(0, new LoadRecordViewModel() { Relation = this});
+                Messages.Insert(0, new LoadRecordViewModel() { Relation = this });
             }
 
-            App.ServiceProvider.GetRequiredService<Chat>().chatScrollViewer.ScrollToEnd();
+            if (!before) App.ServiceProvider.GetRequiredService<Chat>().chatScrollViewer.ScrollToEnd();
         }
 
         public RelationViewModel()

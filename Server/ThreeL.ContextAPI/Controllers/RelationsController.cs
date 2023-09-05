@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.Shared.Domain.Metadata;
+using ThreeL.Shared.WebApi.Extensions;
 
 namespace ThreeL.ContextAPI.Controllers
 {
@@ -66,7 +67,7 @@ namespace ThreeL.ContextAPI.Controllers
 
             var records = await _relationService.GetChatRecordsByUserIdAsync(userId, relationId, isGroup, time);
 
-            return Ok(records);
+            return records.ToActionResult();
         }
     }
 }
