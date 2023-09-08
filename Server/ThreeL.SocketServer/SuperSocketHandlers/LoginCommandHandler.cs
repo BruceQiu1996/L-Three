@@ -1,4 +1,5 @@
 ﻿using SuperSocket;
+using SuperSocket.Channel;
 using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Commands;
 using ThreeL.Shared.SuperSocket.Handlers;
@@ -27,9 +28,29 @@ public class LoginCommandHandler : AbstractMessageHandler
         if (resp.Result)
         {
             session.UserId = resp.UserId;
-            session.SsToken = Guid.NewGuid().ToString();
+            session.Platform = packet.Body.Platform;
             session.AccessToken = packet.Body.AccessToken;
             session.UserName = resp.UserName;
+            var sessions = _sessionManager.TryGet(session.UserId).Where(x => x!.Platform == session.Platform);
+            if (sessions != null && sessions.Count() > 0)
+            {
+                var temp = new List<ChatSession>(sessions);
+                foreach (var item in temp)
+                {
+                    await (item as IAppSession).SendAsync(new Packet<OfflineCommand>() 
+                    { 
+                        MessageType = MessageType.RequestOffline,
+                        Sequence = 1000,
+                        Body = new OfflineCommand() 
+                        {
+                            Reason = "存在其他账号在其他相同平台登陆"
+                        }
+                    }.Serialize());
+
+                    _sessionManager.TryRemoveBySessionId(session.UserId, item.SessionID);
+                }
+            }
+
             _sessionManager.TryAddOrUpdate(session.UserId, session);
         }
 
@@ -39,10 +60,10 @@ public class LoginCommandHandler : AbstractMessageHandler
             Sequence = packet.Sequence,
             Body = new LoginCommandResponse()
             {
-                Result = resp.Result,
-                SsToken = resp.Result ? session.SsToken : null,
+                Result = resp.Result
             }
         };
+
         await appSession.SendAsync(respPacket.Serialize());
     }
 

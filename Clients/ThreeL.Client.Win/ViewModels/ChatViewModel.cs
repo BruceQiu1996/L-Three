@@ -3,11 +3,11 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Dapper;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Handlers;
@@ -35,7 +35,6 @@ using ThreeL.Shared.SuperSocket.Dto;
 using ThreeL.Shared.SuperSocket.Dto.Commands;
 using ThreeL.Shared.SuperSocket.Dto.Message;
 using ThreeL.Shared.SuperSocket.Metadata;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace ThreeL.Client.Win.ViewModels
 {
@@ -45,7 +44,7 @@ namespace ThreeL.Client.Win.ViewModels
         public RelayCommand GotoApplyPageCommand { get; set; }
         public RelayCommand CutScreenshotCommand { get; set; }
         public RelayCommand OpenEmojiCommand { get; set; }
-        public RelayCommand<System.Windows.Controls.ScrollChangedEventArgs> ChatScrollChangeCommand { get; set; }
+        public RelayCommand<ScrollChangedEventArgs> ChatScrollChangeCommand { get; set; }
         public AsyncRelayCommand LoadCommandAsync { get; set; }
         public AsyncRelayCommand SelectFriendCommandAsync { get; set; }
         public AsyncRelayCommand<SelectEmojiClickRoutedEventArgs> AddEmojiCommandAsync { get; set; }
@@ -70,7 +69,7 @@ namespace ThreeL.Client.Win.ViewModels
             {
                 InitScrollFlags();
                 SetProperty(ref relationViewModel, value);
-                if (value != null) 
+                if (value != null)
                 {
                     value.UnReadCount = 0;
                 }
@@ -126,7 +125,6 @@ namespace ThreeL.Client.Win.ViewModels
             set => SetProperty(ref _avatar, value);
         }
 
-        private bool _isLoaded = false;
         private readonly ContextAPIService _contextAPIService;
         private readonly ClientSqliteContext _clientSqliteContext;
         private readonly GrowlHelper _growlHelper;
@@ -137,6 +135,7 @@ namespace ThreeL.Client.Win.ViewModels
         private readonly TcpSuperSocketClient _tcpSuperSocketClient;
         private readonly SaveChatRecordService _saveChatRecordService;
         private readonly MessageFileLocationMapper _messageFileLocationMapper;
+        private readonly ILogger _logger;
 
         [DllImport("PrScrn.dll", EntryPoint = "PrScrn")]
         public extern static int PrScrn();
@@ -150,7 +149,8 @@ namespace ThreeL.Client.Win.ViewModels
                              UdpSuperSocketClient udpSuperSocketClient,
                              SequenceIncrementer sequenceIncrementer,
                              TcpSuperSocketClient tcpSuperSocketClient,
-                             MessageFileLocationMapper messageFileLocationMapper)
+                             MessageFileLocationMapper messageFileLocationMapper,
+                             ILoggerFactory loggerFactory)
         {
             _contextAPIService = contextAPIService;
             _clientSqliteContext = clientSqliteContext;
@@ -159,6 +159,7 @@ namespace ThreeL.Client.Win.ViewModels
             _packetWaiter = packetWaiter;
             _fileHelper = fileHelper;
             _udpSuperSocketClient = udpSuperSocketClient;
+            _logger = loggerFactory.CreateLogger(nameof(Module.CLIENT_WIN));
             LoadCommandAsync = new AsyncRelayCommand(LoadAsync);
             //SelectFriendCommandAsync = new AsyncRelayCommand(SelectFriendAsync);
             SendMessageCommandAsync = new AsyncRelayCommand(SendTextMessageAsync);
@@ -170,7 +171,7 @@ namespace ThreeL.Client.Win.ViewModels
             GotoSettingsPageCommand = new RelayCommand(GotoSettingsPage);
             GotoApplyPageCommand = new RelayCommand(GotoApplyPage);
             DisplayDetailCommand = new AsyncRelayCommand(DisplayDetailAsync);
-            ChatScrollChangeCommand = new RelayCommand<System.Windows.Controls.ScrollChangedEventArgs>(ChatScrollChange);
+            ChatScrollChangeCommand = new RelayCommand<ScrollChangedEventArgs>(ChatScrollChange);
             _sequenceIncrementer = sequenceIncrementer;
             _tcpSuperSocketClient = tcpSuperSocketClient;
             _messageFileLocationMapper = messageFileLocationMapper;
@@ -208,6 +209,17 @@ namespace ThreeL.Client.Win.ViewModels
                     if (relation != RelationViewModel && resp.From != App.UserProfile.UserId)
                     {
                         relation.UnReadCount++;
+                    }
+
+                    if (RelationViewModels.FirstOrDefault() != relation)
+                    {
+                        var flag = RelationViewModel == relation;
+                        RelationViewModels.Remove(relation);
+                        RelationViewModels.Insert(0, relation);
+                        if (flag)
+                        {
+                            RelationViewModel = relation;
+                        }
                     }
                 });
 
@@ -267,65 +279,76 @@ namespace ThreeL.Client.Win.ViewModels
               {
                   await HandleInviteGroupAsync(y);
               });
+
+            //请求下线
+            WeakReferenceMessenger.Default.Register<ChatViewModel, string, string>(this, "message-request-offline",
+              async (x, y) =>
+              {
+                  await OfflineAsync(y);
+              });
         }
 
-        private async Task LoadAsync()
+        public async Task LoadAsync()
         {
-            if (!_isLoaded)
+            UserProfile = App.UserProfile;
+            if (UserProfile.Avatar != null)
             {
-                UserProfile = App.UserProfile;
-                if (UserProfile.Avatar != null)
+                Avatar = _fileHelper.ByteArrayToBitmapImage(UserProfile.Avatar);
+            }
+            //TODO删除代码
+            try
+            {
+                INITIALIZE_TIME = DateTime.Now;
+                //获取好友列表
+                var relations = await _contextAPIService.GetAsync<IEnumerable<RelationDto>>(string.Format(Const.FETCH_RELATIONS,
+                    INITIALIZE_TIME.ToString("yyyy-MM-dd HH:mm:ss.fff")));
+                RelationViewModels.Clear();
+                if (relations != null)
                 {
-                    Avatar = _fileHelper.ByteArrayToBitmapImage(UserProfile.Avatar);
-                }
-                //TODO删除代码
-                try
-                {
-                    INITIALIZE_TIME = DateTime.Now;
-                    //获取好友列表
-                    var relations = await _contextAPIService.GetAsync<IEnumerable<RelationDto>>(string.Format(Const.FETCH_RELATIONS,
-                        INITIALIZE_TIME.ToString("yyyy-MM-dd HH:mm:ss.fff")));
-                    if (relations != null)
+                    foreach (var rel in relations.OrderByDescending(x => x.ChatRecords?.FirstOrDefault()?.SendTime))
                     {
-
-                        foreach (var rel in relations)
+                        var fvm = new RelationViewModel
                         {
-                            var fvm = new RelationViewModel
-                            {
-                                Id = rel.Id,
-                                Name = rel.Name,
-                                AvatarId = rel.Avatar,
-                                Remark = rel.Remark,
-                                IsGroup = rel.IsGroup,
-                                FetchFirstRecordTime = rel.ChatRecords == null ? null : rel.ChatRecords.Count() < 30 ? null : rel.ChatRecords.LastOrDefault()?.SendTime,
-                                FetchLastestRecordTime = INITIALIZE_TIME
-                            };
-                            if (!fvm.IsGroup)
-                            {
-                                fvm.TitleDisplayName = string.IsNullOrEmpty(fvm.Remark) ? fvm.Name : fvm.Remark + $" ( {fvm.Name} )";
-                            }
-                            else
-                            {
-                                fvm.TitleDisplayName = $"{fvm.Name} ( {rel.MemberCount} ) ";
-                            }
-
-                            var messages = await ConvertChatRecordToViewModel(rel.ChatRecords);
-                            fvm.AddMessages(messages);
-                            RelationViewModels.Add(fvm);
+                            Id = rel.Id,
+                            Name = rel.Name,
+                            AvatarId = rel.Avatar,
+                            Remark = rel.Remark,
+                            IsGroup = rel.IsGroup,
+                            FetchFirstRecordTime = rel.ChatRecords == null ? null : rel.ChatRecords.Count() < 30 ? null : rel.ChatRecords.LastOrDefault()?.SendTime,
+                            FetchLastestRecordTime = INITIALIZE_TIME
+                        };
+                        if (!fvm.IsGroup)
+                        {
+                            fvm.TitleDisplayName = string.IsNullOrEmpty(fvm.Remark) ? fvm.Name : fvm.Remark + $" ( {fvm.Name} )";
+                        }
+                        else
+                        {
+                            fvm.TitleDisplayName = $"{fvm.Name} ( {rel.MemberCount} ) ";
                         }
 
-                        RelationViewModel = RelationViewModels.FirstOrDefault();
-                        _isLoaded = true;
-
-                        //加载申请好友记录
-                        await FetchUserUnProcessApplysAsync();
+                        var messages = await ConvertChatRecordToViewModel(rel.ChatRecords);
+                        fvm.AddMessages(messages);
+                        RelationViewModels.Add(fvm);
                     }
-                }
-                catch (Exception ex)
-                {
-                    _growlHelper.Warning(ex.Message);
+
+                    RelationViewModel = RelationViewModels.FirstOrDefault();
+
+                    //加载申请好友记录
+                    await FetchUserUnProcessApplysAsync();
                 }
             }
+            catch (Exception ex)
+            {
+                _growlHelper.Warning(ex.Message);
+                _logger.LogError(ex.ToString());
+            }
+        }
+
+        private async Task OfflineAsync(string reason)
+        {
+            HandyControl.Controls.MessageBox.Show(reason, "系统消息");
+            await Task.Delay(5000);
+            await App.CloseAsync();
         }
 
         /// <summary>
@@ -401,15 +424,15 @@ namespace ThreeL.Client.Win.ViewModels
                     FetchLastestRecordTime = time,
                 };
                 RelationViewModels.Insert(0, vm);
-                
+
                 //获取群聊的聊天记录
                 var records = await _contextAPIService.GetAsync<IEnumerable<ChatRecordResponseDto>>(string.Format(Const.FETCH_RELATION_CHATRECORDS,
                     intoGroupCommandResponse.GroupId, true, time.ToString("yyyy-MM-dd HH:mm:ss.fff")));
 
                 if (records != null)
                 {
-                    var messages = await ConvertChatRecordToViewModel(records,true);
-                    vm.AddMessages(messages,true);
+                    var messages = await ConvertChatRecordToViewModel(records, true);
+                    vm.AddMessages(messages, true);
                 }
             }
         }
@@ -520,13 +543,20 @@ namespace ThreeL.Client.Win.ViewModels
                 {
                     var files = Clipboard.GetFileDropList();
                     var result = HandyControl.Controls.MessageBox
-                        .Ask($"确认将[{Path.GetFileName(files[0])}]等[{files.Count}]个文件发送给\"{temp.Name}\"吗?");
+                        .Ask($"确认将[{Path.GetFileName(files[0])}]等[{files.Count}]个文件发送给\"{temp.Name}\"吗?", "发送文件提示");
 
                     if (result == MessageBoxResult.OK)
                     {
                         foreach (var file in files)
                         {
-                            await SendFileAsync(new FileInfo(file), temp);
+                            var fileinfo = new FileInfo(file);
+                            if (fileinfo.Length > 50 * 1024 * 1024)
+                            {
+                                _growlHelper.Warning($"{fileinfo.Name}超过50M,无法发送");
+                                continue;
+                            }
+
+                            await SendFileAsync(fileinfo, temp);
                         }
                     }
 
@@ -803,6 +833,7 @@ namespace ThreeL.Client.Win.ViewModels
                     catch (Exception ex)
                     {
                         _growlHelper.Warning($"{ex.Message}");
+                        _logger.LogError(ex.ToString());
                     }
                 }
             }
@@ -1204,12 +1235,13 @@ namespace ThreeL.Client.Win.ViewModels
         private bool _firstTop = false;
         private async void ChatScrollChange(ScrollChangedEventArgs eventArgs)
         {
+            var scrollViewer = eventArgs.OriginalSource as ScrollViewer;
             _lastVehicleOffset = _currentVehicleOffset;
             _currentVehicleOffset = eventArgs.VerticalOffset;
 
             if (_lastVehicleOffset != 0 && _currentVehicleOffset == 0 && eventArgs.VerticalChange != 0)
             {
-                if (!_firstTop) 
+                if (!_firstTop)
                 {
                     _firstTop = true;
                     return;
@@ -1229,9 +1261,19 @@ namespace ThreeL.Client.Win.ViewModels
                 if (records != null && records.Count() != 0)
                 {
                     var messages = await ConvertChatRecordToViewModel(records, true);
+                    var height = scrollViewer.ExtentHeight;
                     temp.AddMessages(messages, true);
+                    var _ = Task.Run(() =>
+                    {
+                        Task.Delay(500);
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            var newHeight = scrollViewer.ExtentHeight;
+                            scrollViewer.ScrollToVerticalOffset(newHeight - height);
+                        });
+                    });
                 }
-                else if (records != null && records.Count() == 0) 
+                else if (records != null && records.Count() == 0)
                 {
                     _growlHelper.Info("没有更多的聊天记录");
                 }

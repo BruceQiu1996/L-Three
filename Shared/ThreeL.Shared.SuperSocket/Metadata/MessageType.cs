@@ -32,6 +32,7 @@
         ReplyAddFriendResponse,
         InviteFriendsIntoGroup,
         InviteFriendsIntoGroupResponse,
+        RequestOffline,
         LoadRecord
     }
 }

@@ -28,24 +28,24 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             };
             //TODO 非对称加密
             var packet = message as Packet<RequestForUserEndpointCommand>;
-            if (packet.Body.SsToken != session.SsToken)
-            {
-                resp.Body.Message = "Invalid SsToken";
-            }
-            else
-            {
-                var sesions = _sessionManager.TryGet(packet.Body.UserId);
-                if (sesions == null || sesions.Count() <= 0)
-                {
-                    resp.Body.Message = "User is not online";
-                    resp.Body.Result = false;
-                }
-                else
-                {
-                    resp.Body.Addresses = string.Join(",", sesions.Select(x => x.RemoteEndPoint.ToString()));
-                    resp.Body.Result = true;
-                }
-            }
+            //if (packet.Body.SsToken != session.SsToken)
+            //{
+            //    resp.Body.Message = "Invalid SsToken";
+            //}
+            //else
+            //{
+            //    var sesions = _sessionManager.TryGet(packet.Body.UserId);
+            //    if (sesions == null || sesions.Count() <= 0)
+            //    {
+            //        resp.Body.Message = "User is not online";
+            //        resp.Body.Result = false;
+            //    }
+            //    else
+            //    {
+            //        resp.Body.Addresses = string.Join(",", sesions.Select(x => x.RemoteEndPoint.ToString()));
+            //        resp.Body.Result = true;
+            //    }
+            //}
 
             await appSession.SendAsync(resp.Serialize());
         }

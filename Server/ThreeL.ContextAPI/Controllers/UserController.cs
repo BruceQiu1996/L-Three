@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ThreeL.ContextAPI.Application.Contract.Dtos.User;
 using ThreeL.ContextAPI.Application.Contract.Services;
+using ThreeL.Infra.Core.Metadata;
 using ThreeL.Shared.Domain.Metadata;
 using ThreeL.Shared.WebApi.Extensions;
 
@@ -13,131 +15,222 @@ namespace ThreeL.ContextAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ILogger _logger;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, ILoggerFactory loggerFactory)
         {
+            _logger = loggerFactory.CreateLogger(nameof(Module.CONTEXT_API_SERVICE));
             _userService = userService;
         }
 
-        //[Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
+        [Authorize(Roles = $"{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         [HttpPost]
         public async Task<ActionResult> Create(UserCreationDto creationDto)
         {
-            var sresult = await _userService.CreateUserAsync(creationDto, 0);
+            try
+            {
+                long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+                var sresult = await _userService.CreateUserAsync(creationDto, userId);
 
-            return sresult.ToActionResult();
+                return sresult.ToActionResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
 
         [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult> Login(UserLoginDto creationDto)
         {
-            var resp = await _userService.LoginAsync(creationDto);
-            if (resp == null)
-                return NotFound();
+            try
+            {
+                var resp = await _userService.LoginAsync(creationDto);
+                if (resp == null)
+                    return NotFound();
 
-            return Ok(resp);
+                return Ok(resp);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
 
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         [HttpPost("login/code")]
         public async Task<ActionResult> LoginByCode(UserLoginDto creationDto)
         {
-            var result = await _userService.LoginByCodeAsync(creationDto);
-            if (!result)
-                return NotFound();
+            try
+            {
+                var result = await _userService.LoginByCodeAsync(creationDto);
+                if (!result)
+                    return NotFound();
 
-            return Ok();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
 
         [AllowAnonymous]
         [HttpPost("refresh/token")]
         public async Task<ActionResult> RefreshToken(UserRefreshTokenDto tokenDto)
         {
-            var resp = await _userService.RefreshAuthTokenAsync(tokenDto);
-            if (resp == null)
-                return BadRequest();
+            try
+            {
+                var resp = await _userService.RefreshAuthTokenAsync(tokenDto);
+                if (resp == null)
+                    return BadRequest();
 
-            return Ok(resp);
+                return Ok(resp);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
 
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         [HttpGet("search/{key}")]
         public async Task<ActionResult> SearchUserByKeyword(string key)
         {
-            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var resp = await _userService.FindUserByKeyword(userId, key);
+            try
+            {
+                long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+                var resp = await _userService.FindUserByKeyword(userId, key);
 
-            return resp.ToActionResult();
+                return resp.ToActionResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
 
         [HttpGet("avatar/{code}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         public async Task<IActionResult> CheckAvatarExist(string code)
         {
-            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var resp = await _userService.CheckAvatarExistInServerAsync(code, userId);
+            try
+            {
+                long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+                var resp = await _userService.CheckAvatarExistInServerAsync(code, userId);
 
-            return resp.ToActionResult();
+                return resp.ToActionResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
 
         [HttpPost("upload/avatar/{code}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file, string code)
         {
-            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var resp = await _userService.UploadUserAvatarAsync(userId, code, file);
-            if (resp.Value == null)
+            try
             {
-                return resp.ToActionResult();
-            }
+                long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+                var resp = await _userService.UploadUserAvatarAsync(userId, code, file);
+                if (resp.Value == null)
+                {
+                    return resp.ToActionResult();
+                }
 
-            return new FileStreamResult(new FileStream(resp.Value.FullName, FileMode.Open), "application/octet-stream") { FileDownloadName = resp.Value.Name };
+                return new FileStreamResult(new FileStream(resp.Value.FullName, FileMode.Open), "application/octet-stream") { FileDownloadName = resp.Value.Name };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
 
         [HttpGet("download/avatar/{userId}/{avatarId}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         public async Task<IActionResult> DownloadAvatar(long userId, long avatarId)
         {
-            var resp = await _userService.DownloadUserAvatarAsync(avatarId, userId);
-            if (resp.Value == null)
+            try
             {
-                return resp.ToActionResult();
-            }
+                var resp = await _userService.DownloadUserAvatarAsync(avatarId, userId);
+                if (resp.Value == null)
+                {
+                    return resp.ToActionResult();
+                }
 
-            return new FileStreamResult(new FileStream(resp.Value.FullName, FileMode.Open), "application/octet-stream") { FileDownloadName = resp.Value.Name };
+                return new FileStreamResult(new FileStream(resp.Value.FullName, FileMode.Open), "application/octet-stream") { FileDownloadName = resp.Value.Name };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
 
         [HttpPost("group/{groupName}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         public async Task<IActionResult> CreateGroup(string groupName)
         {
-            if (string.IsNullOrEmpty(groupName) || groupName.Trim().Length <= 2)
-                return BadRequest("非法群名");
+            try
+            {
+                if (string.IsNullOrEmpty(groupName) || groupName.Trim().Length <= 2)
+                    return BadRequest("非法群名");
 
-            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var resp = await _userService.CreateGroupChatAsync(userId, groupName);
+                long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+                var resp = await _userService.CreateGroupChatAsync(userId, groupName);
 
-            return resp.ToActionResult();
+                return resp.ToActionResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
 
         [HttpGet("{fuserId}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         public async Task<IActionResult> FetchUserDetail(long fuserId)
         {
-            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var resp = await _userService.FetchUserInfoByIdAsync(userId, fuserId);
+            try
+            {
+                long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+                var resp = await _userService.FetchUserInfoByIdAsync(userId, fuserId);
 
-            return resp.ToActionResult();
+                return resp.ToActionResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
 
         [HttpGet("group/{groupId}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         public async Task<IActionResult> FetchGroupDetail(long groupId)
         {
-            var resp = await _userService.FetchGroupInfoByIdAsync(groupId);
+            try
+            {
+                var resp = await _userService.FetchGroupInfoByIdAsync(groupId);
 
-            return resp.ToActionResult();
+                return resp.ToActionResult();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem();
+            }
         }
     }
 }

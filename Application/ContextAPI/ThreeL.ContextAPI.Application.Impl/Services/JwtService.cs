@@ -44,7 +44,6 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             jwtSetting.SecretKey = Guid.NewGuid().ToString();
             jwtSetting.TokenExpireSeconds = _jwtOptions.Value.TokenExpireSeconds;
             jwtSetting.SecretExpireAt = DateTime.Now.AddSeconds(_jwtOptions.Value.SecretExpireSeconds);
-            await _mongoRepository.AddAsync(jwtSetting);
             //默认设置jwt secret key每三天过期
             await _redisProvider.HSetAsync(Const.REDIS_JWT_SECRET_KEY, $"{_systemOptions.Value.Name}-{DateTime.Now}", jwtSetting, TimeSpan.FromDays(3), When.Always);
         }
@@ -56,6 +55,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             {
                 yield return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(item.Value.SecretKey));
             }
+
         }
     }
 }

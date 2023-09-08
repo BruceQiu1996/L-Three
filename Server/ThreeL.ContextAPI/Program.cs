@@ -9,11 +9,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using System.Net;
 using ThreeL.ContextAPI.Application.Contract.Extensions;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Application.Impl;
 using ThreeL.ContextAPI.Application.Impl.Services.Grpc;
+using ThreeL.Infra.Core.Serilog;
 using ThreeL.Shared.Application.Contract.Extensions;
 
 namespace ThreeL.ContextAPI;
@@ -25,6 +27,12 @@ internal class Program
         WebApplication host = null;
         AppAssemblyInfo appAssemblyInfo = new AppAssemblyInfo();
         var builder = WebApplication.CreateBuilder(args);
+
+        SerilogExtension.BuildSerilogLogger(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs"), null,
+            Infra.Core.Metadata.Module.CONTEXT_API_SERVICE,
+            Infra.Core.Metadata.Module.CONTEXT_API_HTTP,
+            Infra.Core.Metadata.Module.CONTEXT_API_GRPC);
+
         builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory()).ConfigureContainer<ContainerBuilder>((hcontext, builder) =>
         {
             builder.AddContextAPIApplicationContainer(appAssemblyInfo.ImplementAssembly, appAssemblyInfo.DomainAssembly);
@@ -84,7 +92,7 @@ internal class Program
                     IssuerSigningKeyResolver = host!.Services.GetRequiredService<IJwtService>().ValidateIssuerSigningKey
                 };
             });
-        });
+        }).UseSerilog();
 
         builder.WebHost.UseKestrel((context, options) =>
         {

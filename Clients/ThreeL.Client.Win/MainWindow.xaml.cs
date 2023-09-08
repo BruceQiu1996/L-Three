@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 using ThreeL.Client.Win.ViewModels;
 
 namespace ThreeL.Client.Win
@@ -9,6 +11,9 @@ namespace ThreeL.Client.Win
     /// </summary>
     public partial class MainWindow : Window
     {
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool SetWindowDisplayAffinity(IntPtr hwnd, uint mode);
+
         public MainWindow(MainWindowViewModel viewModel)
         {
             InitializeComponent();
@@ -29,6 +34,11 @@ namespace ThreeL.Client.Win
         private async void Label_MouseLeftButtonDown_1(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             await App.CloseAsync();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            SetWindowDisplayAffinity(new WindowInteropHelper(this).Handle, 1);
         }
     }
 }

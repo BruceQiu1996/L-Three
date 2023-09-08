@@ -6,10 +6,9 @@
         xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:hc="https://handyorg.github.io/handycontrol"
         mc:Ignorable="d"
-        ResizeMode="CanResize"
-        Background="Transparent"
-        AllowsTransparency="True"
+        AllowsTransparency="False"
         WindowStyle="None"
+        ResizeMode="CanResize"
         Title="Login" Height="380" Width="740">
     <behaviors:Interaction.Triggers>
         <behaviors:EventTrigger EventName="Loaded">
@@ -20,7 +19,7 @@
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="3"/>
     </WindowChrome.WindowChrome>
     <Grid>
-        <Border Margin="5" Background="#2d2a2e" CornerRadius="5" BorderThickness="0">
+        <Border Margin="0" Background="#2d2a2e" CornerRadius="5" BorderThickness="0">
             <Border.Effect>
                 <DropShadowEffect Direction="0" ShadowDepth="0" BlurRadius="20" 
                                   Opacity="0.25" Color="#FF5B5B5B"></DropShadowEffect>

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using SuperSocket.Channel;
 using System;
@@ -8,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using ThreeL.Client.Shared.Configurations;
 using ThreeL.Client.Shared.Database;
 using ThreeL.Client.Shared.Services;
@@ -28,6 +30,7 @@ namespace ThreeL.Client.Win.ViewModels
 
         private readonly PacketWaiter _packetWaiter;
         private readonly GrowlHelper _growlHelper;
+        private readonly CaptureHelper _captureHelper;
         private readonly ContextAPIService _contextAPIService;
         private readonly SequenceIncrementer _sequenceIncrementer;
         private readonly SocketServerOptions _socketServerOptions;
@@ -54,6 +57,7 @@ namespace ThreeL.Client.Win.ViewModels
 
         public MainWindowViewModel(TcpSuperSocketClient tcpSuperSocket,
                                    GrowlHelper growlHelper,
+                                   CaptureHelper captureHelper,
                                    ContextAPIService contextAPIService,
                                    UdpSuperSocketClient udpSuperSocket,
                                    ClientSqliteContext clientSqliteContext,
@@ -70,6 +74,7 @@ namespace ThreeL.Client.Win.ViewModels
             _contextAPIService = contextAPIService;
             _sequenceIncrementer = sequenceIncrementer;
             _clientSqliteContext = clientSqliteContext;
+            _captureHelper = captureHelper;
             _socketServerOptions = socketServerOptions.Value;
             _tcpSuperSocket = tcpSuperSocket;
             _udpSuperSocket = udpSuperSocket;
@@ -126,8 +131,8 @@ namespace ThreeL.Client.Win.ViewModels
 
             if (!_tcpSuperSocket.Connected)
             {
-                _growlHelper.Warning("与服务器的连接出现严重故障，软件即将退出");
-                Application.Current.Shutdown();
+                _growlHelper.Warning("与服务器无法重连，软件即将退出");
+                await App.CloseAsync();
             }
             else
             {
@@ -135,7 +140,7 @@ namespace ThreeL.Client.Win.ViewModels
             }
         }
 
-        private async Task LoadAsync()
+        public async Task LoadAsync()
         {
             try
             {
@@ -144,11 +149,16 @@ namespace ThreeL.Client.Win.ViewModels
                     throw new Exception("连接服务器失败");
 
                 await HandShakeAfterSocketConnectedAsync();
-                CurrentPage = _chatPage; //TODO
+                if (_chatPage.IsLoaded)
+                {
+                    //重新加载
+                    await App.ServiceProvider.GetRequiredService<ChatViewModel>().LoadAsync();
+                }
+
+                CurrentPage = _chatPage;
             }
             catch (Exception ex)
             {
-                await _tcpSuperSocket.CloseConnectAsync();
                 _growlHelper.Warning(ex.Message);
             }
         }
@@ -164,7 +174,8 @@ namespace ThreeL.Client.Win.ViewModels
                 Body = new LoginCommand
                 {
                     UserId = App.UserProfile.UserId,
-                    AccessToken = App.UserProfile.AccessToken
+                    AccessToken = App.UserProfile.AccessToken,
+                    Platform = "win"
                 }
             };
             _packetWaiter.AddWaitPacket($"answer:{packet.Sequence}", null, false);
@@ -179,8 +190,6 @@ namespace ThreeL.Client.Win.ViewModels
             {
                 throw new Exception("登录聊天服务器超时");
             }
-
-            App.UserProfile.SocketAccessToken = answer.Body.SsToken;
         }
 
         private async Task<bool> ConnectServerAsync(int retryTimes = 3)

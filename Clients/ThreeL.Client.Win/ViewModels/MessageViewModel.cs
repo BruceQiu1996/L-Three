@@ -118,7 +118,6 @@ namespace ThreeL.Client.Win.ViewModels
             fromToMessage.MessageId = MessageId;
             fromToMessage.To = To;
             fromToMessage.IsGroup = IsGroup;
-            fromToMessage.SendTime = SendTime;
         }
 
         public virtual string GetShortDesc()

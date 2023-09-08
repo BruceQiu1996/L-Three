@@ -5,19 +5,19 @@ namespace ThreeL.Shared.SuperSocket.Dto.Commands
     [ProtoContract]
     public class ReplyAddFriendCommandResponse : CommandResponse
     {
-        [ProtoMember(6)]
+        [ProtoMember(4)]
         public long From { get; set; }
-        [ProtoMember(7)]
+        [ProtoMember(5)]
         public long To { get; set; }
-        [ProtoMember(8)]
+        [ProtoMember(6)]
         public string FromName { get; set; }
-        [ProtoMember(9)]
+        [ProtoMember(7)]
         public string ToName { get; set; }
-        [ProtoMember(10)]
+        [ProtoMember(8)]
         public long FromAvatar { get; set; }
-        [ProtoMember(11)]
+        [ProtoMember(9)]
         public long ToAvatar { get; set; }
-        [ProtoMember(12)]
+        [ProtoMember(10)]
         public bool Agree { get; set; }
     }
 }

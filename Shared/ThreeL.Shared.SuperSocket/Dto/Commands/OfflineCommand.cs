@@ -3,9 +3,9 @@
 namespace ThreeL.Shared.SuperSocket.Dto.Commands
 {
     [ProtoContract]
-    public class AddFriendCommand : AbstractMessage
+    public class OfflineCommand : AbstractMessage
     {
         [ProtoMember(2)]
-        public long FriendId { get; set; }
+        public string Reason { get; set; }
     }
 }

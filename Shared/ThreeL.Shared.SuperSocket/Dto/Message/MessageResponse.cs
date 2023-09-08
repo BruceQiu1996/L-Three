@@ -6,9 +6,11 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
     [ProtoInclude(1100, typeof(FromToMessageResponse))]
     public abstract class MessageResponse : AbstractMessage
     {
-        [ProtoMember(4)]
+        [ProtoMember(2)]
+        public DateTime SendTime { get; set; } = DateTime.Now;
+        [ProtoMember(3)]
         public bool Result { get; set; }
-        [ProtoMember(5)]
+        [ProtoMember(4)]
         public string Message { get; set; }
     }
 }

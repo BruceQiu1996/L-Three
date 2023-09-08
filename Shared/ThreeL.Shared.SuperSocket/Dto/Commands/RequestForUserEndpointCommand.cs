@@ -6,9 +6,9 @@ namespace ThreeL.Shared.SuperSocket.Dto.Commands
 
     public class RequestForUserEndpointCommand : AbstractMessage
     {
-        [ProtoMember(4)]
+        [ProtoMember(2)]
         public long UserId { get; set; }
-        [ProtoMember(5)]
+        [ProtoMember(3)]
         public string SsToken { get; set; }
     }
 }

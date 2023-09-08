@@ -76,13 +76,14 @@ namespace ThreeL.Shared.SuperSocket.Client
             }
         }
 
-        public async Task<bool> CloseConnectAsync()
+        public async Task<bool> CloseConnectionAsync()
         {
             if (Connected)
             {
                 await mClient.CloseAsync();
                 Connected = false;
             }
+
             return true;
         }
 

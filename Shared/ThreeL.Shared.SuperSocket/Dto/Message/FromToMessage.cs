@@ -12,9 +12,9 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
     [ProtoInclude(6400, typeof(WithdrawMessage))]
     public abstract class FromToMessage : AbstractMessage
     {
-        [ProtoMember(4)]
+        [ProtoMember(2)]
         public long To { get; set; }
-        [ProtoMember(5)]
+        [ProtoMember(3)]
         public bool IsGroup { get; set; }
     }
 }

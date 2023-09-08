@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ThreeL.ContextAPI.Application.Contract.Services;
+using ThreeL.Infra.Core.Metadata;
 using ThreeL.Shared.Domain.Metadata;
 
 namespace ThreeL.ContextAPI.Controllers
@@ -11,44 +13,70 @@ namespace ThreeL.ContextAPI.Controllers
     public class FilesController : ControllerBase
     {
         private readonly IFileService _fileService;
-        public FilesController(IFileService fileService)
+        private readonly ILogger _logger;
+        public FilesController(IFileService fileService, ILoggerFactory loggerFactory)
         {
             _fileService = fileService;
+            _logger = loggerFactory.CreateLogger(nameof(Module.CONTEXT_API_SERVICE));
         }
 
         [HttpGet("{code}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         public async Task<IActionResult> CheckFileExist(string code)
         {
-            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var resp = await _fileService.CheckFileExistInServerAsync(code, userId);
+            try
+            {
+                long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+                var resp = await _fileService.CheckFileExistInServerAsync(code, userId);
 
-            return Ok(resp);
+                return Ok(resp);
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.ToString());
+            }
         }
 
         [HttpGet("download/{messageId}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         public async Task<IActionResult> DownLoad(string messageId)
         {
-            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var info = await _fileService.GetDownloadFileInfoAsync(userId, messageId);
-            if (info == null) 
+            try
             {
-                return BadRequest("文件下载出错");
-            }
+                long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+                var info = await _fileService.GetDownloadFileInfoAsync(userId, messageId);
+                if (info == null)
+                {
+                    return BadRequest("文件下载出错");
+                }
 
-            return new FileStreamResult(new FileStream(info.FullName, FileMode.Open), "application/octet-stream")
+                return new FileStreamResult(new FileStream(info.FullName, FileMode.Open), "application/octet-stream")
                 { FileDownloadName = info.Name };
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.ToString());
+            }
         }
 
         [HttpPost("{isGroup}/{receiver}/{code}")]
         [Authorize(Roles = $"{nameof(Role.User)},{nameof(Role.Admin)},{nameof(Role.SuperAdmin)}")]
         public async Task<IActionResult> UploadFile([FromForm] IFormFile file, bool isGroup, long receiver, string code)
         {
-            long.TryParse(HttpContext.User.Identity?.Name, out var userId);
-            var resp = await _fileService.UploadFileAsync(isGroup,userId, receiver, code, file);
+            try
+            {
+                long.TryParse(HttpContext.User.Identity?.Name, out var userId);
+                var resp = await _fileService.UploadFileAsync(isGroup, userId, receiver, code, file);
 
-            return Ok(resp);
+                return Ok(resp);
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return Problem(ex.ToString());
+            }
         }
     }
 }

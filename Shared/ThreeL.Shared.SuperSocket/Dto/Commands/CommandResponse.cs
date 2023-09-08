@@ -10,9 +10,9 @@ namespace ThreeL.Shared.SuperSocket.Dto.Commands
     [ProtoInclude(5500, typeof(InviteMembersIntoGroupCommandResponse))]
     public abstract class CommandResponse : AbstractMessage
     {
-        [ProtoMember(4)]
+        [ProtoMember(2)]
         public bool Result { get; set; }
-        [ProtoMember(5)]
+        [ProtoMember(3)]
         public string Message { get; set; }
     }
 }

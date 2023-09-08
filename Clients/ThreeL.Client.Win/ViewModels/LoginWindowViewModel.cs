@@ -53,14 +53,13 @@ namespace ThreeL.Client.Win.ViewModels
         private async Task LoadedAsync()
         {
             var user = await SqlMapper.QueryFirstOrDefaultAsync<UserProfile>(_clientSqliteContext.dbConnection,
-                $"select * from userprofile order by LastLoginTime desc  limit 1");
+                $"select * from userprofile order by LastLoginTime desc limit 1");
 
             UserName = user?.UserName;
         }
 
         private async Task LoginAsync(PasswordBox password)
         {
-            password.Password = "123456";
             if (string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(password.Password))
                 return;
 
@@ -104,8 +103,14 @@ namespace ThreeL.Client.Win.ViewModels
                     Avatar = data.Avatar,
                     AvatarId = data.AvatarId,
                 };
-                App.ServiceProvider.GetRequiredService<MainWindow>().Show();
+
+                if (App.ServiceProvider.GetRequiredService<MainWindow>().IsLoaded)
+                {
+                    await App.ServiceProvider.GetRequiredService<MainWindowViewModel>().LoadAsync();
+                }
+
                 App.ServiceProvider.GetRequiredService<Login>().Hide();
+                App.ServiceProvider.GetRequiredService<MainWindow>().Show();
             }
         }
 
@@ -158,7 +163,7 @@ namespace ThreeL.Client.Win.ViewModels
             //退出到登陆界面，并且断开所有socket连接
             App.ServiceProvider.GetRequiredService<MainWindow>().Hide();
             //关闭tcp连接
-            await _tcpSuperSocketClient.CloseConnectAsync();
+            await _tcpSuperSocketClient.CloseConnectionAsync();
             //停下udp监听 TODO
             App.ServiceProvider.GetRequiredService<Login>().Show();
         }

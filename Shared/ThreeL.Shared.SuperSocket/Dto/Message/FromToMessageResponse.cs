@@ -12,13 +12,13 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
     [ProtoInclude(7400, typeof(WithdrawMessageResponse))]
     public class FromToMessageResponse : MessageResponse
     {
-        [ProtoMember(6)]
+        [ProtoMember(5)]
         public long From { get; set; }
-        [ProtoMember(7)]
+        [ProtoMember(6)]
         public string FromName { get; set; }
-        [ProtoMember(8)]
+        [ProtoMember(7)]
         public long To { get; set; }
-        [ProtoMember(9)]
+        [ProtoMember(8)]
         public bool IsGroup { get; set; }
     }
 }

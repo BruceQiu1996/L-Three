@@ -653,16 +653,18 @@
                     </behaviors:EventTrigger>
                 </behaviors:Interaction.Triggers>
                 <ListBox ItemsSource="{Binding RelationViewModel.Messages,UpdateSourceTrigger=PropertyChanged}"
-                             UseLayoutRounding="True"
-                             ScrollViewer.CanContentScroll="False"
-                             ScrollViewer.IsDeferredScrollingEnabled="True"
-                             PreviewMouseWheel="ListView_PreviewMouseWheel"
-                             ItemTemplateSelector="{StaticResource MessageDataTemplateSelector}"
-                             TextOptions.TextFormattingMode="Display"
-                             BorderThickness="0" Background="Transparent">
+                         VirtualizingPanel.VirtualizationMode="Recycling"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         UseLayoutRounding="True"
+                         ScrollViewer.CanContentScroll="False"
+                         ScrollViewer.IsDeferredScrollingEnabled="True"
+                         PreviewMouseWheel="ListView_PreviewMouseWheel"
+                         ItemTemplateSelector="{StaticResource MessageDataTemplateSelector}"
+                         TextOptions.TextFormattingMode="Display"
+                         BorderThickness="0" Background="Transparent"> 
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Orientation="Vertical"></StackPanel>
+                            <VirtualizingStackPanel Orientation="Vertical"></VirtualizingStackPanel>
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
 

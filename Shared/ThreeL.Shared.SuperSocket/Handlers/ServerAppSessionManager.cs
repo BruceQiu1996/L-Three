@@ -24,9 +24,9 @@ public class ServerAppSessionManager<TSession> : IDisposable where TSession : IA
     /// <returns> </returns>
     public IEnumerable<TSession?> TryGet(long userId)
     {
-        Sessions.TryGetValue(userId, out var session);
+        Sessions.TryGetValue(userId, out var sessions);
 
-        return session;
+        return sessions == null ? new List<TSession>() : sessions;
     }
 
     public bool TryAddOrUpdate(long userId, TSession session)

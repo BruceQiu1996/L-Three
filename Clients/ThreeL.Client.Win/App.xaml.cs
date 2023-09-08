@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -14,6 +15,8 @@ using ThreeL.Client.Win.Handlers;
 using ThreeL.Client.Win.Helpers;
 using ThreeL.Client.Win.Pages;
 using ThreeL.Client.Win.ViewModels;
+using ThreeL.Infra.Core.Metadata;
+using ThreeL.Infra.Core.Serilog;
 using ThreeL.Shared.SuperSocket.Extensions;
 using ThreeL.Shared.SuperSocket.Handlers;
 
@@ -32,6 +35,9 @@ namespace ThreeL.Client.Win
         {
             base.OnStartup(e);
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+            SerilogExtension.BuildSerilogLogger(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs"), null,
+                Module.CLIENT_WIN_THREAD_EXCEPTION,
+                Module.CLIENT_WIN_UI_EXCEPTION);
             var builder = Host.CreateDefaultBuilder(e.Args);
             builder.UseServiceProviderFactory(new AutofacServiceProviderFactory());
             builder.ConfigureServices((context, service) =>
@@ -55,6 +61,7 @@ namespace ThreeL.Client.Win
                 service.AddTransient<InviteFriendsIntoGroupViewModel>();
                 service.AddSingleton<GrowlHelper>();
                 service.AddSingleton<FileHelper>();
+                service.AddSingleton<CaptureHelper>();
                 service.AddSingleton<DateTimeHelper>();
                 service.AddSuperSocket(true);
                 service.AddSingleton<SaveChatRecordService>();
@@ -70,10 +77,8 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<IMessageHandler, AddFriendCommandResponseHandler>();
                 service.AddSingleton<IMessageHandler, ReplyAddFriendCommandResponseHandler>();
                 service.AddSingleton<IMessageHandler, InviteMembersIntoGroupResponseHandler>();
-            }).ConfigureLogging((hostCtx, loggingBuilder) =>
-            {
-                loggingBuilder.AddConsole();
-            });
+                service.AddSingleton<IMessageHandler, OfflineCommandHandler>();
+            }).UseSerilog();
 
             builder.ConfigureHostConfiguration(options =>
             {
@@ -83,7 +88,33 @@ namespace ThreeL.Client.Win
             host = builder.Build();
             ServiceProvider = host.Services;
             await host.StartAsync();
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
+            //非UI线程未捕获异常处理事件(例如自己创建的一个子线程)
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            //Task线程内未捕获异常处理事件
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
             host.Services.GetRequiredService<Login>().Show();
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            ServiceProvider.GetRequiredService<GrowlHelper>().Warning("未知错误");
+            ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(Module.CLIENT_WIN_TASK_EXCEPTION))
+                 .LogError(e.ToString());
+        }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            ServiceProvider.GetRequiredService<GrowlHelper>().Warning("未知错误");
+            ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(Module.CLIENT_WIN_THREAD_EXCEPTION))
+                .LogError(e.ToString());
+        }
+
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            ServiceProvider.GetRequiredService<GrowlHelper>().Warning("未知错误");
+            ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger(nameof(Module.CLIENT_WIN_UI_EXCEPTION))
+                .LogError(e.ToString());
         }
 
         public async static Task CloseAsync()
