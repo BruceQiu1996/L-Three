@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
 using Grpc.Core;
-using System.Linq;
-using ThreeL.ContextAPI.Application.Contract.Configurations;
 using ThreeL.ContextAPI.Application.Contract.Protos;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Domain.Aggregates.File;
@@ -262,9 +260,9 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             //更新redis
             await _redisProvider.SetAddAsync(string.Format(CommonConst.GROUP, group.Id), ids.Select(x => x.ToString()).ToArray());
 
-            return new InviteFriendsIntoGroupResponse() 
-            { 
-                Result = true, 
+            return new InviteFriendsIntoGroupResponse()
+            {
+                Result = true,
                 Friends = string.Join(",", result),
                 GroupId = group.Id,
                 GroupName = group.Name,
@@ -314,6 +312,20 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
 
                 return new ValidateRelationResponse() { Result = true };
             }
+        }
+
+        public async Task<VoiceChatRecordPostResponse> PostVoiceChatRecordSingle(VoiceChatRecordPostRequest request, ServerCallContext context)
+        {
+            var userIdentity = context.GetHttpContext().User.Identity?.Name;
+            var userid = long.Parse(userIdentity);
+            var record = _mapper.Map<VoiceChatRecord>(request);
+            record.From = userid;
+            record.Status = VioceChatRecordStatus.NotStart;
+
+            await _dapperRepository.ExecuteAsync("INSERT INTO VoiceChatRecord([ChatKey],[SendTime],[From],[TO],FromPlatform,Status)" +
+                "VALUES(@ChatKey,@SendTime,@From,@To,@FromPlatform,@Status)", record);
+
+            return new VoiceChatRecordPostResponse() { Result = true };
         }
     }
 }

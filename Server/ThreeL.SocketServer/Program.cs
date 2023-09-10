@@ -3,7 +3,6 @@ using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ThreeL.Shared.Application.Contract.Extensions;
-using ThreeL.Shared.SuperSocket.Dto.Commands;
 using ThreeL.Shared.SuperSocket.Extensions;
 using ThreeL.Shared.SuperSocket.Handlers;
 using ThreeL.SocketServer.Application.Contract.Extensions;
@@ -39,6 +38,7 @@ namespace ThreeL.SocketServer
                 service.AddSingleton<IMessageHandler, AddFriendCommandHandler>();
                 service.AddSingleton<IMessageHandler, ReplyAddFriendCommandHandler>();
                 service.AddSingleton<IMessageHandler, InviteMembersIntoGroupCommandHandler>();
+                service.AddSingleton<IMessageHandler, ApplyforVoiceChatMessageHandler>();
                 service.AddSuperSocket();
                 service.AddSingleton<ServerAppSessionManager<ChatSession>>();
                 service.AddHostedService<TcpServerRunningService>();

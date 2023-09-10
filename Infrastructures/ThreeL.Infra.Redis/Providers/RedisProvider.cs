@@ -4,7 +4,7 @@ using ThreeL.Infra.Core.Serializer;
 
 namespace ThreeL.Infra.Redis.Providers
 {
-    public class RedisProvider : IRedisProvider
+    public class RedisProvider : IRedisProvider, IDistributedLocker
     {
         private readonly IEnumerable<IServer> _servers;
         private readonly IDatabase _redisDb;
@@ -106,7 +106,7 @@ namespace ThreeL.Infra.Redis.Providers
 
         public async Task<List<string>> SetGetAsync(string cacheKey)
         {
-            var values =  await _redisDb.SetMembersAsync(cacheKey);
+            var values = await _redisDb.SetMembersAsync(cacheKey);
             List<string> ids = new List<string>();
             foreach (var item in values)
             {
@@ -115,5 +115,74 @@ namespace ThreeL.Infra.Redis.Providers
 
             return ids;
         }
+
+        #region locker
+        public async Task<(bool Success, string LockValue)> LockAsync(string cacheKey, int timeoutSeconds = 5, bool autoDelay = false)
+        {
+            var lockKey = GetLockKey(cacheKey);
+            var lockValue = Guid.NewGuid().ToString();
+            var timeoutMilliseconds = timeoutSeconds * 1000;
+            var expiration = TimeSpan.FromMilliseconds(timeoutMilliseconds);
+            bool flag = await _redisDb.StringSetAsync(lockKey, lockValue, expiration, When.NotExists);
+            if (flag && autoDelay)
+            {
+                var refreshMilliseconds = (int)(timeoutMilliseconds / 2.0);
+                var autoDelayTimer = new Timer(timerState => Delay(_redisDb, lockKey, lockValue, timeoutMilliseconds), null, refreshMilliseconds, refreshMilliseconds);
+                var addResult = AutoDelayTimers.Instance.TryAdd(lockKey, autoDelayTimer);
+                if (!addResult)
+                {
+                    autoDelayTimer?.Dispose();
+                    await SafedUnLockAsync(cacheKey, lockValue);
+                    return (false, string.Empty);
+                }
+            }
+            return (flag, flag ? lockValue : string.Empty);
+        }
+
+        public async Task<bool> SafedUnLockAsync(string cacheKey, string lockValue)
+        {
+            var lockKey = GetLockKey(cacheKey);
+            AutoDelayTimers.Instance.CloseTimer(lockKey);
+
+            var script = @"local invalue = @value
+                                    local currvalue = redis.call('get',@key)
+                                    if(invalue==currvalue) then redis.call('del',@key)
+                                        return 1
+                                    else
+                                        return 0
+                                    end";
+            var parameters = new { key = lockKey, value = lockValue };
+            var prepared = LuaScript.Prepare(script);
+            var result = (int)await _redisDb.ScriptEvaluateAsync(prepared, parameters);
+
+            return result == 1;
+        }
+
+        public string GetLockKey(string cacheKey)
+        {
+            return $"ThreeL:locker:{cacheKey}";
+        }
+
+        private void Delay(IDatabase redisDb, string key, string value, int milliseconds)
+        {
+            if (!AutoDelayTimers.Instance.ContainsKey(key))
+                return;
+
+            var script = @"local val = redis.call('GET', @key)
+                                    if val==@value then
+                                        redis.call('PEXPIRE', @key, @milliseconds)
+                                        return 1
+                                    end
+                                    return 0";
+            object parameters = new { key, value, milliseconds };
+            var prepared = LuaScript.Prepare(script);
+            var result = redisDb.ScriptEvaluateAsync(prepared, parameters, CommandFlags.None).GetAwaiter().GetResult();
+            if ((int)result == 0)
+            {
+                AutoDelayTimers.Instance.CloseTimer(key);
+            }
+            return;
+        }
+        #endregion
     }
 }

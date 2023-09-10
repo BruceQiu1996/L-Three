@@ -23,5 +23,7 @@ namespace ThreeL.SocketServer.Application.Contract.Services
         Task<InviteFriendsIntoGroupResponse> InviteFriendsIntoGroupAsync(InviteFriendsIntoGroupRequest request, string token);
         [GrpcException]
         Task<ValidateRelationResponse> ValidateRelation(ValidateRelationRequest request, string token);
+        [GrpcException]
+        Task<VoiceChatRecordPostResponse> PostVoiceChatRecordAsync(VoiceChatRecordPostRequest request, string token);
     }
 }

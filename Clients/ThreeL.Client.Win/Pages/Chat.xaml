@@ -436,7 +436,7 @@
                                       Menu="{StaticResource add}"
                                       BorderThickness="0" Cursor="Hand">
                     <Path Data="{StaticResource AddGeometry}" Fill="{StaticResource PrimaryBrush}">
-                        
+
                     </Path>
                 </hc:ContextMenuButton>
             </StackPanel>
@@ -630,14 +630,19 @@
                         <myControls:UserDetailControlUC Width="290" Height="180" DataContext="{Binding DetailWindowViewModel}">
                         </myControls:UserDetailControlUC>
                     </Popup>
-                    
-                    <Label Height="30" Background="Transparent" BorderThickness="0" Margin="0 0 0 0"
+
+                    <!--<Label Height="30" Background="Transparent" BorderThickness="0" Margin="0 0 0 0"
                            HorizontalAlignment="Right">
                         <Path Data="{StaticResource vedio}" Stretch="Uniform" Fill="#aaa"></Path>
-                    </Label>
+                    </Label>-->
 
-                    <Label Height="32" Background="Transparent" BorderThickness="0" Margin="0 0 40 0"
-                           HorizontalAlignment="Right">
+                    <Label Height="32" Background="Transparent" BorderThickness="0" Margin="0 0 0 0" Cursor="Hand" ToolTip="语音聊天"
+                           HorizontalAlignment="Right" Visibility="{Binding RelationViewModel.IsGroup,Converter={StaticResource Boolean2VisibilityReConverter}}">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                <behaviors:InvokeCommandAction Command="{Binding StartVoiceChatCommandAsync}" PassEventArgsToCommand="True"></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
                         <Path Data="{StaticResource audio}" Stretch="Uniform" Fill="#aaa"></Path>
                     </Label>
                 </Grid>
@@ -661,7 +666,7 @@
                          PreviewMouseWheel="ListView_PreviewMouseWheel"
                          ItemTemplateSelector="{StaticResource MessageDataTemplateSelector}"
                          TextOptions.TextFormattingMode="Display"
-                         BorderThickness="0" Background="Transparent"> 
+                         BorderThickness="0" Background="Transparent">
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <VirtualizingStackPanel Orientation="Vertical"></VirtualizingStackPanel>

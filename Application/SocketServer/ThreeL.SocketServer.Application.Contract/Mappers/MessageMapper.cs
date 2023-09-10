@@ -29,6 +29,9 @@ namespace ThreeL.SocketServer.Application.Contract.Mappers
                 y => y.MapFrom(src => Timestamp.FromDateTime(src.SendTime.ToUniversalTime())))
                  .ForMember(x => x.Message, y => y.MapFrom(src => string.Empty))
                  .AfterMap((x, y) => y.MessageRecordType = (int)MessageRecordType.File); ;
+
+            CreateMap<ApplyforVoiceChatMessageResponse, VoiceChatRecordPostRequest>().ForMember(x => x.SendTime,
+               y => y.MapFrom(src => Timestamp.FromDateTime(src.SendTime.ToUniversalTime())));
         }
     }
 }

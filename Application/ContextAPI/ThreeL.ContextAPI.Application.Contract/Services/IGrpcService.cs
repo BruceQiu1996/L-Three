@@ -18,6 +18,9 @@ namespace ThreeL.ContextAPI.Application.Contract.Services
         Task<ChatRecordPostResponse> PostChatRecordSingle(ChatRecordPostRequest request, ServerCallContext context);
 
         [DapperUnitOfWork]
+        Task<VoiceChatRecordPostResponse> PostVoiceChatRecordSingle(VoiceChatRecordPostRequest request, ServerCallContext context);
+
+        [DapperUnitOfWork]
         Task<ChatRecordWithdrawResponse> WithdrawChatRecord(ChatRecordWithdrawRequest request, ServerCallContext context);
 
         [DapperUnitOfWork]

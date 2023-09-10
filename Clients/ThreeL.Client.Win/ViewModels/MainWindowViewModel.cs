@@ -125,6 +125,7 @@ namespace ThreeL.Client.Win.ViewModels
                 {
                     Tips = $"连接断开，原因：{message}，正在第{index}次重连...";
                 });
+
                 if (await ConnectServerAsync(1))
                     break;
             }

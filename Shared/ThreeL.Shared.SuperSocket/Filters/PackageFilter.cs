@@ -47,6 +47,8 @@ namespace ThreeL.Shared.SuperSocket.Filters
                     MessageType.InviteFriendsIntoGroup => new Packet<InviteMembersIntoGroupCommand>(),
                     MessageType.InviteFriendsIntoGroupResponse => new Packet<InviteMembersIntoGroupCommandResponse>(),
                     MessageType.RequestOffline => new Packet<OfflineCommand>(),
+                    MessageType.ApplyVoiceChat => new Packet<ApplyforVoiceChatMessage>(),
+                    MessageType.ApplyVoiceChatResponse => new Packet<ApplyforVoiceChatMessageResponse>(),
                     _ => new Packet<TextMessage>()
                 };
 

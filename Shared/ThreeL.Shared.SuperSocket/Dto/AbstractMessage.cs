@@ -14,7 +14,6 @@ namespace ThreeL.Shared.SuperSocket.Dto
     [ProtoInclude(800, typeof(ReplyAddFriendCommand))]
     [ProtoInclude(900, typeof(InviteMembersIntoGroupCommand))]
     [ProtoInclude(1000, typeof(OfflineCommand))]
-
     public abstract class AbstractMessage : IMessage
     {
         [ProtoMember(1)]

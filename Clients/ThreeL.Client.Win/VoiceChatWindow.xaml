@@ -1,0 +1,132 @@
+﻿<Window x:Class="ThreeL.Client.Win.VoiceChatWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:hc="https://handyorg.github.io/handycontrol"
+        mc:Ignorable="d"
+        ResizeMode="CanResize"
+        Background="Transparent"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        BorderThickness="0"
+        Title="邀请好友" Height="500" Width="320">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0" ResizeBorderThickness="3"/>
+    </WindowChrome.WindowChrome>
+    <Grid>
+        <Border Margin="3" Background="#333" CornerRadius="3" BorderThickness="0">
+            <Border.Effect>
+                <DropShadowEffect Direction="0" ShadowDepth="0" BlurRadius="10"
+                          Opacity="0.25" Color="#FF5B5B5B"></DropShadowEffect>
+            </Border.Effect>
+        </Border>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="28"></RowDefinition>
+                <RowDefinition Height="40"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="100"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Border Grid.Column="0" Margin="3 0" MouseMove="Border_MouseMove" Grid.ColumnSpan="2" Background="#111" BorderThickness="0">
+                <Grid>
+                    <TextBlock Text="语音聊天" FontSize="14" VerticalAlignment="Center" Margin="5 0 0 0" Foreground="#aaa"></TextBlock>
+                    <Label BorderThickness="0"
+                           Cursor="Hand"
+                           ToolTip="最小化"
+                           Margin="0 0 35 0"
+                           Background="Transparent"
+                           HorizontalAlignment="Right" 
+                           MouseLeftButtonDown="Label_MouseLeftButtonDown">
+                        <Path Data="{StaticResource WindowMinGeometry}" 
+                              SnapsToDevicePixels="True"
+                              Height="15"
+                              Width="15"
+                              Stroke="{StaticResource PrimaryBrush}" Stretch="Uniform" 
+                              Fill="{StaticResource PrimaryBrush}"/>
+                    </Label>
+                    <Label BorderThickness="0"
+                           Cursor="Hand"
+                           ToolTip="关闭"
+                           Margin="0 0 0 0"
+                           Background="Transparent"
+                           HorizontalAlignment="Right" MouseLeftButtonDown="Label_MouseLeftButtonDown_1">
+                        <Path Data="{StaticResource CloseGeometry}" 
+                              SnapsToDevicePixels="True"
+                              Height="15"
+                              Stroke="{StaticResource PrimaryBrush}" Stretch="Uniform" 
+                              Fill="{StaticResource PrimaryBrush}"/>
+                    </Label>
+                </Grid>
+            </Border>
+
+            <TextBlock Text="00:15:00" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                       Foreground="#ccc" FontSize="15"></TextBlock>
+
+            <StackPanel Grid.Row="2" Margin="3" VerticalAlignment="Center">
+                <Border Grid.Row="0" Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Width="150" Height="150" HorizontalAlignment="Center" Margin="10"
+                        Visibility="{Binding Current.Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityReConverter}}"
+                        Background="{StaticResource PrimaryBrush}">
+                    <TextBlock Text="{Binding Current.ShowName}" FontSize="50" HorizontalAlignment="Center" 
+                           Foreground="White"
+                           VerticalAlignment="Center"></TextBlock>
+                </Border>
+                <hc:Gravatar Height="150" Width="150"
+                             Margin="10"
+                             VerticalAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Grid.Row="0" Grid.Column="0"
+                             Source="{Binding Current.Avatar,UpdateSourceTrigger=PropertyChanged}"
+                             Visibility="{Binding Current.Avatar,UpdateSourceTrigger=PropertyChanged,Converter={StaticResource Object2VisibilityConverter}}"/>
+                <TextBlock Text="{Binding Current.Name}" HorizontalAlignment="Center" FontSize="18" Foreground="White"/>
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel Margin="15 0">
+                    <Border Height="50" Width="50" CornerRadius="25" Background="White">
+                        <Path Data="{StaticResource microPhone}"
+                          Fill="Black"
+                          Height="30"
+                          Stretch="Uniform"></Path>
+                    </Border>
+                    <TextBlock Text="麦克风打开" HorizontalAlignment="Center" Foreground="#ddd" Margin="0 7"></TextBlock>
+                </StackPanel>
+                <Border Height="50" Width="50" CornerRadius="25" Background="Black" Visibility="Collapsed">
+                    <Path Data="{StaticResource disableMicroPhone}"
+                          Height="30"
+                          Fill="White"
+                          Stretch="Uniform"></Path>
+                </Border>
+                <StackPanel Margin="15 0">
+                    <Border Height="50" Width="50" CornerRadius="25" Background="#e13e3e" >
+                        <Path Data="{StaticResource phone}"
+                          Fill="White"
+                          Height="30"
+                          Stretch="Uniform"></Path>
+                    </Border>
+                    <TextBlock Text="挂断" Foreground="#ddd" Margin="0 7" HorizontalAlignment="Center"></TextBlock>
+                </StackPanel>
+                <StackPanel Margin="15 0">
+                    <Border Height="50" Width="50" CornerRadius="25" Background="White">
+                        <Path Data="{StaticResource loudspeaker}"
+                          Fill="Black"
+                          Height="30"
+                          Stretch="Uniform"></Path>
+                    </Border>
+                    <TextBlock Text="打开声音" Foreground="#ddd" Margin="0 7" HorizontalAlignment="Center"></TextBlock>
+                </StackPanel>
+                <StackPanel Visibility="Collapsed">
+                    <Border Height="50" Width="50" CornerRadius="25" Background="Black" >
+                        <Path Data="{StaticResource disableLoudspeaker}"
+                          Height="30"
+                          Fill="White"
+                          Stretch="Uniform"></Path>
+                    </Border>
+                    <TextBlock Text="打开声音" Foreground="#ddd" Margin="0 7" HorizontalAlignment="Center"></TextBlock>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

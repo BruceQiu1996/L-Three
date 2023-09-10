@@ -28,3 +28,14 @@ message ChatRecordWithdrawRequest{
 message ChatRecordWithdrawResponse{
 	bool result = 1;
 }
+
+message VoiceChatRecordPostRequest{
+	string chatKey = 1;
+	google.protobuf.Timestamp sendTime = 2;
+	int64 to = 3;
+	string fromPlatform = 4;
+}
+
+message VoiceChatRecordPostResponse{
+	bool result = 1;
+}

@@ -10,6 +10,7 @@ public class ChatSession : AppSession
     public string UserName { get; set; }
     public string Platform { get; set; }
     public string AccessToken { get; set; }
+    public string VoiceChatKey { get; set; }
     private ServerAppSessionManager<ChatSession> _sessionManager => Program.ServiceProvider.GetRequiredService<ServerAppSessionManager<ChatSession>>();
 
     protected override ValueTask OnSessionClosedAsync(CloseEventArgs e)

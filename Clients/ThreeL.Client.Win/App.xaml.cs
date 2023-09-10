@@ -53,6 +53,8 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<SettingViewModel>();
                 service.AddSingleton<Apply>();
                 service.AddSingleton<ApplyViewModel>();
+                service.AddTransient<VoiceChatWindow>();
+                service.AddTransient<VoiceChatWindowViewModel>();
                 service.AddTransient<CreateGroupWindow>();
                 service.AddTransient<CreateGroupWindowViewModel>();
                 service.AddTransient<GroupDetailWindow>();
@@ -78,6 +80,7 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<IMessageHandler, ReplyAddFriendCommandResponseHandler>();
                 service.AddSingleton<IMessageHandler, InviteMembersIntoGroupResponseHandler>();
                 service.AddSingleton<IMessageHandler, OfflineCommandHandler>();
+                service.AddSingleton<IMessageHandler, ApplyforVoiceChatResponseHandler>();
             }).UseSerilog();
 
             builder.ConfigureHostConfiguration(options =>

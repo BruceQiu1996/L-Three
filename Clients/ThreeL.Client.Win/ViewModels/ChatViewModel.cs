@@ -53,6 +53,7 @@ namespace ThreeL.Client.Win.ViewModels
         public AsyncRelayCommand<KeyEventArgs> SendTextboxKeyDownCommandAsync { get; set; }
         public RelayCommand GotoSettingsPageCommand { get; set; }
         public AsyncRelayCommand DisplayDetailCommand { get; set; }
+        public AsyncRelayCommand StartVoiceChatCommandAsync { get; set; }
 
         private ObservableCollection<RelationViewModel> relationViewModels;
         public ObservableCollection<RelationViewModel> RelationViewModels
@@ -172,6 +173,7 @@ namespace ThreeL.Client.Win.ViewModels
             GotoApplyPageCommand = new RelayCommand(GotoApplyPage);
             DisplayDetailCommand = new AsyncRelayCommand(DisplayDetailAsync);
             ChatScrollChangeCommand = new RelayCommand<ScrollChangedEventArgs>(ChatScrollChange);
+            StartVoiceChatCommandAsync = new AsyncRelayCommand(StartVoiceChatAsync);
             _sequenceIncrementer = sequenceIncrementer;
             _tcpSuperSocketClient = tcpSuperSocketClient;
             _messageFileLocationMapper = messageFileLocationMapper;
@@ -286,6 +288,13 @@ namespace ThreeL.Client.Win.ViewModels
               {
                   await OfflineAsync(y);
               });
+
+            //语音通话请求
+            WeakReferenceMessenger.Default.Register<ChatViewModel, ApplyforVoiceChatMessageResponse, string>(this, "message-receive-voice-request",
+              async (x, y) =>
+              {
+                  await HandleVoiceChatRequestAsync(y);
+              });
         }
 
         public async Task LoadAsync()
@@ -344,11 +353,34 @@ namespace ThreeL.Client.Win.ViewModels
             }
         }
 
+        /// <summary>
+        /// 下线
+        /// </summary>
+        /// <param name="reason">下线原因</param>
+        /// <returns></returns>
         private async Task OfflineAsync(string reason)
         {
             HandyControl.Controls.MessageBox.Show(reason, "系统消息");
             await Task.Delay(5000);
             await App.CloseAsync();
+        }
+
+        /// <summary>
+        /// 处理语音通话申请
+        /// </summary>
+        /// <param name="messageResponse"></param>
+        /// <returns></returns>
+        private async Task HandleVoiceChatRequestAsync(ApplyforVoiceChatMessageResponse messageResponse) 
+        {
+            if (messageResponse.Result)
+            {
+                App.UserProfile.ChatKey = messageResponse.ChatKey;
+                
+            }
+            else 
+            {
+                _growlHelper.Info(messageResponse.Message);
+            }
         }
 
         /// <summary>
@@ -525,6 +557,46 @@ namespace ThreeL.Client.Win.ViewModels
                 }
                 DetailWindowViewModel = new UserDetailWindowViewModel().FromDto(user);
                 IsUserDetailOpen = true;
+            }
+        }
+
+        private async Task StartVoiceChatAsync()
+        {
+            var temp = RelationViewModel;
+            var voiceWindow = App.ServiceProvider.GetRequiredService<VoiceChatWindow>();
+            (voiceWindow.DataContext as VoiceChatWindowViewModel).Current = temp;
+            voiceWindow.Show();
+
+            return;
+            if (App.UserProfile.VoiceOrVedioIng)
+            {
+                _growlHelper.Warning("忙线中");
+                return;
+            }
+
+            if (temp == null || temp.IsGroup)
+            {
+                return;
+            }
+
+            ApplyforVoiceChatMessage message = new ApplyforVoiceChatMessage()
+            {
+
+                To = temp.Id,
+                Platform = "win"
+            };
+
+            var packet = new Packet<ApplyforVoiceChatMessage>()
+            {
+                Sequence = _sequenceIncrementer.GetNextSequence(),
+                MessageType = MessageType.ApplyVoiceChat,
+                Body = message
+            };
+
+            var sendResult = await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+            if (!sendResult)
+            {
+                _growlHelper.Warning("网络异常");
             }
         }
 

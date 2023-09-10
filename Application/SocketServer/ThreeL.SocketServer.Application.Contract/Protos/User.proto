@@ -66,6 +66,7 @@ service SocketServerService{
 	rpc FetchFileInfo(FileInfoRequest) returns (FileInfoResponse);
 	rpc PostChatRecord(stream ChatRecordPostRequest) returns (ChatRecordPostResponse);
 	rpc PostChatRecordSingle(ChatRecordPostRequest) returns (ChatRecordPostResponse);
+    rpc PostVoiceChatRecordSingle(VoiceChatRecordPostRequest) returns (VoiceChatRecordPostResponse);
 	rpc WithdrawChatRecord(ChatRecordWithdrawRequest) returns (ChatRecordWithdrawResponse);
 	rpc AddFriend(AddFriendRequest) returns (AddFriendResponse);
 	rpc ReplyAddFriend(ReplyAddFriendRequest) returns (ReplyAddFriendResponse);

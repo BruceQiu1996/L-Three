@@ -33,6 +33,8 @@
         InviteFriendsIntoGroup,
         InviteFriendsIntoGroupResponse,
         RequestOffline,
+        ApplyVoiceChat,
+        ApplyVoiceChatResponse,
         LoadRecord
     }
 }

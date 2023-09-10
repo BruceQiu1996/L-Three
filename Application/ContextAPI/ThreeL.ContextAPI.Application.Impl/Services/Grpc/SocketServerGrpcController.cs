@@ -126,7 +126,20 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
-                return new ValidateRelationResponse() { Result = false};
+                return new ValidateRelationResponse() { Result = false };
+            }
+        }
+
+        [Authorize]
+        public async override Task<VoiceChatRecordPostResponse> PostVoiceChatRecordSingle(VoiceChatRecordPostRequest request, ServerCallContext context)
+        {
+            try
+            {
+                return await _grpcService.PostVoiceChatRecordSingle(request, context);
+            }
+            catch (Exception ex)
+            {
+                return new VoiceChatRecordPostResponse() { Result = false };
             }
         }
     }

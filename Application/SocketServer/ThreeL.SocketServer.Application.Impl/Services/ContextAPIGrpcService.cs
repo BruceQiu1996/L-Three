@@ -115,5 +115,13 @@ namespace ThreeL.SocketServer.Application.Impl.Services
                 { "Authorization", $"Bearer {token}" }
             });
         }
+
+        public async Task<VoiceChatRecordPostResponse> PostVoiceChatRecordAsync(VoiceChatRecordPostRequest request, string token)
+        {
+            return await _serverServiceClient.PostVoiceChatRecordSingleAsync(request, new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
+        }
     }
 }

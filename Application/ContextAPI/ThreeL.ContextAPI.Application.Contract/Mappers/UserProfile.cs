@@ -21,6 +21,9 @@ namespace ThreeL.ContextAPI.Application.Contract.Mappers
             .ForMember(x => x.Message,
                 y => y.MapFrom(src => string.IsNullOrEmpty(src.Message) ? null : src.Message));
 
+            CreateMap<VoiceChatRecordPostRequest, VoiceChatRecord>().ForMember(x => x.SendTime,
+                y => y.MapFrom(src => src.SendTime.ToDateTime().ToLocalTime()));
+
             CreateMap<Group, GroupCreationResponseDto>();
         }
     }

@@ -3,16 +3,16 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-            xmlns:hc="https://handyorg.github.io/handycontrol"
-    xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
-    xmlns:myControls ="clr-namespace:ThreeL.Client.Win.MyControls"
-    mc:Ignorable="d"
-    ResizeMode="CanResize"
-    Background="Transparent"
-    AllowsTransparency="True"
-    WindowStyle="None"
-    BorderThickness="0"
-    Title="邀请好友" Height="500" Width="600">
+        xmlns:hc="https://handyorg.github.io/handycontrol"
+        xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:myControls ="clr-namespace:ThreeL.Client.Win.MyControls"
+        mc:Ignorable="d"
+        ResizeMode="CanResize"
+        Background="Transparent"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        BorderThickness="0"
+        Title="邀请好友" Height="500" Width="600">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="3"/>
     </WindowChrome.WindowChrome>

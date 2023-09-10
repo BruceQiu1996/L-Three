@@ -10,6 +10,7 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
     [ProtoInclude(6200, typeof(ImageMessage))]
     [ProtoInclude(6300, typeof(FileMessage))]
     [ProtoInclude(6400, typeof(WithdrawMessage))]
+    [ProtoInclude(6500, typeof(ApplyforVoiceChatMessage))]
     public abstract class FromToMessage : AbstractMessage
     {
         [ProtoMember(2)]

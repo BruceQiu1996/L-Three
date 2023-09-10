@@ -7,10 +7,10 @@
         xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         ResizeMode="CanResize"
-        AllowsTransparency="False"
+        AllowsTransparency="True"
+        Background="Transparent"
         WindowStyle="None"
         BorderThickness="0"
-        Loaded="Window_Loaded"
         Title="主界面" Height="650" Width="850">
     <behaviors:Interaction.Triggers>
         <behaviors:EventTrigger EventName="Loaded">
@@ -21,7 +21,7 @@
         <WindowChrome CaptionHeight="0" ResizeBorderThickness="3"/>
     </WindowChrome.WindowChrome>
     <Grid>
-        <Border Margin="0" Background="#333" CornerRadius="1" BorderThickness="0">
+        <Border Margin="3" Background="#333" CornerRadius="1" BorderThickness="0">
             <Border.Effect>
                 <DropShadowEffect Direction="0" ShadowDepth="0" BlurRadius="10"
                                   Opacity="0.25" Color="#FF5B5B5B"></DropShadowEffect>

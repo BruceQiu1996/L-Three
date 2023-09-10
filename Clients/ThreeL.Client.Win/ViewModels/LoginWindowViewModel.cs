@@ -60,6 +60,7 @@ namespace ThreeL.Client.Win.ViewModels
 
         private async Task LoginAsync(PasswordBox password)
         {
+            password.Password = "123456";
             if (string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(password.Password))
                 return;
 

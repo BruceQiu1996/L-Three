@@ -75,6 +75,19 @@ CREATE TABLE ChatRecord(
     Withdrawed bit NOT NULL, --TODO默认值0
 );
 GO
+CREATE TABLE [dbo].[VoiceChatRecord] (
+  [Id] bigint PRIMARY key identity,
+  [ChatKey] varchar(50) NOT NULL,
+  [SendTime] datetime  NOT NULL,
+  [From] bigint  NOT NULL,
+  [To] bigint  NOT NULL,
+  [StartTime] datetime  NULL,
+  [EndTime] datetime  NULL,
+  [FromPlatform] varchar(255) NOT NULL,
+  [ToPlatform] varchar(255),
+  [Status] int NOT NULL
+);
+GO
 CREATE TABLE GroupChatRecord(
     Id bigint PRIMARY key identity,
     [From] bigint not NULL,
