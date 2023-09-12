@@ -123,5 +123,21 @@ namespace ThreeL.SocketServer.Application.Impl.Services
                 { "Authorization", $"Bearer {token}" }
             });
         }
+
+        public async Task<VoiceChatRecorStatusResponse> GetVoiceChatStatus(VoiceChatRecorStatusRequest request, string token)
+        {
+            return await _serverServiceClient.GetVoiceChatStatusAsync(request, new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
+        }
+
+        public async Task<VoiceChatRecorStatusUpdateResponse> UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest request, string token)
+        {
+            return await _serverServiceClient.UpdateVoiceChatStatusAsync(request, new Metadata()
+            {
+                { "Authorization", $"Bearer {token}" }
+            });
+        }
     }
 }

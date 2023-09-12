@@ -25,5 +25,9 @@ namespace ThreeL.SocketServer.Application.Contract.Services
         Task<ValidateRelationResponse> ValidateRelation(ValidateRelationRequest request, string token);
         [GrpcException]
         Task<VoiceChatRecordPostResponse> PostVoiceChatRecordAsync(VoiceChatRecordPostRequest request, string token);
+        [GrpcException]
+        Task<VoiceChatRecorStatusResponse> GetVoiceChatStatus(VoiceChatRecorStatusRequest request, string token);
+        [GrpcException]
+        Task<VoiceChatRecorStatusUpdateResponse> UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest request, string token);
     }
 }

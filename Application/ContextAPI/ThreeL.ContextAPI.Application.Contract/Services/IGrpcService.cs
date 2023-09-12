@@ -30,5 +30,8 @@ namespace ThreeL.ContextAPI.Application.Contract.Services
         [DapperUnitOfWork]
         Task<InviteFriendsIntoGroupResponse> InviteFriendsIntoGroup(InviteFriendsIntoGroupRequest request, ServerCallContext context);
         Task<ValidateRelationResponse> ValidateRelation(ValidateRelationRequest request, ServerCallContext context);
+        Task<VoiceChatRecorStatusResponse> GetVoiceChatStatus(VoiceChatRecorStatusRequest request, ServerCallContext context);
+        [DapperUnitOfWork]
+        Task<VoiceChatRecorStatusUpdateResponse> UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest request, ServerCallContext context);
     }
 }

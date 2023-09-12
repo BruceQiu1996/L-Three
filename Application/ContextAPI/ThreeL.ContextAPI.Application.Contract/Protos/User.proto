@@ -73,4 +73,6 @@ service SocketServerService{
 	rpc ReplyAddFriend(ReplyAddFriendRequest) returns (ReplyAddFriendResponse);
 	rpc InviteFriendsIntoGroup(InviteFriendsIntoGroupRequest) returns (InviteFriendsIntoGroupResponse);
 	rpc ValidateRelation(ValidateRelationRequest) returns (ValidateRelationResponse);
+	rpc GetVoiceChatStatus(VoiceChatRecorStatusRequest) returns (VoiceChatRecorStatusResponse);
+	rpc UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest) returns (VoiceChatRecorStatusUpdateResponse);
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using SuperSocket;
+using ThreeL.Infra.Core.Metadata;
 using ThreeL.Infra.Redis;
 using ThreeL.Shared.Application;
 using ThreeL.Shared.SuperSocket.Dto;
@@ -84,7 +85,8 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 return;
             }
 
-            body.ChatKey = result.LockValue;
+            var chatKey = result.LockValue;
+            body.ChatKey = chatKey;
             body.To = packet.Body.To;
             var request = _mapper.Map<VoiceChatRecordPostRequest>(body);
             request.FromPlatform = session.Platform;
@@ -98,7 +100,34 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                 return;
             }
 
-            session.VoiceChatKey = result.LockValue;
+            //创建一个通话超时任务
+            var task = new Task(async () =>
+            {
+                await Task.Delay(60 * 1000);
+                if (session != null && session.VoiceChatKey == chatKey
+                && _sessionManager.TryGet(packet.Body.To).FirstOrDefault(x => x.VoiceChatKey == chatKey) == null)
+                {
+                    var result = await _contextAPIGrpc.GetVoiceChatStatus(new VoiceChatRecorStatusRequest()
+                    {
+                        ChatKey = chatKey
+                    }, session.AccessToken);
+
+                    if (!result.Started && session.VoiceChatKey == chatKey)
+                    {
+                        session.VoiceChatKey = null;
+                        //更新数据库和发送消息给客户端
+                        await _contextAPIGrpc.UpdateVoiceChatStatus(new VoiceChatRecorStatusUpdateRequest()
+                        {
+                            ChatKey = chatKey,
+                            Status = (int)VioceChatRecordStatus.NotAccept
+                        }, session.AccessToken);
+                        //解锁
+                        await _distributedLocker.SafedUnLockAsync(string.Format(CommonConst.VOICE_KEY, session.UserId, packet.Body.To), chatKey);
+                        //通知客户端
+                    }
+                }
+            });
+            session.VoiceChatKey = chatKey
             await SendMessageBothAsync(fromSessions, toSessions, respPacket.Body.From, respPacket.Body.To, respPacket);
         }
 

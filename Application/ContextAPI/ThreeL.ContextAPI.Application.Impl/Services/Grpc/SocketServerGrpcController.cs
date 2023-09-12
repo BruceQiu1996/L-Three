@@ -142,5 +142,31 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
                 return new VoiceChatRecordPostResponse() { Result = false };
             }
         }
+
+        [Authorize]
+        public async override Task<VoiceChatRecorStatusResponse> GetVoiceChatStatus(VoiceChatRecorStatusRequest request, ServerCallContext context)
+        {
+            try
+            {
+                return await _grpcService.GetVoiceChatStatus(request, context);
+            }
+            catch (Exception ex)
+            {
+                return new VoiceChatRecorStatusResponse() { Started = true };
+            }
+        }
+
+        [Authorize]
+        public async override Task<VoiceChatRecorStatusUpdateResponse> UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest request, ServerCallContext context)
+        {
+            try
+            {
+                return await _grpcService.UpdateVoiceChatStatus(request, context);
+            }
+            catch
+            {
+                return new VoiceChatRecorStatusUpdateResponse() { Result = false };
+            }
+        }
     }
 }

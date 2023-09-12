@@ -327,5 +327,41 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
 
             return new VoiceChatRecordPostResponse() { Result = true };
         }
+
+        public async Task<VoiceChatRecorStatusResponse> GetVoiceChatStatus(VoiceChatRecorStatusRequest request, ServerCallContext context)
+        {
+            var record = await _dapperRepository
+                .QueryFirstOrDefaultAsync<VoiceChatRecord>("SELECT Top 1 * FROM VoiceChatRecord WHERE ChatKey = @key", new { key = request.ChatKey });
+
+            return new VoiceChatRecorStatusResponse()
+            {
+                Started = record.Status != VioceChatRecordStatus.NotStart
+            };
+        }
+
+        public async Task<VoiceChatRecorStatusUpdateResponse> UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest request, ServerCallContext context)
+        {
+            var status = (VioceChatRecordStatus)request.Status;
+            if (status == VioceChatRecordStatus.NotAccept || status == VioceChatRecordStatus.Rejected || status == VioceChatRecordStatus.Canceled)
+            {
+                await _dapperRepository
+                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status WHERE ChatKey = @key", new { key = request.ChatKey });
+            }
+            else if (status == VioceChatRecordStatus.InProgress)
+            {
+                await _dapperRepository
+                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,StartTime = @StartTime WHERE ChatKey = @key", new { key = request.ChatKey, StartTime = DateTime.Now });
+            }
+            else if (status == VioceChatRecordStatus.Finished)
+            {
+                await _dapperRepository
+                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,EndTime = @EndTime WHERE ChatKey = @key", new { key = request.ChatKey, EndTime = DateTime.Now });
+            }
+
+            return new VoiceChatRecorStatusUpdateResponse()
+            {
+                Result = true
+            };
+        }
     }
 }

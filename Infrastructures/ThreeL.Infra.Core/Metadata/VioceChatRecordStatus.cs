@@ -20,6 +20,10 @@
         Canceled = 3,
         ///                                                                                            /// 已拒绝
         ///                                                                                                   /// </summary>
-        Rejected = 4
+        Rejected = 4,
+        /// <summary>
+        /// 超时未接受
+        /// </summary>
+        NotAccept = 5;
     }
 }
