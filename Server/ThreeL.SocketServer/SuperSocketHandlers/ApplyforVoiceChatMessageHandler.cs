@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Google.Protobuf.WellKnownTypes;
 using SuperSocket;
 using ThreeL.Infra.Core.Metadata;
 using ThreeL.Infra.Redis;
@@ -37,13 +38,13 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
         {
             var session = appSession as ChatSession;
             var packet = message as Packet<ApplyforVoiceChatMessage>;
-            var respPacket = new Packet<ApplyforVoiceChatMessageResponse>()
+            var respPacket = new Packet<VoiceChatStatusResponse>()
             {
-                MessageType = MessageType.ApplyVoiceChatResponse,
+                MessageType = MessageType.VoiceChatEventResponse,
                 Sequence = packet.Sequence,
             };
 
-            var body = new ApplyforVoiceChatMessageResponse()
+            var body = new VoiceChatStatusResponse()
             {
                 Result = true
             };
@@ -88,12 +89,15 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             var chatKey = result.LockValue;
             body.ChatKey = chatKey;
             body.To = packet.Body.To;
+            body.Event = VoiceChatStatus.Initialized;
+            body.SendTime = DateTime.Now;
             var request = _mapper.Map<VoiceChatRecordPostRequest>(body);
             request.FromPlatform = session.Platform;
             var resp = await _contextAPIGrpc.PostVoiceChatRecordAsync(request, session.AccessToken);
             if (!resp.Result)
             {
                 await _distributedLocker.SafedUnLockAsync(string.Format(CommonConst.VOICE_KEY, session.UserId, packet.Body.To), result.LockValue);
+                body.Result = false;
                 body.Message = "服务器数据异常";
                 await appSession.SendAsync(respPacket.Serialize());
 
@@ -101,9 +105,9 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
             }
 
             //创建一个通话超时任务
-            var task = new Task(async () =>
+            var _ = Task.Run(async () =>
             {
-                await Task.Delay(60 * 1000);
+                await Task.Delay(5 * 1000);
                 if (session != null && session.VoiceChatKey == chatKey
                 && _sessionManager.TryGet(packet.Body.To).FirstOrDefault(x => x.VoiceChatKey == chatKey) == null)
                 {
@@ -112,6 +116,7 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                         ChatKey = chatKey
                     }, session.AccessToken);
 
+                    var recordSendTime = DateTime.Now;
                     if (!result.Started && session.VoiceChatKey == chatKey)
                     {
                         session.VoiceChatKey = null;
@@ -119,29 +124,50 @@ namespace ThreeL.SocketServer.SuperSocketHandlers
                         await _contextAPIGrpc.UpdateVoiceChatStatus(new VoiceChatRecorStatusUpdateRequest()
                         {
                             ChatKey = chatKey,
-                            Status = (int)VioceChatRecordStatus.NotAccept
+                            Status = (int)VoiceChatStatus.NotAccept,
+                            FromName = session.UserName,
+                            SendTime = Timestamp.FromDateTime(recordSendTime.ToUniversalTime())
                         }, session.AccessToken);
                         //解锁
                         await _distributedLocker.SafedUnLockAsync(string.Format(CommonConst.VOICE_KEY, session.UserId, packet.Body.To), chatKey);
+
                         //通知客户端
+                        var notAcceptPacket = new Packet<VoiceChatStatusResponse>()
+                        {
+                            MessageType = MessageType.VoiceChatEventResponse,
+                            Sequence = packet.Sequence,
+                            Body = new VoiceChatStatusResponse()
+                            {
+                                ChatKey = chatKey,
+                                Event = VoiceChatStatus.NotAccept,
+                                Result = true,
+                                From = session.UserId,
+                                FromName = session.UserName,
+                                To = packet.Body.To,
+                                SendTime = recordSendTime
+                            }
+                        };
+
+                        await SendMessageBothAsync(fromSessions, toSessions, respPacket.Body.From, respPacket.Body.To, notAcceptPacket);
                     }
                 }
             });
-            session.VoiceChatKey = chatKey
+
+            session.VoiceChatKey = chatKey;
             await SendMessageBothAsync(fromSessions, toSessions, respPacket.Body.From, respPacket.Body.To, respPacket);
         }
 
         public async override Task ExceptionAsync(IAppSession appSession, IPacket message, Exception ex)
         {
             var packet = message as Packet<ApplyforVoiceChatMessage>;
-            var resp = new Packet<ApplyforVoiceChatMessageResponse>()
+            var resp = new Packet<VoiceChatStatusResponse>()
             {
                 Sequence = packet.Sequence,
                 Checkbit = packet.Checkbit,
-                MessageType = MessageType.ApplyVoiceChatResponse,
+                MessageType = MessageType.VoiceChatEventResponse,
             };
 
-            var body = new ApplyforVoiceChatMessageResponse();
+            var body = new VoiceChatStatusResponse();
             resp.Body = body;
             body.Result = false;
             body.Message = ex.Message;

@@ -10,5 +10,6 @@
         Location = 6,
         Link = 7,
         Withdraw = 8,
+        VoiceChat = 9
     }
 }

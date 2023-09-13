@@ -16,7 +16,7 @@ namespace ThreeL.Client.Win.Helpers
                 //昨天
                 return "昨天 " + dateTime.ToString("HH:mm");
             }
-            else if (dateTime.Year == DateTime.Now.Year && dateTime.DayOfYear == DateTime.Now.DayOfYear - 2 )
+            else if (dateTime.Year == DateTime.Now.Year && dateTime.DayOfYear == DateTime.Now.DayOfYear - 2)
             {
                 //前天
                 return "前天 " + dateTime.ToString("HH:mm");
@@ -87,6 +87,27 @@ namespace ThreeL.Client.Win.Helpers
             {
                 return dateTime.ToString("yyyy/MM/dd");
             }
+        }
+
+        //将秒数转化为时分秒
+        public string SecondConvertTime(int seconds)
+        {
+            TimeSpan ts = new TimeSpan(0, 0, seconds);
+            string str = "";
+            if (ts.Hours > 0)
+            {
+                str = string.Format("{0:00}", ts.Hours) + ":" + string.Format("{0:00}", ts.Minutes) + ":" + string.Format("{0:00}", ts.Seconds);
+            }
+            if (ts.Hours == 0 && ts.Minutes > 0)
+            {
+                str = "00:" + string.Format("{0:00}", ts.Minutes) + ":" + string.Format("{0:00}", ts.Seconds);
+            }
+            if (ts.Hours == 0 && ts.Minutes == 0)
+            {
+                str = "00:00:" + string.Format("{0:00}", ts.Seconds);
+            }
+
+            return str;
         }
     }
 }

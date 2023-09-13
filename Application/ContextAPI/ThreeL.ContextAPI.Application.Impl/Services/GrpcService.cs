@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using Amazon.Runtime.Internal;
+using AutoMapper;
 using Grpc.Core;
 using ThreeL.ContextAPI.Application.Contract.Protos;
 using ThreeL.ContextAPI.Application.Contract.Services;
@@ -320,7 +321,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
             var userid = long.Parse(userIdentity);
             var record = _mapper.Map<VoiceChatRecord>(request);
             record.From = userid;
-            record.Status = VioceChatRecordStatus.NotStart;
+            record.Status = VoiceChatStatus.Initialized;
 
             await _dapperRepository.ExecuteAsync("INSERT INTO VoiceChatRecord([ChatKey],[SendTime],[From],[TO],FromPlatform,Status)" +
                 "VALUES(@ChatKey,@SendTime,@From,@To,@FromPlatform,@Status)", record);
@@ -335,27 +336,42 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
 
             return new VoiceChatRecorStatusResponse()
             {
-                Started = record.Status != VioceChatRecordStatus.NotStart
+                Started = record.Status != VoiceChatStatus.Initialized
             };
         }
 
         public async Task<VoiceChatRecorStatusUpdateResponse> UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest request, ServerCallContext context)
         {
-            var status = (VioceChatRecordStatus)request.Status;
-            if (status == VioceChatRecordStatus.NotAccept || status == VioceChatRecordStatus.Rejected || status == VioceChatRecordStatus.Canceled)
+            var status = (VoiceChatStatus)request.Status;
+            if (status == VoiceChatStatus.NotAccept || status == VoiceChatStatus.Rejected || status == VoiceChatStatus.Canceled)
             {
                 await _dapperRepository
-                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status WHERE ChatKey = @key", new { key = request.ChatKey });
+                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status WHERE ChatKey = @key", new { key = request.ChatKey, request.Status });
+                //新增通话结束的聊天记录
+                var record = await _dapperRepository
+                        .QueryFirstOrDefaultAsync<VoiceChatRecord>("SELECT Top 1 * FROM VoiceChatRecord WHERE ChatKey = @key", new { key = request.ChatKey });
+                var temp = new ChatRecord()
+                {
+                    From = record.From,
+                    To = record.To,
+                    FromName = request.FromName,
+                    Message = status.ToString(),
+                    MessageId = record.ChatKey,
+                    SendTime = request.SendTime.ToDateTime().ToLocalTime(),
+                    MessageRecordType = MessageRecordType.VoiceChat
+                };
+                await _dapperRepository.ExecuteAsync("INSERT INTO ChatRecord([FROM],[FROMNAME],[TO],MESSAGEID,MESSAGE,MessageRecordType,SendTime,IsGroup)" +
+                    "VALUES(@From,@FromName,@To,@MessageId,@Message,@MessageRecordType,@SendTime,0)", temp);
             }
-            else if (status == VioceChatRecordStatus.InProgress)
+            else if (status == VoiceChatStatus.Started)
             {
                 await _dapperRepository
-                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,StartTime = @StartTime WHERE ChatKey = @key", new { key = request.ChatKey, StartTime = DateTime.Now });
+                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,StartTime = @StartTime WHERE ChatKey = @key", new { key = request.ChatKey, request.Status, StartTime = DateTime.Now });
             }
-            else if (status == VioceChatRecordStatus.Finished)
+            else if (status == VoiceChatStatus.Finished)
             {
                 await _dapperRepository
-                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,EndTime = @EndTime WHERE ChatKey = @key", new { key = request.ChatKey, EndTime = DateTime.Now });
+                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,EndTime = @EndTime WHERE ChatKey = @key", new { key = request.ChatKey, request.Status, EndTime = DateTime.Now });
             }
 
             return new VoiceChatRecorStatusUpdateResponse()

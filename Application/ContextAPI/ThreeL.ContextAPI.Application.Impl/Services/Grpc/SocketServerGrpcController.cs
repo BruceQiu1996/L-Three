@@ -1,16 +1,20 @@
 ﻿using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 using ThreeL.ContextAPI.Application.Contract.Protos;
 using ThreeL.ContextAPI.Application.Contract.Services;
+using ThreeL.Infra.Core.Metadata;
 
 namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
 {
     public class SocketServerGrpcController : SocketServerService.SocketServerServiceBase, IAppService
     {
         private readonly IGrpcService _grpcService;
-        public SocketServerGrpcController(IGrpcService _grpcService)
+        private readonly ILogger _logger;
+        public SocketServerGrpcController(IGrpcService grpcService, ILoggerFactory loggerFactory)
         {
-            this._grpcService = _grpcService;
+            _grpcService = grpcService;
+            _logger = loggerFactory.CreateLogger(nameof(Module.CONTEXT_API_GRPC));
         }
 
         [Authorize]
@@ -22,6 +26,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new SocketServerUserLoginResponse() { Result = false };
             }
         }
@@ -33,8 +38,9 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             {
                 return await _grpcService.FetchFileInfo(request, context);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new FileInfoResponse() { Result = false };
             }
         }
@@ -48,6 +54,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new ChatRecordPostResponse() { Result = false };
             }
         }
@@ -61,6 +68,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new ChatRecordPostResponse() { Result = false };
             }
         }
@@ -74,6 +82,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new ChatRecordWithdrawResponse() { Result = false };
             }
         }
@@ -87,6 +96,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new AddFriendResponse() { Result = false, Message = "服务器异常" };
             }
         }
@@ -100,6 +110,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new ReplyAddFriendResponse() { Result = false, Message = "服务器异常" };
             }
         }
@@ -113,6 +124,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new InviteFriendsIntoGroupResponse() { Result = false, Message = "服务器异常" };
             }
         }
@@ -126,6 +138,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new ValidateRelationResponse() { Result = false };
             }
         }
@@ -139,6 +152,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new VoiceChatRecordPostResponse() { Result = false };
             }
         }
@@ -152,6 +166,7 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new VoiceChatRecorStatusResponse() { Started = true };
             }
         }
@@ -163,8 +178,9 @@ namespace ThreeL.ContextAPI.Application.Impl.Services.Grpc
             {
                 return await _grpcService.UpdateVoiceChatStatus(request, context);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex.ToString());
                 return new VoiceChatRecorStatusUpdateResponse() { Result = false };
             }
         }

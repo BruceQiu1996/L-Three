@@ -24,7 +24,7 @@
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="28"></RowDefinition>
-                <RowDefinition Height="40"></RowDefinition>
+                <RowDefinition Height="80"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
                 <RowDefinition Height="100"></RowDefinition>
             </Grid.RowDefinitions>
@@ -60,8 +60,19 @@
                 </Grid>
             </Border>
 
-            <TextBlock Text="00:15:00" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                       Foreground="#ccc" FontSize="15"></TextBlock>
+            <TextBlock Text="00:15:00" Grid.Row="1" HorizontalAlignment="Center" 
+                       VerticalAlignment="Bottom"
+                       Foreground="#ccc" FontSize="15" Visibility="{Binding Started,Converter={StaticResource Boolean2VisibilityConverter}}">
+            </TextBlock>
+
+            <StackPanel Grid.Row="1" Orientation="Vertical" HorizontalAlignment="Center"
+                        Visibility="{Binding Started,Converter={StaticResource Boolean2VisibilityReConverter}}" VerticalAlignment="Bottom">
+                <TextBlock Text="{Binding WattingText}" Grid.Row="3" HorizontalAlignment="Center" 
+                           Foreground="#ccc" FontSize="16" >
+                </TextBlock>
+                <TextBlock Text="{Binding LoadingText}" Grid.Row="3" HorizontalAlignment="Center" Foreground="#ccc" FontSize="28" >
+                </TextBlock>
+            </StackPanel>
 
             <StackPanel Grid.Row="2" Margin="3" VerticalAlignment="Center">
                 <Border Grid.Row="0" Grid.Column="0"
@@ -83,7 +94,18 @@
                 <TextBlock Text="{Binding Current.Name}" HorizontalAlignment="Center" FontSize="18" Foreground="White"/>
             </StackPanel>
 
-            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+            <StackPanel Grid.Row="3" Orientation="Vertical" HorizontalAlignment="Center"
+                        Visibility="{Binding Started,Converter={StaticResource Boolean2VisibilityReConverter}}" VerticalAlignment="Top">
+                <Border Height="50" Width="50" CornerRadius="25" Background="#e13e3e" Cursor="Hand">
+                    <Path Data="{StaticResource CloseGeometry}"
+                          Fill="White"
+                          Height="20"
+                          Stretch="Uniform"></Path>
+                </Border>
+                <TextBlock Text="取消" Foreground="#ddd" Margin="0 7" HorizontalAlignment="Center"></TextBlock>
+            </StackPanel>
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Visibility="{Binding Started,Converter={StaticResource Boolean2VisibilityConverter}}">
                 <StackPanel Margin="15 0">
                     <Border Height="50" Width="50" CornerRadius="25" Background="White">
                         <Path Data="{StaticResource microPhone}"

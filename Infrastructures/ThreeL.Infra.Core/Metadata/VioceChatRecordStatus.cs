@@ -1,15 +1,15 @@
 ﻿namespace ThreeL.Infra.Core.Metadata
 {
-    public enum VioceChatRecordStatus
+    public enum VoiceChatStatus
     {
         /// <summary>
-        ///        /// 未开始
+        ///        /// 即将开始
         ///        /// </summary>
-        NotStart = 0,
+        Initialized = 0,
         ///                             /// <summary>
         ///                                    /// 进行中
         ///                                           /// </summary>
-        InProgress = 1,
+        Started = 1,
         ///                                                         /// <summary>
         ///                                                                /// 已结束
         ///                                                                       /// </summary>
@@ -24,6 +24,6 @@
         /// <summary>
         /// 超时未接受
         /// </summary>
-        NotAccept = 5;
+        NotAccept = 5
     }
 }

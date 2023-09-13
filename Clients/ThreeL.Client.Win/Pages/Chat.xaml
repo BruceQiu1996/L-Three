@@ -240,6 +240,50 @@
             </ContentControl>
         </DataTemplate>
 
+        <DataTemplate x:Key="voicechatSender">
+            <Grid Name="ctx">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
+                            HorizontalAlignment="Right"
+                            Cursor="Hand"
+                            CornerRadius="5">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                <behaviors:InvokeCommandAction Command="{Binding LeftButtonClickCommandAsync}"
+                                           ></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
+                        <StackPanel Orientation="Horizontal">
+                            <Label Height="33" Width="40" Background="Transparent" BorderThickness="0">
+                                <Path Data="{StaticResource audio}" Height="20" Width="20" Fill="White" Stretch="UniformToFill"></Path>
+                            </Label>
+                            <TextBlock Text="{Binding DisplayText,UpdateSourceTrigger=PropertyChanged,Mode=OneWay}"
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Center"
+                                       Foreground="White"
+                                       TextAlignment="Center"
+                                       Margin=" 0 0 8 0"
+                                       HorizontalAlignment="Center"
+                                       FontSize="15">
+                            </TextBlock>
+                        </StackPanel>
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#888"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="False">
+                                        <Setter Property="Background" Value="#555"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+
         <DataTemplate x:Key="txtReceiver_normol">
             <Grid Name="ctx" ContextMenu="{StaticResource commonMenu}">
                 <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
@@ -376,6 +420,54 @@
                 </ContentControl.Style>
             </ContentControl>
         </DataTemplate>
+
+        <DataTemplate x:Key="voicechatReceiver">
+            <Grid Name="ctx">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Border MaxWidth="{Binding ElementName=ctx,Path=ActualWidth,Converter={StaticResource ValueHalfConverter_2},UpdateSourceTrigger=PropertyChanged}"
+                            HorizontalAlignment="Left"
+                            Cursor="Hand"
+                            CornerRadius="5">
+                        <behaviors:Interaction.Triggers>
+                            <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                                <behaviors:InvokeCommandAction Command="{Binding LeftButtonClickCommandAsync}"
+                                   ></behaviors:InvokeCommandAction>
+                            </behaviors:EventTrigger>
+                        </behaviors:Interaction.Triggers>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding DisplayText,UpdateSourceTrigger=PropertyChanged,Mode=OneWay}"
+                               TextWrapping="Wrap"
+                               VerticalAlignment="Center"
+                               Foreground="White"
+                               TextAlignment="Center"
+                               Margin=" 8 0 0 0"
+                               HorizontalAlignment="Center"
+                               FontSize="15">
+                            </TextBlock>
+                            <Label Height="33" Width="40" Background="Transparent" BorderThickness="0">
+                                <Path Data="{StaticResource audio}" Height="20" Width="20" Fill="White" Stretch="UniformToFill"></Path>
+                            </Label>
+                        </StackPanel>
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#888"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="False">
+                                        <Setter Property="Background" Value="#555"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+        
+        
+        
+        
 
         <DataTemplate x:Key="time">
             <TextBox Text="{Binding DateTime}"

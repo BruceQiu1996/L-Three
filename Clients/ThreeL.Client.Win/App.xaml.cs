@@ -80,7 +80,7 @@ namespace ThreeL.Client.Win
                 service.AddSingleton<IMessageHandler, ReplyAddFriendCommandResponseHandler>();
                 service.AddSingleton<IMessageHandler, InviteMembersIntoGroupResponseHandler>();
                 service.AddSingleton<IMessageHandler, OfflineCommandHandler>();
-                service.AddSingleton<IMessageHandler, ApplyforVoiceChatResponseHandler>();
+                service.AddSingleton<IMessageHandler, VoiceChatEventResponseHandler>();
             }).UseSerilog();
 
             builder.ConfigureHostConfiguration(options =>

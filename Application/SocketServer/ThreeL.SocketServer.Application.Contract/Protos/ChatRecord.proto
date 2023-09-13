@@ -52,6 +52,8 @@ message VoiceChatRecorStatusResponse{
 message VoiceChatRecorStatusUpdateRequest{
 	string chatKey = 1;
 	int32 status = 2;
+	string fromName = 3;
+	google.protobuf.Timestamp sendTime = 4;
 }
 
 message VoiceChatRecorStatusUpdateResponse{

@@ -31,7 +31,7 @@ namespace ThreeL.ContextAPI.Controllers
 
                 return Ok(resp);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.ToString());
                 return Problem(ex.ToString());
@@ -54,7 +54,7 @@ namespace ThreeL.ContextAPI.Controllers
                 return new FileStreamResult(new FileStream(info.FullName, FileMode.Open), "application/octet-stream")
                 { FileDownloadName = info.Name };
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.ToString());
                 return Problem(ex.ToString());
@@ -72,7 +72,7 @@ namespace ThreeL.ContextAPI.Controllers
 
                 return Ok(resp);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.ToString());
                 return Problem(ex.ToString());

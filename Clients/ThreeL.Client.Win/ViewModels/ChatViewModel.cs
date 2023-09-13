@@ -126,6 +126,7 @@ namespace ThreeL.Client.Win.ViewModels
             set => SetProperty(ref _avatar, value);
         }
 
+        private VoiceChatWindow _voiceChatWindow;
         private readonly ContextAPIService _contextAPIService;
         private readonly ClientSqliteContext _clientSqliteContext;
         private readonly GrowlHelper _growlHelper;
@@ -290,10 +291,15 @@ namespace ThreeL.Client.Win.ViewModels
               });
 
             //语音通话请求
-            WeakReferenceMessenger.Default.Register<ChatViewModel, ApplyforVoiceChatMessageResponse, string>(this, "message-receive-voice-request",
+            WeakReferenceMessenger.Default.Register<ChatViewModel, VoiceChatStatusResponse, string>(this, "message-receive-voicechat-event",
               async (x, y) =>
               {
-                  await HandleVoiceChatRequestAsync(y);
+                  if (!y.Result)
+                  {
+                      _growlHelper.Warning(y.Message);
+                      return;
+                  }
+                  await HandleVoiceChatEventAsync(y);
               });
         }
 
@@ -366,20 +372,60 @@ namespace ThreeL.Client.Win.ViewModels
         }
 
         /// <summary>
-        /// 处理语音通话申请
+        /// 处理语音通话
         /// </summary>
         /// <param name="messageResponse"></param>
         /// <returns></returns>
-        private async Task HandleVoiceChatRequestAsync(ApplyforVoiceChatMessageResponse messageResponse) 
+        private async Task HandleVoiceChatEventAsync(VoiceChatStatusResponse messageResponse)
         {
-            if (messageResponse.Result)
+            var relation = GetRelation(messageResponse.From, messageResponse.To, false);
+            if (relation == null)
+                return;
+
+            switch (messageResponse.Event)
             {
-                App.UserProfile.ChatKey = messageResponse.ChatKey;
-                
-            }
-            else 
-            {
-                _growlHelper.Info(messageResponse.Message);
+                case VoiceChatStatus.Initialized:
+                    {
+                        if (_voiceChatWindow != null && (_voiceChatWindow.DataContext as VoiceChatWindowViewModel).VoiceChatKey != messageResponse.ChatKey)
+                        {
+                            _voiceChatWindow.Close();
+                        }
+
+                        var window = App.ServiceProvider.GetRequiredService<VoiceChatWindow>();
+                        var vm = window.DataContext as VoiceChatWindowViewModel;
+                        vm.Current = relation;
+                        vm.Started = false;
+                        vm.VoiceChatKey = messageResponse.ChatKey;
+                        vm.WattingText = messageResponse.From == App.UserProfile.UserId ? "正在等待对方接听" : $"{messageResponse.FromName}向您发起语音通话申请";
+                        _voiceChatWindow = window;
+                        window.Show();
+                    }
+                    break;
+                case VoiceChatStatus.NotAccept:
+                    {
+                        if (_voiceChatWindow != null && _voiceChatWindow.DataContext is VoiceChatWindowViewModel viewModel)
+                        {
+                            if (viewModel.VoiceChatKey == messageResponse.ChatKey)
+                            {
+                                _voiceChatWindow.Close();
+                                _voiceChatWindow = null;
+
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    relation.AddMessage(new VoiceChatViewModel()
+                                    {
+                                        SendTime = messageResponse.SendTime,
+                                        From = messageResponse.From,
+                                        FromName = messageResponse.FromName,
+                                        To = messageResponse.To,
+                                        VoiceChatStatus = VoiceChatStatus.NotAccept
+                                    });
+                                });
+                            }
+                        }
+                    }
+
+                    break;
             }
         }
 
@@ -563,14 +609,8 @@ namespace ThreeL.Client.Win.ViewModels
         private async Task StartVoiceChatAsync()
         {
             var temp = RelationViewModel;
-            var voiceWindow = App.ServiceProvider.GetRequiredService<VoiceChatWindow>();
-            (voiceWindow.DataContext as VoiceChatWindowViewModel).Current = temp;
-            voiceWindow.Show();
-
-            return;
-            if (App.UserProfile.VoiceOrVedioIng)
+            if (_voiceChatWindow != null)
             {
-                _growlHelper.Warning("忙线中");
                 return;
             }
 
@@ -761,6 +801,11 @@ namespace ThreeL.Client.Win.ViewModels
                         messageViewModel.FromDto(record);
                     }
 
+                    if (record.MessageRecordType == MessageRecordType.VoiceChat)
+                    {
+                        messageViewModel = new VoiceChatViewModel();
+                        messageViewModel.FromDto(record);
+                    }
                     messages.Add(messageViewModel);
                 }
                 catch (Exception ex)

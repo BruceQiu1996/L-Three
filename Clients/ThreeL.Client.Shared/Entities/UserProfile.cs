@@ -12,8 +12,6 @@
         public DateTime LastLoginTime { get; set; }
         public long? AvatarId { get; set; }
         public byte[] Avatar { get; set; }
-        public bool VoiceOrVedioIng { get; set; } //是否在语音或者视频中
-        public string ChatKey { get; set; } //是否在语音或者视频中
         public void Clear()
         {
             UserId = 0;

@@ -8,16 +8,16 @@ using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.Handlers
 {
-    public class ApplyforVoiceChatResponseHandler : AbstractMessageHandler
+    public class VoiceChatEventResponseHandler : AbstractMessageHandler
     {
-        public ApplyforVoiceChatResponseHandler() : base(MessageType.ApplyVoiceChatResponse)
+        public VoiceChatEventResponseHandler() : base(MessageType.VoiceChatEventResponse)
         {
         }
 
         public override Task ExcuteAsync(IAppSession appSession, IPacket message)
         {
-            var packet = message as Packet<ApplyforVoiceChatMessageResponse>;
-            WeakReferenceMessenger.Default.Send<ApplyforVoiceChatMessageResponse, string>(packet.Body, "message-receive-voice-request");
+            var packet = message as Packet<VoiceChatStatusResponse>;
+            WeakReferenceMessenger.Default.Send<VoiceChatStatusResponse, string>(packet.Body, "message-receive-voicechat-event");
 
             return Task.CompletedTask;
         }

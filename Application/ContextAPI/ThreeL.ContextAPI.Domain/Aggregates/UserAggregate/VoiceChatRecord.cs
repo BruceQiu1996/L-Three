@@ -13,6 +13,6 @@ namespace ThreeL.ContextAPI.Domain.Aggregates.UserAggregate
         public DateTime? EndTime { get; set; }
         public string FromPlatform { get; set; }
         public string ToPlatform { get; set; }
-        public VioceChatRecordStatus Status { get; set; }
+        public VoiceChatStatus Status { get; set; }
     }
 }

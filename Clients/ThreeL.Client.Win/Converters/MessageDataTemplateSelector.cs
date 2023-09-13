@@ -30,6 +30,10 @@ namespace ThreeL.Client.Win.Converters
                     dt = fe.FindResource("fileSender") as DataTemplate;
                 else if (obj.MessageType == MessageType.File && !obj.FromSelf)
                     dt = fe.FindResource("fileReceiver") as DataTemplate;
+                else if (obj.MessageType == MessageType.VoiceChat && obj.FromSelf)
+                    dt = fe.FindResource("voicechatSender") as DataTemplate;
+                else if (obj.MessageType == MessageType.VoiceChat && !obj.FromSelf)
+                    dt = fe.FindResource("voicechatReceiver") as DataTemplate;
                 else if (obj.MessageType == MessageType.LoadRecord)
                     dt = fe.FindResource("loadData") as DataTemplate;
             }

@@ -12,6 +12,7 @@
         Withdraw = 8,
         Time = 9,
         Tip = 10,
+        VoiceChat = 11,
 
         TextResp,
         ImageResp,
@@ -34,7 +35,7 @@
         InviteFriendsIntoGroupResponse,
         RequestOffline,
         ApplyVoiceChat,
-        ApplyVoiceChatResponse,
+        VoiceChatEventResponse,
         LoadRecord
     }
 }
