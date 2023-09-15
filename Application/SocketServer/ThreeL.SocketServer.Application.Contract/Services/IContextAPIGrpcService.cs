@@ -29,5 +29,7 @@ namespace ThreeL.SocketServer.Application.Contract.Services
         Task<VoiceChatRecorStatusResponse> GetVoiceChatStatus(VoiceChatRecorStatusRequest request, string token);
         [GrpcException]
         Task<VoiceChatRecorStatusUpdateResponse> UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest request, string token);
+        [GrpcException]
+        Task<VoiceChatRecorStatusUpdateResponse> FinishVoiceChat(VoiceChatRecordFinishRequest request, string token);
     }
 }

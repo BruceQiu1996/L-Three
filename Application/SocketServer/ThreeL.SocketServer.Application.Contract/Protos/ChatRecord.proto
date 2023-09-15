@@ -31,14 +31,14 @@ message ChatRecordWithdrawResponse{
 }
 
 message VoiceChatRecordPostRequest{
-	string chatKey = 1;
-	google.protobuf.Timestamp sendTime = 2;
-	int64 to = 3;
-	string fromPlatform = 4;
+	google.protobuf.Timestamp sendTime = 1;
+	int64 to = 2;
+	string fromPlatform = 3;
 }
 
 message VoiceChatRecordPostResponse{
 	bool result = 1;
+	string chatKey = 2;
 }
 
 message VoiceChatRecorStatusRequest{
@@ -53,9 +53,14 @@ message VoiceChatRecorStatusUpdateRequest{
 	string chatKey = 1;
 	int32 status = 2;
 	string fromName = 3;
-	google.protobuf.Timestamp sendTime = 4;
+}
+
+message VoiceChatRecordFinishRequest{
+	string chatKey = 1;
+	int32 status = 2;
 }
 
 message VoiceChatRecorStatusUpdateResponse{
 	bool result = 1;
+	int32 status = 2;
 }

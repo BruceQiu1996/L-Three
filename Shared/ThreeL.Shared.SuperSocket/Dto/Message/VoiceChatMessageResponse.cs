@@ -4,11 +4,11 @@ using ThreeL.Infra.Core.Metadata;
 namespace ThreeL.Shared.SuperSocket.Dto.Message
 {
     [ProtoContract]
-    public class VoiceChatStatusResponse : FromToMessageResponse
+    public class VoiceChatMessageResponse : FromToMessageResponse
     {
         [ProtoMember(9)]
-        public string ChatKey { get; set; }
+        public VoiceChatStatus Status { get; set; }
         [ProtoMember(10)]
-        public VoiceChatStatus Event { get; set; }
+        public int? ChatSeconds { get; set; }
     }
 }

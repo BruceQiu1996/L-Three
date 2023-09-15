@@ -11,6 +11,7 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
     [ProtoInclude(7300, typeof(FileMessageResponse))]
     [ProtoInclude(7400, typeof(WithdrawMessageResponse))]
     [ProtoInclude(7500, typeof(VoiceChatStatusResponse))]
+    [ProtoInclude(7600, typeof(VoiceChatMessageResponse))]
     public class FromToMessageResponse : MessageResponse
     {
         [ProtoMember(5)]

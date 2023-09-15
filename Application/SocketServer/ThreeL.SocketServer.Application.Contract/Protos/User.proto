@@ -74,4 +74,5 @@ service SocketServerService{
 	rpc ValidateRelation(ValidateRelationRequest) returns (ValidateRelationResponse);
 	rpc GetVoiceChatStatus(VoiceChatRecorStatusRequest) returns (VoiceChatRecorStatusResponse);
     rpc UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest) returns (VoiceChatRecorStatusUpdateResponse);
+    rpc FinishVoiceChatStatus(VoiceChatRecordFinishRequest) returns (VoiceChatRecorStatusUpdateResponse);
 }

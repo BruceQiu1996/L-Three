@@ -1,6 +1,7 @@
-﻿using Amazon.Runtime.Internal;
-using AutoMapper;
+﻿using AutoMapper;
 using Grpc.Core;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using System;
 using ThreeL.ContextAPI.Application.Contract.Protos;
 using ThreeL.ContextAPI.Application.Contract.Services;
 using ThreeL.ContextAPI.Domain.Aggregates.File;
@@ -18,12 +19,14 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
         private readonly IMapper _mapper;
         private readonly DapperRepository<ContextAPIDbContext> _dapperRepository;
         private readonly IRedisProvider _redisProvider;
+        private readonly IDistributedLocker _distributedLocker;
 
-        public GrpcService(DapperRepository<ContextAPIDbContext> dapperRepository, IMapper mapper, IRedisProvider redisProvider)
+        public GrpcService(DapperRepository<ContextAPIDbContext> dapperRepository, IMapper mapper, IRedisProvider redisProvider, IDistributedLocker distributedLocker)
         {
             _mapper = mapper;
             _redisProvider = redisProvider;
             _dapperRepository = dapperRepository;
+            _distributedLocker = distributedLocker;
         }
 
         public async Task<SocketServerUserLoginResponse> SocketServerUserLogin(SocketServerUserLoginRequest request, ServerCallContext context)
@@ -319,14 +322,22 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
         {
             var userIdentity = context.GetHttpContext().User.Identity?.Name;
             var userid = long.Parse(userIdentity);
+            var exist = await _redisProvider.KeyExistsAsync(string.Format(CommonConst.VOICE_KEY, userid, request.To));
+            if (exist)
+            {
+                throw new Exception("通话key已经存在缓存中");
+            }
+            var result = await _distributedLocker.LockAsync(string.Format(CommonConst.VOICE_KEY, userid, request.To), 300, true);
+            if (!result.Success) throw new Exception("锁定语音通话异常");
             var record = _mapper.Map<VoiceChatRecord>(request);
             record.From = userid;
+            record.ChatKey = result.LockValue;
             record.Status = VoiceChatStatus.Initialized;
 
             await _dapperRepository.ExecuteAsync("INSERT INTO VoiceChatRecord([ChatKey],[SendTime],[From],[TO],FromPlatform,Status)" +
                 "VALUES(@ChatKey,@SendTime,@From,@To,@FromPlatform,@Status)", record);
 
-            return new VoiceChatRecordPostResponse() { Result = true };
+            return new VoiceChatRecordPostResponse() { Result = true, ChatKey = record.ChatKey };
         }
 
         public async Task<VoiceChatRecorStatusResponse> GetVoiceChatStatus(VoiceChatRecorStatusRequest request, ServerCallContext context)
@@ -342,42 +353,81 @@ namespace ThreeL.ContextAPI.Application.Impl.Services
 
         public async Task<VoiceChatRecorStatusUpdateResponse> UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest request, ServerCallContext context)
         {
+            var userIdentity = context.GetHttpContext().User.Identity?.Name;
+            var userid = long.Parse(userIdentity);
             var status = (VoiceChatStatus)request.Status;
-            if (status == VoiceChatStatus.NotAccept || status == VoiceChatStatus.Rejected || status == VoiceChatStatus.Canceled)
+            var record = await _dapperRepository
+                    .QueryFirstOrDefaultAsync<VoiceChatRecord>("SELECT TOP 1 * FROM VoiceChatRecord WHERE ChatKey = @Key", new { Key = request.ChatKey });
+            if (record == null)
+            {
+                return new VoiceChatRecorStatusUpdateResponse()
+                {
+                    Result = true
+                };
+            }
+
+            if (record.Status == VoiceChatStatus.Finished
+                || record.Status == VoiceChatStatus.Canceled
+                || record.Status == VoiceChatStatus.Rejected
+                || record.Status == VoiceChatStatus.NotAccept)
+            {
+                await _distributedLocker.SafedUnLockAsync(string.Format(CommonConst.VOICE_KEY, record.From, record.To), request.ChatKey);
+                return new VoiceChatRecorStatusUpdateResponse() { Result = true, Status = (int)record.Status };
+            }
+
+            var action = (VoiceChatStatus)request.Status;
+            if ((action == VoiceChatStatus.Canceled && userid == record.From)
+                || (action == VoiceChatStatus.Rejected && userid == record.To)
+                || (action == VoiceChatStatus.Finished && (userid == record.From || userid == record.To)))
             {
                 await _dapperRepository
-                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status WHERE ChatKey = @key", new { key = request.ChatKey, request.Status });
-                //新增通话结束的聊天记录
-                var record = await _dapperRepository
-                        .QueryFirstOrDefaultAsync<VoiceChatRecord>("SELECT Top 1 * FROM VoiceChatRecord WHERE ChatKey = @key", new { key = request.ChatKey });
-                var temp = new ChatRecord()
-                {
-                    From = record.From,
-                    To = record.To,
-                    FromName = request.FromName,
-                    Message = status.ToString(),
-                    MessageId = record.ChatKey,
-                    SendTime = request.SendTime.ToDateTime().ToLocalTime(),
-                    MessageRecordType = MessageRecordType.VoiceChat
-                };
-                await _dapperRepository.ExecuteAsync("INSERT INTO ChatRecord([FROM],[FROMNAME],[TO],MESSAGEID,MESSAGE,MessageRecordType,SendTime,IsGroup)" +
-                    "VALUES(@From,@FromName,@To,@MessageId,@Message,@MessageRecordType,@SendTime,0)", temp);
+                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,EndTime = @EndTime WHERE ChatKey = @key", new { key = request.ChatKey, request.Status, EndTime = DateTime.Now });
+                //解锁
+                await _distributedLocker.SafedUnLockAsync(string.Format(CommonConst.VOICE_KEY, record.From, record.To), request.ChatKey);
             }
             else if (status == VoiceChatStatus.Started)
             {
                 await _dapperRepository
-                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,StartTime = @StartTime WHERE ChatKey = @key", new { key = request.ChatKey, request.Status, StartTime = DateTime.Now });
-            }
-            else if (status == VoiceChatStatus.Finished)
-            {
-                await _dapperRepository
-                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,EndTime = @EndTime WHERE ChatKey = @key", new { key = request.ChatKey, request.Status, EndTime = DateTime.Now });
+                    .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,StartTime = @StartTime WHERE ChatKey = @Key", new { Key = request.ChatKey, request.Status, StartTime = DateTime.Now });
             }
 
+            var newRecord = await _dapperRepository
+                   .QueryFirstOrDefaultAsync<VoiceChatRecord>("SELECT TOP 1 * FROM VoiceChatRecord WHERE ChatKey = @Key", new { Key = request.ChatKey });
             return new VoiceChatRecorStatusUpdateResponse()
             {
-                Result = true
+                Result = true,
+                Status = (int)newRecord.Status
             };
+        }
+
+        public async Task<VoiceChatRecorStatusUpdateResponse> FinishVoiceChat(VoiceChatRecordFinishRequest request, ServerCallContext context)
+        {
+            var userIdentity = context.GetHttpContext().User.Identity?.Name;
+            var userid = long.Parse(userIdentity);
+            //数据库查询这条记录
+            var record = await _dapperRepository
+                       .QueryFirstOrDefaultAsync<VoiceChatRecord>("SELECT Top 1 * FROM VoiceChatRecord WHERE ChatKey = @key", new { key = request.ChatKey });
+            if (record == null || record.Status == VoiceChatStatus.Finished
+                || record.Status == VoiceChatStatus.Canceled
+                || record.Status == VoiceChatStatus.Rejected
+                || record.Status == VoiceChatStatus.NotAccept)
+            {
+                await _distributedLocker.SafedUnLockAsync(string.Format(CommonConst.VOICE_KEY, record.From, record.To), request.ChatKey);
+                return new VoiceChatRecorStatusUpdateResponse() { Result = true };
+            }
+
+            var action = (VoiceChatStatus)request.Status;
+            if ((action == VoiceChatStatus.Canceled && userid == record.From)
+                || (action == VoiceChatStatus.Rejected && userid == record.To)
+                || (action == VoiceChatStatus.Finished && (userid == record.From || userid == record.To)))
+            {
+                await _distributedLocker.SafedUnLockAsync(string.Format(CommonConst.VOICE_KEY, record.From, record.To), request.ChatKey);
+                //更新数据库状态
+                await _dapperRepository
+                   .ExecuteAsync("UPDATE VoiceChatRecord SET Status = @Status,EndTime = @EndTime WHERE ChatKey = @key", new { key = request.ChatKey, request.Status, EndTime = DateTime.Now });
+            }
+
+            return null;
         }
     }
 }

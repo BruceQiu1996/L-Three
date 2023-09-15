@@ -33,5 +33,7 @@ namespace ThreeL.ContextAPI.Application.Contract.Services
         Task<VoiceChatRecorStatusResponse> GetVoiceChatStatus(VoiceChatRecorStatusRequest request, ServerCallContext context);
         [DapperUnitOfWork]
         Task<VoiceChatRecorStatusUpdateResponse> UpdateVoiceChatStatus(VoiceChatRecorStatusUpdateRequest request, ServerCallContext context);
+        [DapperUnitOfWork]
+        Task<VoiceChatRecorStatusUpdateResponse> FinishVoiceChat(VoiceChatRecordFinishRequest request, ServerCallContext context);
     }
 }

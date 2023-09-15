@@ -39,6 +39,7 @@ namespace ThreeL.SocketServer
                 service.AddSingleton<IMessageHandler, ReplyAddFriendCommandHandler>();
                 service.AddSingleton<IMessageHandler, InviteMembersIntoGroupCommandHandler>();
                 service.AddSingleton<IMessageHandler, ApplyforVoiceChatMessageHandler>();
+                service.AddSingleton<IMessageHandler, FinishVoiceChatMessageHandler>();
                 service.AddSuperSocket();
                 service.AddSingleton<ServerAppSessionManager<ChatSession>>();
                 service.AddHostedService<TcpServerRunningService>();

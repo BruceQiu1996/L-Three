@@ -9,7 +9,7 @@ namespace ThreeL.Shared.SuperSocket.Dto.Message
         [ProtoMember(2)]
         public DateTime SendTime { get; set; } = DateTime.Now;
         [ProtoMember(3)]
-        public bool Result { get; set; }
+        public bool Result { get; set; } = true;
         [ProtoMember(4)]
         public string Message { get; set; }
     }

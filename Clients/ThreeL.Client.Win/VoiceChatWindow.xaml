@@ -4,6 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:hc="https://handyorg.github.io/handycontrol"
+        xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         ResizeMode="CanResize"
         Background="Transparent"
@@ -97,12 +98,18 @@
             <StackPanel Grid.Row="3" Orientation="Vertical" HorizontalAlignment="Center"
                         Visibility="{Binding Started,Converter={StaticResource Boolean2VisibilityReConverter}}" VerticalAlignment="Top">
                 <Border Height="50" Width="50" CornerRadius="25" Background="#e13e3e" Cursor="Hand">
+                    <behaviors:Interaction.Triggers>
+                        <behaviors:EventTrigger EventName="MouseLeftButtonDown">
+                            <behaviors:InvokeCommandAction Command="{Binding CancelCommandAsync}"></behaviors:InvokeCommandAction>
+                        </behaviors:EventTrigger>
+                    </behaviors:Interaction.Triggers>
                     <Path Data="{StaticResource CloseGeometry}"
                           Fill="White"
                           Height="20"
                           Stretch="Uniform"></Path>
                 </Border>
-                <TextBlock Text="取消" Foreground="#ddd" Margin="0 7" HorizontalAlignment="Center"></TextBlock>
+                <TextBlock Text="取消" Foreground="#ddd" Margin="0 7" HorizontalAlignment="Center"
+                           ></TextBlock>
             </StackPanel>
 
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Visibility="{Binding Started,Converter={StaticResource Boolean2VisibilityConverter}}">

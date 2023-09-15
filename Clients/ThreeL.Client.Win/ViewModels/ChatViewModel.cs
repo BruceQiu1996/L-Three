@@ -208,7 +208,10 @@ namespace ThreeL.Client.Win.ViewModels
                     {
                         await ReceiveFileMessageAsync(resp as FileMessageResponse, relation);
                     }
-
+                    else if (resp is VoiceChatMessageResponse)
+                    {
+                        await ReceiveVoiceChatMessageAsync(resp as VoiceChatMessageResponse, relation);
+                    }
                     if (relation != RelationViewModel && resp.From != App.UserProfile.UserId)
                     {
                         relation.UnReadCount++;
@@ -402,6 +405,9 @@ namespace ThreeL.Client.Win.ViewModels
                     }
                     break;
                 case VoiceChatStatus.NotAccept:
+                case VoiceChatStatus.Canceled:
+                case VoiceChatStatus.Rejected:
+                case VoiceChatStatus.Finished:
                     {
                         if (_voiceChatWindow != null && _voiceChatWindow.DataContext is VoiceChatWindowViewModel viewModel)
                         {
@@ -409,22 +415,9 @@ namespace ThreeL.Client.Win.ViewModels
                             {
                                 _voiceChatWindow.Close();
                                 _voiceChatWindow = null;
-
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    relation.AddMessage(new VoiceChatViewModel()
-                                    {
-                                        SendTime = messageResponse.SendTime,
-                                        From = messageResponse.From,
-                                        FromName = messageResponse.FromName,
-                                        To = messageResponse.To,
-                                        VoiceChatStatus = VoiceChatStatus.NotAccept
-                                    });
-                                });
                             }
                         }
                     }
-
                     break;
             }
         }
@@ -1328,6 +1321,30 @@ namespace ThreeL.Client.Win.ViewModels
             Application.Current.Dispatcher.Invoke(() =>
             {
                 relation.AddMessage(filevm);
+            });
+        }
+
+        /// <summary>
+        /// 收到新的语音记录
+        /// </summary>
+        /// <param name="textMessageResponse">文本信息响应</param>
+        /// <param name="relation">关联主体</param>
+        /// <returns></returns>
+        private async Task ReceiveVoiceChatMessageAsync(VoiceChatMessageResponse messageResponse, RelationViewModel relation)
+        {
+            //TODO记录数据库
+            var chatvm = new VoiceChatViewModel()
+            {
+                SendTime = messageResponse.SendTime,
+                From = messageResponse.From,
+                FromName = messageResponse.FromName,
+                To = messageResponse.To,
+                VoiceChatStatus = VoiceChatStatus.NotAccept
+            };
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                relation.AddMessage(chatvm);
             });
         }
 

@@ -7,10 +7,6 @@ namespace ThreeL.Infra.Redis
         private static readonly Lazy<AutoDelayTimers> lazy = new Lazy<AutoDelayTimers>(() => new AutoDelayTimers());
         private static ConcurrentDictionary<string, Timer> _timers = new ConcurrentDictionary<string, Timer>();
 
-        static AutoDelayTimers()
-        {
-        }
-
         private AutoDelayTimers()
         {
         }

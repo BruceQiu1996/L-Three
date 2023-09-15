@@ -1,6 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using System.Windows;
+using ThreeL.Client.Shared.Utils;
+using ThreeL.Infra.Core.Metadata;
+using ThreeL.Shared.SuperSocket.Client;
+using ThreeL.Shared.SuperSocket.Dto;
+using ThreeL.Shared.SuperSocket.Dto.Message;
+using ThreeL.Shared.SuperSocket.Metadata;
 
 namespace ThreeL.Client.Win.ViewModels
 {
@@ -37,8 +44,15 @@ namespace ThreeL.Client.Win.ViewModels
         public string VoiceChatKey { get; set; }
 
         private Task _loadingTask;
-        public VoiceChatWindowViewModel()
+
+        public AsyncRelayCommand CancelCommandAsync { get; set; }
+
+        private readonly TcpSuperSocketClient _tcpSuperSocketClient;
+        private readonly SequenceIncrementer _sequenceIncrementer;
+        public VoiceChatWindowViewModel(TcpSuperSocketClient tcpSuperSocketClient, SequenceIncrementer sequenceIncrementer)
         {
+            _tcpSuperSocketClient = tcpSuperSocketClient;
+            CancelCommandAsync = new AsyncRelayCommand(CancelAsync);
             _loadingTask = Task.Run(async () =>
             {
                 while (true)
@@ -58,6 +72,26 @@ namespace ThreeL.Client.Win.ViewModels
                     await Task.Delay(1000);
                 }
             });
+            _sequenceIncrementer = sequenceIncrementer;
+        }
+
+        private async Task CancelAsync() 
+        {
+            var packet = new Packet<FinishVoiceChatMessage>()
+            {
+                Sequence = _sequenceIncrementer.GetNextSequence(),
+                MessageType = MessageType.FinishVoiceChat,
+                Body =  new FinishVoiceChatMessage() 
+                {
+                    Chatkey = VoiceChatKey,
+                    Action = VoiceChatStatus.Canceled,
+                    To = Current.Id,
+                    IsGroup = false
+                }
+            };
+
+            await _tcpSuperSocketClient.SendBytesAsync(packet.Serialize());
+            //无论结果如何，关闭本地udp通信，结束通话
         }
 
         ~VoiceChatWindowViewModel()

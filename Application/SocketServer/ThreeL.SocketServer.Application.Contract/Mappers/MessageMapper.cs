@@ -30,6 +30,11 @@ namespace ThreeL.SocketServer.Application.Contract.Mappers
                  .ForMember(x => x.Message, y => y.MapFrom(src => string.Empty))
                  .AfterMap((x, y) => y.MessageRecordType = (int)MessageRecordType.File); ;
 
+            CreateMap<VoiceChatMessageResponse, ChatRecordPostRequest>().ForMember(x => x.SendTime,
+                y => y.MapFrom(src => Timestamp.FromDateTime(src.SendTime.ToUniversalTime())))
+                 .ForMember(x => x.Message, y => y.MapFrom(src => string.Empty))
+                 .AfterMap((x, y) => y.MessageRecordType = (int)MessageRecordType.VoiceChat); ;
+
             CreateMap<VoiceChatStatusResponse, VoiceChatRecordPostRequest>().ForMember(x => x.SendTime,
                y => y.MapFrom(src => Timestamp.FromDateTime(src.SendTime.ToUniversalTime())));
         }

@@ -36,6 +36,7 @@
         RequestOffline,
         ApplyVoiceChat,
         VoiceChatEventResponse,
+        FinishVoiceChat,
         LoadRecord
     }
 }
